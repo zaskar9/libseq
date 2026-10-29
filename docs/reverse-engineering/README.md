@@ -39,8 +39,9 @@ Three versions were studied:
 ### 1. The installation disk (2026-10-20)
 
 Headers, export and import tables, resources and strings of the files on the Cakewalk Apprentice
-1.04 disk. Result: the architecture (program on top of an engine DLL), the engine's API by name,
-the program's features, and most of the `.WRK` format. `installation-media.md`.
+1.04 disk, read with small scripts (`tools/static/`). Result: the architecture (program on top of
+an engine DLL), the engine's API by name, the program's features, and most of the `.WRK` format.
+`installation-media.md`; the header and import listings are in `static/`.
 
 ### 2. Running the program under Wine (2026-10-20 to 25)
 
@@ -99,4 +100,5 @@ as the reference for libseq. `signatures.md` lists the call layouts they use.
 | `exports/` | The export tables, compared side by side, and the measured argument sizes |
 | `traces/` | Summaries of the program traces (which functions, how often, sample arguments) |
 | `params/` | Parameter read-backs per version: which file byte sets which engine parameter |
+| `static/` | Step 1: the NE headers and the resolved imports of the files on the disk |
 | `first-calls/` | The first probe script and its output on each version |
