@@ -1,0 +1,59 @@
+load TTSSEQ.DLL -> ok
+SEQOPEN(0000,0000) -> 0001
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_SYSX.WRK",0000,null,0000,0000) -> 0001
+SEQCREATESYSXBANK(0001) -> 0102
+== receive until about 8 s
+SEQRECEIVESYSXBANK(%1,cb4,0000,0000,0000) -> 0001
+callback cb4(0000,0000,----,----), repeated
+callback cb4(0000,0003,----,----), repeated
+callback cb4(0000,0009,----,----), repeated
+callback cb4(0000,0012,----,----), repeated
+callback cb4(0000,001d,----,----), repeated
+SEQGETSYSXBANKLEN(%1) -> 0000001d
+SEQSYSXBIN2ASC(%1,@0,0010) -> 001d
+dump 0+0:
+  46 30 20 30 31 20 46 37 20 46 30 20 37 44 20 37
+  46 20 30 39 20 30 31 20 46 37 20 46 30 20 34 33
+  20 31 30 20 34 43 20 30 30 20 30 30 20 37 45 20
+  0d 0a 30 30 20 46 37 20 46 30 20 34 31 20 31 30
+  20 34 32 20 31 32 20 34 30 20 30 30 20 37 46 20
+  30 30 20 34 31 20 46 37 20 00 ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+== receive again into the same bank, until about 13 s
+SEQRECEIVESYSXBANK(%1,cb4,0000,0000,0000) -> 0001
+callback cb4(0000,0000,----,----), repeated
+callback cb4(0000,0003,----,----), repeated
+callback cb4(0000,0007,----,----), repeated
+SEQGETSYSXBANKLEN(%1) -> 00000024
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0024
+dump 0+0:
+  46 30 20 30 31 20 46 37 20 46 30 20 37 44 20 37
+  46 20 30 39 20 30 31 20 46 37 20 46 30 20 34 33
+  20 31 30 20 34 43 20 30 30 20 30 30 20 37 45 20
+  0d 0a 30 30 20 46 37 20 46 30 20 34 31 20 31 30
+  20 34 32 20 31 32 20 34 30 20 30 30 20 37 46 20
+  30 30 20 34 31 20 46 37 20 46 30 20 30 35 20 46
+  37 20 0d 0a 46 30 20 30 36 20 30 36 20 46 37 20
+  00 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+== 3.00: SeqReceiveSysxBankEx into a new bank, until about 18 s
+== the callback says stop at once
+SEQRECEIVESYSXBANK(%1,cb4,0000,0000,0000) -> 0001
+callback cb4(0000,0000,----,----)
+SEQGETSYSXBANKLEN(%1) -> 00000024
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0024
+dump 0+0:
+  46 30 20 30 31 20 46 37 20 46 30 20 37 44 20 37
+  46 20 30 39 20 30 31 20 46 37 20 46 30 20 34 33
+  20 31 30 20 34 43 20 30 30 20 30 30 20 37 45 20
+  0d 0a 30 30 20 46 37 20 46 30 20 34 31 20 31 30
+  20 34 32 20 31 32 20 34 30 20 30 30 20 37 46 20
+  30 30 20 34 31 20 46 37 20 46 30 20 30 35 20 46
+  37 20 0d 0a 46 30 20 30 36 20 30 36 20 46 37 20
+  00 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0001,0100,0000,0000)
+callback cb4(0001,0101,0000,0000)
+callback cb4(0001,0102,0000,0000)
+callback cb4(0000,0000,0000,0000)
+SEQCLOSE() -> 0001

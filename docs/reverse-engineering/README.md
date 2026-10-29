@@ -29,8 +29,9 @@ Three versions were studied:
   (`alternatives.md`), and not taken.
 - **No changes to Cakewalk's files.** The programs and DLLs ran as shipped. Where the environment
   needed adjusting, it was the environment: one byte of Wine's own ALSA driver (the manufacturer
-  ID its MIDI ports report) and a fake ALSA sequencer library that Wine loads instead of the real
-  one.
+  ID its MIDI ports report), a fake ALSA sequencer library that Wine loads instead of the real
+  one, and Wine's 16-bit MMSYSTEM, which did not pass buffers for system exclusive input between
+  16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`).
 - **No Cakewalk files in this repository.** The DLLs and programs come from the user's own disks.
   The repository holds only what the observations produced, and songs written for the purpose.
 
@@ -87,6 +88,16 @@ The findings are collected in `ttsseq-api.md`.
 
 Scripts that call the engine systematically, run on all three versions, with their outputs kept
 as the reference for libseq. `signatures.md` lists the call layouts they use.
+
+Four functions of 1.01 had no working layout when the first sets were made: `SeqMergeStreams`,
+`SeqTxMidiMsg`, `SeqSysxAsc2Bin` and `SeqReceiveSysxBank`. Their layouts came from the programs
+calling them: Cakewalk Apprentice 1.04 pasting (`SeqMergeStreams`) and pressing its panic button
+(`SeqTxMidiMsg`), Cakewalk Professional 2.00 receiving sysex and editing a bank's bytes in its
+Sysx view (`SeqReceiveSysxBankEx`, `SeqSysxAsc2Bin`); the probe then varied each argument. The
+receive at first failed with -4. Wine's relay trace of the MMSYSTEM calls showed why: Wine 9.0
+rejected the engine's `midiInPrepareHeader`, because it does not pass input buffers between 16
+and 32 bits. With that added to Wine (`tools/ttsprobe/wine/`), sysex input works, and the suites
+`merge`, `midiout`, `sysextext` and `sysexin` were added (2026-10-29).
 
 ## In this folder
 

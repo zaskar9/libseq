@@ -1,0 +1,181 @@
+mode oracle
+load TTSSEQ30.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 0 128
+buf 1 128
+buf 2 8
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYSX.WRK" 0000
+call.w SEQCREATESYSXBANK 0001
+let 1
+echo == "F0 7E 7F 09 01 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 7E 7F 09 01 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "f0 43 10 4c 00 00 7e 00 f7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "f0 43 10 4c 00 00 7e 00 f7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 01 F7 F0 02 03 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 01 F7 F0 02 03 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F07E7FF7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F07E7FF7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 1 2 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 1 2 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 123 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 123 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 7E 80 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 7E 80 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 F0 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 F0 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "  F0 01 F7  "
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "  F0 01 F7  "
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0,01,F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0,01,F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 GG F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 GG F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 7E XY 01 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 7E XY 01 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 7E 7F F7 GG"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 7E 7F F7 GG"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 7E 7F"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 7E 7F"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "7E 7F F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "7E 7F F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == ""
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 ""
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == "F0 F7"
+fill 2 0 ee ee ee ee ee ee ee ee
+put 1 0 "F0 F7"
+call.w SEQSYSXASC2BIN %1 @1 @2
+dump 2 0 8
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+echo == round trip of the banks of ENG_SYSX, 4 bytes per line
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @1 0004
+dump 1 0 32
+call.w SEQSYSXASC2BIN %1 @1 @2
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0101 @1 0004
+dump 1 0 32
+call.w SEQSYSXASC2BIN %1 @1 @2
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 48
+call.w SEQCLOSE

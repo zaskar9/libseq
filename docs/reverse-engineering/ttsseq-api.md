@@ -1,13 +1,15 @@
 # TTSSEQ API: what is known
 
 Black-box catalogue of the Twelve Tone sequencer engine, versions 1.01, 2.10 and 3.00. Every
-statement comes from one of four sources, named in brackets:
+statement comes from one of five sources, named in brackets:
 
 - [exp] the DLL's export table;
 - [sweep] Wine's tracer measuring how many argument words a function removes from the stack when
   `ttsprobe` calls it (the size is the callee's own, whatever the caller pushed);
 - [trace] what the demo, Cakewalk Apprentice 1.04 or Cakewalk Professional 2.00 pass and get back (`traces/`);
-- [probe] calls made with `ttsprobe` and their results.
+- [probe] calls made with `ttsprobe` and their results;
+- [relay] Wine's relay trace of the calls the engine itself makes into Windows (MMSYSTEM, KERNEL)
+  while the probe calls it.
 
 `api-catalogue.md` lists every export with its ordinal and size per version. Sizes are in 16-bit
 words; a far pointer or a 32-bit value is two words, written high word first (as the tracer
@@ -166,6 +168,26 @@ Track > Archive in Cakewalk Apprentice 1.04 calls `SeqSetStreamParam(stream, 8, 
 | `SeqGetTempoRatio(seq, i)` | 2 | 0x20, 0x40, 0x80 = 0.5, 1.0, 2.0 in 64ths [trace] |
 | `SeqWhichTempoRatio(seq)` | 1 | the selected one [trace] |
 
+## Sending MIDI directly
+
+`SeqTxMidiMsg(port, channel, status, data1, data2)` (5 words) sends one channel message at once,
+outside playback. Cakewalk Apprentice 1.04's panic button makes 137 such calls, each with port
+0xFFFF and channel 0xFF: note-off for all 128 keys, pitch wheel centre, modulation 0, volume 127,
+pan 64, sustain, sostenuto and soft pedal 0, "reset all controllers" and "all notes off" [trace]. Through the probe, the same in all three versions
+unless noted [probe]:
+
+- The channel argument replaces the low nibble of the status. Port 0xFFFF sends to every port,
+  channel 0xFF to all 16 channels.
+- The engine knows which notes are on. A note-off (0x8n, or 0x9n with velocity 0) goes out only
+  for a note that is on; for a note that is not on nothing is sent, but the result is still 1.
+  A second note-on for a note that is on first sends a note-on with velocity 0. A note left on is
+  not turned off by `SeqClose`, which sends "all sound off" (controller 120) instead.
+- Result 1 when sent; 0, and nothing sent, for pitch wheel (0xEn, whatever the data), statuses
+  below 0x80 or above 0xEF, channels above 15, and data bytes above 0x7F. So the panic's pitch
+  wheel reset never goes out.
+- Port 1, which does not exist with one output port: 1.01 and 2.10 send nothing (result 1), 3.00
+  sends on port 0.
+
 ## Transport
 
 - Play in Cakewalk Apprentice 1.04: `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(0)`, `SeqPlayStart(callback)`;
@@ -224,6 +246,32 @@ Wine's timing is a little less exact than 86Box's.
   6) [probe]; marker indexes are 32-bit, as in `SeqGetMarkerTime` [trace].
 - `SeqConfigMidi(hwnd)` (1 word) shows the "Select MIDI Devices" dialog and returns the button
   (2 = Cancel) [probe].
+- `SeqSysxAsc2Bin(bank, text, &position)` turns the text of the "Edit Bytes" dialog back into the
+  bank's bytes; Cakewalk Professional 2.00 calls it on OK and says "Not a number!" when it returns
+  4 [trace]. Through the probe [probe]:
+  - Pairs of hex digits separated by white space (including CR LF), upper or lower case; a group
+    of one digit is one byte, a group of three is split after two digits ("123" is 12 03). Data
+    bytes above 0x7F and F0 inside a message are accepted. Several messages may follow each
+    other.
+  - Results: 0 done; 1 the text does not start with F0 (also an empty text); 2 the last message
+    has no F7; 4 a character that is not hex (a comma too), whose offset in the text goes to the
+    32-bit value at `position`. On any error the bank keeps its old bytes.
+  - `SeqSysxBin2Asc` and `SeqSysxAsc2Bin` are inverse: the banks of ENG_SYSX come back unchanged.
+- `SeqReceiveSysxBank(bank, callback, 0, 0, 0)` (6 words), and in 3.00 also
+  `SeqReceiveSysxBankEx(bank, callback, 0, 0, 0, 0, 0)` (8 words), which is what Cakewalk
+  Professional 2.00 calls from its Sysx view [trace]:
+  - The engine hands the MIDI input driver a buffer for system exclusive data
+    (`midiInPrepareHeader`, `midiInAddBuffer`) [relay] and calls the callback in a loop, with
+    the number of bytes received so far and the free memory (`GetFreeSpace`), both 32-bit.
+    Professional shows them as "14 bytes received (space for 2109181952)" until Done.
+  - The loop ends when the callback returns non-zero. The result is 1, or -2 (0xFFFE) when the
+    bank is still empty; -4 when the input buffer could not be prepared (unpatched Wine;
+    Professional then says "Out of memory") [probe, trace, relay].
+  - Every complete message is appended to the bank, also to a bank that already has bytes.
+    Universal messages (F0 7E and F0 7F) are left out; channel messages are ignored [probe].
+  - The other words, zero in Professional's call, had no visible effect [probe].
+- Receiving sysex under Wine needs Wine's 16-bit MMSYSTEM to pass input buffers between 16 and
+  32 bits, which Wine 9.0 does not (`tools/ttsprobe/wine/mmsystem16-midiin.patch`).
 
 ## Files
 
@@ -313,8 +361,9 @@ The take, the same in all three versions for the same input (one count-in measur
 - The filter (parameter 28) applies: with the new sequence's 0xDB, Key and Channel Aftertouch are
   not recorded. Controllers, wheel and patch changes are recorded with duration 0.
 - Every message is echoed to the output within about 5 ms (MIDI thru), the filtered ones too.
-- A sysex message from the input was neither recorded nor echoed (it would probably need
-  `SeqReceiveSysxBank`).
+- A sysex message from the input is neither recorded nor echoed. While recording, the engine
+  gives the MIDI input driver no buffers for system exclusive data (`midiInAddBuffer`), so the
+  driver has nowhere to put them; only `SeqReceiveSysxBank` does [probe, relay].
 
 Cakewalk Professional 2.00 under Wine stalls for 2 s after the count-in: it hides its count-in window
 and Wine waits for a window manager that the virtual display does not run
@@ -341,7 +390,9 @@ callback thunks [probe]:
 
 From Cakewalk Apprentice 1.04 (2.10) and Cakewalk Professional 2.00 (3.00) doing Edit > Copy and Paste [trace]:
 
-- The clipboard is sequence 2; Cakewalk Apprentice 1.04 also copies the whole tempo map to sequence 3 to undo.
+- The clipboard is a sequence of its own: sequence 1 in both traces, the song being sequence 2.
+  For undo, Cakewalk Apprentice 1.04 also makes sequence 3, with an empty clone of the track
+  (`SeqCloneStream(3, track, 1)`) and a copy of the whole tempo map.
 - `SeqTempoCopy(src, clip, from32, thru32, 0, pointer)` (10 words);
   `SeqTempoPaste(clip, dst, at32, value32, 1, 0 or 1)` (8 words).
 - `SeqMeterCopy` (8 words); `SeqMeterPaste(clip, dst, at32, 1, 0)` (6 words). Cakewalk Apprentice 1.04 refuses
@@ -350,6 +401,23 @@ From Cakewalk Apprentice 1.04 (2.10) and Cakewalk Professional 2.00 (3.00) doing
 - `SeqMarkerCopy` (3.00, 10 words) has the layout of `SeqTempoCopy`.
 - "Slide over existing material" moves the events later with `SeqDisplaceLater(stream, at32,
   amount32)` (5 words) in both programs; neither calls `SeqInsertRange`.
+- The events go in with `SeqMergeStreams`: Cakewalk Apprentice 1.04 pastes at 0x780 with
+  `SeqMergeStreams(2, 0x0200, 1, 0x0100, 0, 0x780)` and from then on uses the stream it returns
+  (0x0201) as the track; Cakewalk Professional 2.00 adds the number of clipboard events,
+  `(2, 0x0200, 1, 0x0100, 0, 10, 0x1E0)`, and merges a recorded take the same way,
+  `(1, 0x0000, 1, 0x0100, 1, 7, 0)` [trace].
+- Through the probe [probe], `SeqMergeStreams(seq, a, seq_b, b, flag, offset32)`, in 3.00
+  `(seq, a, seq_b, b, flag, count32, offset32)`:
+  - It makes a new stream in `seq` (the lowest free handle) and returns it. The new stream has
+    the events of `a` and those of `b` moved later by `offset`; in 3.00 only the first `count`
+    events of `b` (more than `b` has means all of them).
+  - At equal times the events of `a` come before those of `b`.
+  - `a` is destroyed; `b` is kept, or destroyed too when `flag` is not 0 (Professional passes 1
+    for the record buffer).
+  - The new stream keeps the stream parameters and the name of `a`.
+  - There is no time-base conversion: with `seq` at 240 ppq and `b`'s sequence at 120 ppq, the
+    ticks of `b` are taken as they are.
+  - The third word had no visible effect in any test; the programs pass the sequence of `b`.
 
 ## Call layouts
 
@@ -379,13 +447,14 @@ function the oracle suites call, found by trying layouts through the probe. Note
 
 - Sizes: all exports that are API are measured except `SeqInsertRange` in 3.00 (4 words in 1.01
   and 2.10; every layout tried crashes in 3.00, and no program was seen calling it).
-- Layouts not found yet: `SeqMergeStreams`, `SeqInsertRange` (one returns, without effect),
-  `SeqTxMidiMsg`, `SeqSysxAsc2Bin`, `SeqReceiveSysxBank`, `SeqSetMeter`; the step record calls
-  return but record nothing without MIDI input.
+- Layouts not found yet: `SeqInsertRange` (one returns, without effect), `SeqSetMeter`; the step
+  record calls return but record nothing without MIDI input.
+- The third word of `SeqMergeStreams` and the zero words of `SeqReceiveSysxBank` and
+  `SeqReceiveSysxBankEx`: no visible effect yet.
 - Parameters 3, 30 and 31: not from any dialog, no effect on playback; probably recording.
 - The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
-  `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`); sysex input.
+  `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - The `[Options]` settings of `TTSSEQ.INI`.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
   in a buffer that has gone out of scope, so the fake port logs them as zeros (`sysex 00 00 00`);

@@ -4,40 +4,44 @@ ok   events: midi: 55 messages in the same order
 ok   files: midi: 150 messages in the same order; files: 136 identical
 ok   lifecycle: midi: 48 messages in the same order
 ok   markers: midi: 51 messages in the same order
+ok   merge: midi: 81 messages in the same order
 ok   meter: midi: 55 messages in the same order
+ok   midiout: midi: 146 messages in the same order
 ok   misc: midi: 57 messages in the same order
-ok   play_E2_CHAS: midi: 145 messages, times within 8.9 ms
+ok   play_E2_CHAS: midi: 145 messages, times within 5.1 ms
 ok   play_E2_KORD: midi: 91 messages, times within 7.5 ms
-ok   play_E2_METR: midi: 77 messages, times within 17.1 ms
-ok   play_E2_OVLP: midi: 77 messages, times within 9.7 ms
-ok   play_E2_SPP: midi: 69 messages, times within 15.0 ms
-ok   play_E2_STOP: midi: 75 messages, times within 7.0 ms
-ok   play_E3_DENS: midi: 577 messages, times within 114.7 ms (4 beyond 30)
-ok   play_E3_MA: midi: 85 messages, times within 16.0 ms
-ok   play_E3_MB: midi: 85 messages, times within 15.8 ms
-ok   play_E3_MC: midi: 85 messages, times within 23.2 ms
-ok   play_E3_MD: midi: 85 messages, times within 11.2 ms
-ok   play_E3_ME: midi: 85 messages, times within 5.8 ms
-ok   play_E3_MF: midi: 85 messages, times within 18.1 ms
-ok   play_E3_SHTL: midi: 97 messages, times within 39.1 ms (1 beyond 30)
-ok   play_E3_SPPD: midi: 69 messages, times within 8.8 ms
-ok   play_ENG_CHAS: midi: 76 messages, times within 3.0 ms
-ok   play_ENG_LOOP: midi: 78 messages, times within 16.2 ms
-ok   play_ENG_METR: midi: 85 messages, times within 10.4 ms
-ok   play_ENG_MULT: midi: 121 messages, times within 5.4 ms
-ok   play_ENG_ORDR: midi: 102 messages, times within 7.8 ms
-ok   play_ENG_PARM: midi: 103 messages, times within 13.4 ms
-ok   play_ENG_SYNC: midi: 71 messages, times within 3.8 ms
-ok   play_ENG_SYSX: midi: 71 messages, times within 5.2 ms
-ok   play_ENG_TMPO: midi: 97 messages, times within 12.5 ms
-ok   play_FURELISE: midi: 175 messages, times within 19.4 ms
+ok   play_E2_METR: midi: 77 messages, times within 7.3 ms
+ok   play_E2_OVLP: midi: 77 messages, times within 10.3 ms
+ok   play_E2_SPP: midi: 69 messages, times within 2.9 ms
+ok   play_E2_STOP: midi: 75 messages, times within 12.5 ms
+ok   play_E3_DENS: midi: 577 messages, times within 126.0 ms (5 beyond 30)
+ok   play_E3_MA: midi: 85 messages, times within 15.8 ms
+ok   play_E3_MB: midi: 85 messages, times within 15.7 ms
+ok   play_E3_MC: midi: 85 messages, times within 21.1 ms
+ok   play_E3_MD: midi: 85 messages, times within 10.7 ms
+ok   play_E3_ME: midi: 85 messages, times within 11.5 ms
+ok   play_E3_MF: midi: 85 messages, times within 14.6 ms
+ok   play_E3_SHTL: midi: 97 messages, times within 9.5 ms
+ok   play_E3_SPPD: midi: 69 messages, times within 11.0 ms
+ok   play_ENG_CHAS: midi: 76 messages, times within 6.2 ms
+ok   play_ENG_LOOP: midi: 78 messages, times within 15.6 ms
+ok   play_ENG_METR: midi: 85 messages, times within 7.5 ms
+ok   play_ENG_MULT: midi: 121 messages, times within 9.3 ms
+ok   play_ENG_ORDR: midi: 102 messages, times within 16.8 ms
+ok   play_ENG_PARM: midi: 103 messages, times within 9.0 ms
+ok   play_ENG_SYNC: midi: 71 messages, times within 7.5 ms
+ok   play_ENG_SYSX: midi: 71 messages, times within 13.6 ms
+ok   play_ENG_TMPO: midi: 97 messages, times within 13.7 ms
+ok   play_FURELISE: midi: 175 messages, times within 24.7 ms
 ok   ranges: midi: 66 messages in the same order
-ok   record: out: 4 lines differ, first at 46: '  18 00 00 c0 05 00 00 00' / '  14 00 00 c0 05 00 00 00'; midi: 98 messages in the same order
+ok   record: out: 2 lines differ, first at 46: '  18 00 00 c0 05 00 00 00' / '  1a 00 00 c0 05 00 00 00'; midi: 98 messages in the same order
 ok   seqparams: midi: 55 messages in the same order
 ok   streamparams: midi: 83 messages in the same order
 ok   streams: midi: 134 messages in the same order
 ok   sysex: midi: 53 messages in the same order; files: 1 identical
+ok   sysexin: midi: 49 messages in the same order
+ok   sysextext: midi: 48 messages in the same order
 ok   tempo: midi: 56 messages in the same order
 ok   timecode: midi: 52 messages in the same order
-ok   transport: midi: 148 messages, times within 14.4 ms
-42 of 42 suites agree
+ok   transport: midi: 142 messages, times within 5.5 ms
+46 of 46 suites agree

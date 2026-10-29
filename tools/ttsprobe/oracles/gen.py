@@ -447,6 +447,133 @@ def _():
     return L
 
 
+def merge(seq, a, seqb, b, flag, offset, count='ffffffff'):
+    """SeqMergeStreams in the version's layout: 3.00 adds the number of events of b to take"""
+    return [f'?101,210 call.w SEQMERGESTREAMS {seq} {a} {seqb} {b} {flag} d:{offset}',
+            f'?300 call.w SEQMERGESTREAMS {seq} {a} {seqb} {b} {flag} d:{count} d:{offset}']
+
+
+@suite('merge')
+def _():
+    # stream a: the first two events of ENG_ORDR's stream (a clone in sequence 2, trimmed); stream b:
+    # ENG_ORDR's stream itself. The merged stream is new; a is gone, b too when the flag is set.
+    L = ['@open', 'buf 0 64']
+
+    def setup(trim=True):
+        R = ['@load ENG_ORDR.WRK', 'call.w SEQCREATESEQ 0000 0000', 'call.w SEQCLONESTREAM 0002 0100 0000']
+        if trim:
+            R += ['call.w SEQDELETERANGE 0200 d:00000002 d:00000013']
+        return R
+
+    def after(seqs=('0001', '0002')):
+        R = ['let 1', 'call.d SEQSTREAMLEN %1'] + walk('%1', 23)
+        R += [f'call.w SEQENUMSTREAMS {s} cb4 d:00000000' for s in seqs]
+        return R + ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+
+    for title, args in [
+        ('paste at 0x780 (Cakewalk Apprentice 1.04)', ('0002', '0200', '0001', '0100', '0000', '00000780')),
+        ('offset 0', ('0002', '0200', '0001', '0100', '0000', '00000000')),
+        ('offset 0x78: equal times, a first', ('0002', '0200', '0001', '0100', '0000', '00000078')),
+        ('offset 0x10000', ('0002', '0200', '0001', '0100', '0000', '00010000')),
+        ('flag 3 does nothing visible', ('0002', '0200', '0001', '0100', '0003', '00000000')),
+        ('third word 5 does nothing visible', ('0002', '0200', '0005', '0100', '0000', '00000780')),
+        ('new stream in sequence 1', ('0001', '0200', '0001', '0100', '0000', '00000780')),
+        ('swapped: a is the song stream, b the clone', ('0002', '0100', '0002', '0200', '0000', '00000078')),
+    ]:
+        L += [f'echo == {title}'] + setup() + merge(*args) + after()
+    L += ['echo == flag 1 destroys b too'] + setup() + merge('0002', '0200', '0001', '0100', '0001', '00000780') + \
+        ['let 1', 'call.d SEQSTREAMLEN %1'] + walk('%1', 4) + \
+        ['call.w SEQENUMSTREAMS 0001 cb4 d:00000000', 'call.w SEQENUMSTREAMS 0002 cb4 d:00000000',
+         'call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    L += ['echo == the stream parameters and name of a are kept'] + setup() + \
+        ['call.w SEQSETSTREAMPARAM 0200 0001 d:00000005', 'call.w SEQSETSTREAMNAME 0200 "Stream a"',
+         'call.w SEQSETSTREAMPARAM 0100 0002 d:00000003', 'call.w SEQSETSTREAMNAME 0100 "Stream b"'] + \
+        merge('0002', '0200', '0001', '0100', '0000', '00000780') + ['let 1'] + \
+        [f'call.d SEQGETSTREAMPARAM %1 {p:04x}' for p in range(16)] + \
+        ['fill 0 0 ' + 'ee ' * 32, 'call.w SEQGETSTREAMNAME %1 @0 0081', 'dump 0 0 32',
+         'call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    L += ['echo == no time-base conversion: sequence 2 at 240 ppq'] + setup() + \
+        ['call.w SEQSETPPQ 0002 00f0'] + merge('0002', '0200', '0001', '0100', '0000', '00000780') + after()
+    L += ['echo == 3.00: the number of events taken from b']
+    for n in ('00000000', '00000001', '00000007', '0000000a', '00000013', '00000030'):
+        L += [f'?300 echo -- {n}'] + [f'?300 {c}' for c in setup()] + \
+            [f'?300 call.w SEQMERGESTREAMS 0002 0200 0001 0100 0000 d:{n} d:00000780', '?300 let 1',
+             '?300 call.d SEQSTREAMLEN %1', '?300 call.w SEQDESTROYSEQ 0002', '?300 call.w SEQDESTROYSEQ 0001']
+    L += ['@close']
+    return L
+
+
+@suite('midiout')
+def _():
+    # SeqTxMidiMsg(port, channel, status, data1, data2) sends one channel message at once; port
+    # 0xffff is every port, channel 0xff every channel. The fake port records what goes out.
+    L = ['@open', 'sleep 300']
+    for title, msgs in [
+        ('note on, note off', ['0000 0000 0090 003c 0064', '0000 0000 0080 003c 0000']),
+        ('note off for a note that is not on', ['0000 0000 0080 003d 0000']),
+        ('note on, note on with velocity 0, note off', ['0000 0000 0090 003d 0040', '0000 0000 0090 003d 0000', '0000 0000 0080 003d 0000']),
+        ('the same note twice, then two note offs', ['0000 0000 0090 0041 0042', '0000 0000 0090 0041 0043', '0000 0000 0080 0041 0000', '0000 0000 0080 0041 0000']),
+        ('the channel replaces the status nibble', ['0000 0005 0093 0040 0040', '0000 0005 0083 0040 0000']),
+        ('controller, program, channel and key pressure', ['0000 0003 00b0 0007 0050', '0000 0000 00c0 0005 0000', '0000 0002 00d0 0030 0000', '0000 0002 00a0 0030 0020']),
+        ('the same controller twice', ['0000 0000 00b0 0007 0050', '0000 0000 00b0 0007 0050']),
+        ('pitch wheel', ['0000 0000 00e0 0000 0040', '0000 0000 00e0 0010 0050', '0000 0000 00e0 2000 0000', '0000 0000 00ef 0010 0020']),
+        ('every channel', ['0000 00ff 00c0 0007 0000']),
+        ('every port, channel 3', ['ffff 0003 00b0 0001 0002']),
+        ('every port and channel: note on, note offs', ['ffff 00ff 0090 0031 0021', 'ffff 00ff 0080 0031 0000', 'ffff 00ff 0080 0032 0000']),
+        ('port 1', ['0001 0002 0090 0030 0020', '0001 0002 0080 0030 0000']),
+        ('channel 16', ['0000 0010 0090 0020 0020']),
+        ('statuses below 0x80 and above 0xef', ['0000 0000 0040 0020 0020', '0000 0000 00f0 0020 0020', '0000 0000 00f8 0000 0000', '0000 0000 00ff 0020 0020']),
+        ('data bytes above 0x7f', ['0000 0000 0090 0080 0040', '0000 0000 0090 0040 0080', '0000 0000 00b0 0007 00ff']),
+        ('the panic of Cakewalk Apprentice 1.04 (excerpt)', ['ffff 00ff 0080 003c 0000', 'ffff 00ff 00b0 0040 0000', 'ffff 00ff 00e0 0000 0040', 'ffff 00ff 00b0 0079 0000']),
+    ]:
+        L += [f'echo == {title}'] + [f'call.w SEQTXMIDIMSG {m}' for m in msgs] + ['sleep 100']
+    L += ['echo == a note left on is turned off at close', 'call.w SEQTXMIDIMSG 0000 0000 0090 0045 0045', 'sleep 100', '@close']
+    return L
+
+
+@suite('sysextext')
+def _():
+    # SeqSysxAsc2Bin(bank, text, &position): text to bytes, the inverse of SeqSysxBin2Asc. Returns 0,
+    # or an error (the bank keeps its bytes); for a character that is not hex it writes the offset
+    # of that character to the dword at position.
+    L = ['@open', 'buf 0 128', 'buf 1 128', 'buf 2 8', '@load ENG_SYSX.WRK', 'call.w SEQCREATESYSXBANK 0001', 'let 1']
+
+    def show():
+        return ['call.d SEQGETSYSXBANKLEN %1', 'fill 0 0 ' + 'ee ' * 48, 'call.w SEQSYSXBIN2ASC %1 @0 0010', 'dump 0 0 48']
+    for text in ['F0 7E 7F 09 01 F7', 'f0 43 10 4c 00 00 7e 00 f7', 'F0 01 F7 F0 02 03 F7', 'F07E7FF7', 'F0 1 2 F7',
+                 'F0 123 F7', 'F0 7E 80 F7', 'F0 F0 F7', '  F0 01 F7  ', 'F0,01,F7', 'F0 GG F7', 'F0 7E XY 01 F7',
+                 'F0 7E 7F F7 GG', 'F0 7E 7F', '7E 7F F7', '', 'F0 F7']:
+        L += [f'echo == "{text}"', 'fill 2 0 ee ee ee ee ee ee ee ee', f'put 1 0 "{text}"',
+              'call.w SEQSYSXASC2BIN %1 @1 @2', 'dump 2 0 8'] + show()
+    L += ['echo == round trip of the banks of ENG_SYSX, 4 bytes per line']
+    for b in ('0100', '0101'):
+        L += ['fill 1 0 ' + 'ee ' * 64, f'call.w SEQSYSXBIN2ASC {b} @1 0004', 'dump 1 0 32', 'call.w SEQSYSXASC2BIN %1 @1 @2'] + show()
+    L += ['@close']
+    return L
+
+
+@suite('sysexin')
+def _():
+    # SeqReceiveSysxBank(bank, callback, 0, 0, 0): collects incoming sysex into the bank until the
+    # callback, called over and over with (bytes received, free memory) as two dwords, returns
+    # non-zero. The input script sends the messages; cbretafter makes the callback say stop.
+    L = ['#! input SYSX.TXT', '#! secs 45', '@open', 'buf 0 192', 'cbmask c', 'cbyield 1',
+         '@load ENG_SYSX.WRK', 'call.w SEQCREATESYSXBANK 0001', 'let 1']
+
+    def show():
+        return ['call.d SEQGETSYSXBANKLEN %1', 'fill 0 0 ' + 'ee ' * 128, 'call.w SEQSYSXBIN2ASC %1 @0 0010', 'dump 0 0 128']
+    L += ['echo == receive until about 8 s', 'cbret 0', 'cbretafter 7000 1',
+          'call.w SEQRECEIVESYSXBANK %1 cb4 0000 0000 0000'] + show()
+    L += ['echo == receive again into the same bank, until about 13 s', 'cbret 0', 'cbretafter 4500 1',
+          'call.w SEQRECEIVESYSXBANK %1 cb4 0000 0000 0000'] + show()
+    L += ['echo == 3.00: SeqReceiveSysxBankEx into a new bank, until about 18 s', '?300 call.w SEQCREATESYSXBANK 0001', '?300 let 1',
+          '?300 cbret 0', '?300 cbretafter 4500 1', '?300 call.w SEQRECEIVESYSXBANKEX %1 cb4 0000 0000 0000 0000 0000']
+    L += ['?300 ' + c for c in show()]
+    L += ['echo == the callback says stop at once', 'cbret 1', 'call.w SEQRECEIVESYSXBANK %1 cb4 0000 0000 0000'] + show()
+    L += ['cbmask 0', 'call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000', '@close']
+    return L
+
+
 def main():
     os.makedirs(os.path.join(HERE, 'suites'), exist_ok=True)
     for name, fn in SUITES.items():

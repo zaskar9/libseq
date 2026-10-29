@@ -8,7 +8,7 @@ and compare.
 | Folder or file | Content |
 |---|---|
 | `101/`, `210/`, `300/` | per suite: the script as run on that version (`.txt`), the probe's output (`.out`), the MIDI output in capture format (`.midi`), the files the suite saved (`SUITE/`) |
-| `input/IN3.TXT` | the scripted MIDI input of the `record` suite (milliseconds after the engine opens the input, then the bytes) |
+| `input/IN3.TXT`, `input/SYSX.TXT` | the scripted MIDI input of the `record` and `sysexin` suites (milliseconds after the engine opens the input, then the bytes) |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
 | `coverage.txt` | the exports each version's suites call and do not call |
 | `diff-101-210.txt`, `diff-210-300.txt` | where two versions answer the same calls differently |
@@ -29,7 +29,10 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
   playback only say how long the calls took and are not compared.
 - The `record` suite records live input, so its event times may differ by a few ticks between
   runs.
-- 1.01 is covered for 149 of its 158 API exports. Not covered: `SeqMergeStreams`,
-  `SeqInsertRange`, `SeqTxMidiMsg`, `SeqSysxAsc2Bin` and `SeqReceiveSysxBank` (no working layout
-  found yet), `SeqIOSeek/Read/Write` (valid only inside the file callbacks) and `SeqConfigMidi` (a
-  dialog). The functions new in 2.10 and 3.00 have no suites yet.
+- The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
+  `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
+  masked, as they differ from run to run.
+- 1.01 is covered for 153 of its 158 API exports. Not covered: `SeqInsertRange` (no working
+  layout found yet), `SeqIOSeek/Read/Write` (valid only inside the file callbacks) and
+  `SeqConfigMidi` (a dialog). Of the functions new in 2.10 and 3.00 only
+  `SeqReceiveSysxBankEx` has a suite so far.

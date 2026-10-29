@@ -46,7 +46,7 @@ established.
 | `SeqDisplaceEarlier/Later(stream, d from, d amount)` | d | |
 | `SeqTemporalSort(stream)` | d | |
 | `SeqInsertRange(stream, ?, d ?)` | d | ? returns 0 |
-| `SeqMergeStreams` | | layout not found (7 words in 1.01/2.10, 9 in 3.00) |
+| `SeqMergeStreams(seq, a, seq b, b, flag, d offset)`; 3.00: `(seq, a, seq b, b, flag, d count, d offset)` | w | a new stream in `seq`: the events of stream `a`, and those of `b` moved later by `offset` (3.00: the first `count` events of `b`); at equal times `a` comes first. `a` is destroyed, `b` too when `flag` is not 0. Returns the new stream. The third word has no visible effect (the programs pass `b`'s sequence) |
 | `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind (1, 2, ...); the name is kept, not copied |
 | `SeqUnregisterEventKind(p name)` | w | |
 | `SeqCallEventProc(w, p, w)` | w | ? returns 0 |
@@ -142,7 +142,9 @@ established.
 | `SeqSysxBin2Asc(bank, p buffer, bytes per line)` | d | "F0 7E ... " with CR LF |
 | `SeqSaveSysxBank(bank, p file)`, `SeqLoadSysxBank(bank, p file)` | w | |
 | `SeqSendSysxBank(bank, 0, 0)` | w | sends the bank |
-| `SeqSysxAsc2Bin`, `SeqReceiveSysxBank` | | layouts not found |
+| `SeqSysxAsc2Bin(bank, p text, p position)` | w | text to bytes: 0, or 1 (no F0 at the start), 2 (no F7 at the end), 4 (not hex; the offset of the character goes to the dword at `position`); on an error the bank keeps its bytes |
+| `SeqReceiveSysxBank(bank, p callback, 0, 0, 0)` | w | adds incoming sysex to the bank until the callback returns non-zero; callback(d bytes received, d free memory). Returns 1, or -2 when the bank stayed empty, -4 when the input buffer could not be prepared. Universal messages (F0 7E, F0 7F) are left out. The last three words have no visible effect |
+| `SeqReceiveSysxBankEx(bank, p callback, 0, 0, 0, 0, 0)` | w | 3.00; with zeros, as Cakewalk Professional 2.00 calls it, the same as `SeqReceiveSysxBank` |
 
 ## Files, transport, input, devices
 
@@ -159,7 +161,7 @@ established.
 | `SeqGetSrcClock([seq])`, `SeqSetSrcClock([seq,] source)` | w | the sequence from 2.10 on |
 | `SeqRecordStart(5 words, p callback)`, `SeqRecordStop()`, `SeqRecCount()`, `SeqRecordCleanup(seq, keep, 0, p stream)` | w / d | 1.01, 2.10; see API.md |
 | `SeqStepRecSetup(seq, stream)`, `SeqStepRecParams(w, w, w, w)`, `SeqRecordEvent(p)`, `SeqSetRecCount(d)`, `SeqStepRecTerm()` | | ? step record takes its events from MIDI input |
-| `SeqTxMidiMsg` (5 words) | | layout not found |
+| `SeqTxMidiMsg(port, channel, status, data1, data2)` | w | sends one channel message at once: the channel replaces the status's low nibble; port 0xffff is every port, channel 0xff every channel. Note-offs (0x8n, or 0x9n with velocity 0) go out only for notes that are on; a note-on for a note that is on sends its note-off first. Returns 1, or 0 for pitch wheel (0xEn), system messages, channel 16 and above or data above 0x7f, which are not sent |
 | `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out" |
 | `SeqHugeMemCpy(p dst, p src, d count)` | d | |
 | `SeqIOSeek/Read/Write` | | only valid inside the load and save callbacks |

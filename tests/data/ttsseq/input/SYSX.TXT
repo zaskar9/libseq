@@ -1,0 +1,14 @@
+# sysex for the receive suite (sysexin); times from the moment the engine connects to the input
+# (SeqOpen). The first receive starts about 1 s after that and ends at about 8 s.
+2500 f0 01 f7
+3000 f0 7e 01 02 f7
+3500 f0 7f 01 02 f7
+4000 f0 7d 7f 09 01 f7
+4500 90 3c 64
+5000 f0 43 10 4c 00 00 7e 00 f7
+5500 f0 41 10 42 12 40 00 7f 00 41 f7
+# second receive, into the same bank: about 9 to 13 s
+10000 f0 05 f7
+11000 f0 06 06 f7
+# third receive (3.00: SeqReceiveSysxBankEx): about 14 to 18 s
+15000 f0 07 07 07 f7
