@@ -28,6 +28,12 @@ an emulator, and calls into the original DLLs through their exported interface. 
 disassembled or decompiled. The method, the tools and every observation they produced are part of
 this repository, so each statement about the engine can be traced to the observation behind it.
 
+## Repository
+
+| Folder | Content |
+|---|---|
+| `docs/reverse-engineering/` | How the engine was studied, step by step, and everything known about its interface |
+
 ## Status
 
 Nothing of the library itself exists yet on this branch. An earlier exploration (versions 0.1.0
