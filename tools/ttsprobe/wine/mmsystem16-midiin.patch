@@ -1,0 +1,104 @@
+diff --git a/dlls/mmsystem.dll16/message16.c b/dlls/mmsystem.dll16/message16.c
+index b12b9b9..7965de7 100644
+--- a/dlls/mmsystem.dll16/message16.c
++++ b/dlls/mmsystem.dll16/message16.c
+@@ -88,7 +88,60 @@ static  void	                MMSYSTDRV_Mixer_MapCB(DWORD uMsg, DWORD_PTR* dwUser
+  */
+ static  MMSYSTEM_MapType	MMSYSTDRV_MidiIn_Map16To32W  (DWORD wMsg, DWORD_PTR* lpParam1, DWORD_PTR* lpParam2)
+ {
+-    return MMSYSTEM_MAP_MSGERROR;
++    /* the long buffers of MIDI input (system exclusive), mapped as MMSYSTDRV_MidiOut_Map16To32W
++     * maps those of MIDI output: a 32 bit header, preceded by the 16 bit header's address (which
++     * MMSYSTDRV_MidiIn_MapCB already expects), and linked from the 16 bit header's lpNext */
++    MMSYSTEM_MapType	ret = MMSYSTEM_MAP_MSGERROR;
++
++    switch (wMsg) {
++    case MIDM_GETNUMDEVS:
++    case MIDM_RESET:
++    case MIDM_START:
++    case MIDM_STOP:
++	ret = MMSYSTEM_MAP_OK;
++	break;
++    case MIDM_PREPARE:
++	{
++	    LPMIDIHDR		mh32 = HeapAlloc(GetProcessHeap(), 0, sizeof(LPMIDIHDR) + sizeof(MIDIHDR));
++	    LPMIDIHDR16		mh16 = MapSL(*lpParam1);
++
++	    if (mh32) {
++		*(LPMIDIHDR*)mh32 = (LPMIDIHDR)*lpParam1;
++		mh32 = (LPMIDIHDR)((LPSTR)mh32 + sizeof(LPMIDIHDR));
++		mh32->lpData = MapSL((SEGPTR)mh16->lpData);
++		mh32->dwBufferLength = mh16->dwBufferLength;
++		mh32->dwBytesRecorded = mh16->dwBytesRecorded;
++		mh32->dwUser = mh16->dwUser;
++		mh32->dwFlags = mh16->dwFlags;
++		mh16->lpNext = (MIDIHDR16*)mh32;
++		*lpParam1 = (DWORD)mh32;
++		*lpParam2 = offsetof(MIDIHDR,dwOffset);
++		ret = MMSYSTEM_MAP_OKMEM;
++	    } else {
++		ret = MMSYSTEM_MAP_NOMEM;
++	    }
++	}
++	break;
++    case MIDM_UNPREPARE:
++    case MIDM_ADDBUFFER:
++	{
++	    LPMIDIHDR16		mh16 = MapSL(*lpParam1);
++	    LPMIDIHDR		mh32 = (MIDIHDR*)mh16->lpNext;
++
++	    if (!mh32) break;
++	    if (mh16->dwBufferLength <= mh32->dwBufferLength)
++		mh32->dwBufferLength = mh16->dwBufferLength;
++	    mh32->dwBytesRecorded = 0;
++	    *lpParam1 = (DWORD)mh32;
++	    *lpParam2 = offsetof(MIDIHDR,dwOffset);
++	    ret = MMSYSTEM_MAP_OKMEM;
++	}
++	break;
++    default:
++	FIXME("NIY: no conversion yet for %lu [%Ix,%Ix]\n", wMsg, *lpParam1, *lpParam2);
++	break;
++    }
++    return ret;
+ }
+ 
+ /**************************************************************************
+@@ -96,7 +149,36 @@ static  MMSYSTEM_MapType	MMSYSTDRV_MidiIn_Map16To32W  (DWORD wMsg, DWORD_PTR* lp
+  */
+ static  MMSYSTEM_MapType	MMSYSTDRV_MidiIn_UnMap16To32W(DWORD wMsg, DWORD_PTR* lpParam1, DWORD_PTR* lpParam2, MMRESULT fn_ret)
+ {
+-    return MMSYSTEM_MAP_MSGERROR;
++    MMSYSTEM_MapType	ret = MMSYSTEM_MAP_MSGERROR;
++
++    switch (wMsg) {
++    case MIDM_GETNUMDEVS:
++    case MIDM_RESET:
++    case MIDM_START:
++    case MIDM_STOP:
++	ret = MMSYSTEM_MAP_OK;
++	break;
++    case MIDM_PREPARE:
++    case MIDM_UNPREPARE:
++    case MIDM_ADDBUFFER:
++	{
++	    LPMIDIHDR		mh32 = (LPMIDIHDR)(*lpParam1);
++	    LPMIDIHDR16		mh16 = MapSL(*(SEGPTR*)((LPSTR)mh32 - sizeof(LPMIDIHDR)));
++
++	    mh16->dwFlags = mh32->dwFlags;
++	    if ((wMsg == MIDM_UNPREPARE && fn_ret == MMSYSERR_NOERROR) ||
++		(wMsg == MIDM_PREPARE && fn_ret != MMSYSERR_NOERROR)) {
++		HeapFree(GetProcessHeap(), 0, (LPSTR)mh32 - sizeof(LPMIDIHDR));
++		mh16->lpNext = 0;
++	    }
++	    ret = MMSYSTEM_MAP_OK;
++	}
++	break;
++    default:
++	FIXME("NIY: no conversion yet for %lu [%Ix,%Ix]\n", wMsg, *lpParam1, *lpParam2);
++	break;
++    }
++    return ret;
+ }
+ 
+ /**************************************************************************

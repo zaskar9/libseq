@@ -30,6 +30,10 @@
  *   idle MS                   the same, calling SEQIDLE() in between (prints non-zero results)
  *   time                      print GetTickCount()
  *   cbret HEX                 what the callbacks cb0..cb8 return (default 1)
+ *   cbretafter MS HEX         from MS ms after this command on, the callbacks return HEX instead (for
+ *                             an engine loop that runs until its callback says stop)
+ *   cbmask HEX                callback words whose bit is set print as "----" (values that differ
+ *                             from run to run, such as free memory)
  *   cbyield 0|1               whether the callbacks yield (PeekMessage) before returning (default 0);
  *                             needed when the engine waits in a loop that calls the callback
  * Argument cbN (N = 0..8) is a far pointer to a callback taking N words (Pascal: it removes them);
@@ -69,13 +73,16 @@ typedef struct { int id; int n; WORD w[8]; DWORD at; DWORD count; BYTE data[64];
 static CbRec g_cb[MAXCB];
 static int g_cbhead = 0, g_cbtail = 0, g_cblost = 0;
 static DWORD g_cbret = 1;
+static DWORD g_cbret2 = 0, g_cbswitch = 0; /* "cbretafter": from tick g_cbswitch on, return g_cbret2 */
 static int g_cbyield = 0;
+static unsigned g_cbmask = 0; /* "cbmask": callback words not printed */
 static int g_cbptr = -1, g_cblen = -1; /* "cbptr K L": words K,K+1 are a far pointer, word L its length */
 
 static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4, WORD w5, WORD w6, WORD w7) {
     int next = (g_cbhead + 1) % MAXCB;
     int last = (g_cbhead + MAXCB - 1) % MAXCB;
     if (g_cbyield) { MSG m; PeekMessage(&m, NULL, 0, 0, PM_NOREMOVE); } /* lets other tasks and timers run */
+    if (g_cbswitch && GetCurrentTime() >= g_cbswitch) { g_cbret = g_cbret2; g_cbswitch = 0; }
     /* repeated identical calls (a polling loop) are counted, not stored again */
     if (g_cbhead != g_cbtail && g_cb[last].id == id && g_cb[last].w[0] == w0 && g_cb[last].w[1] == w1 &&
         g_cb[last].w[2] == w2 && g_cb[last].w[3] == w3 && g_cb[last].w[4] == w4 && g_cb[last].w[5] == w5 &&
@@ -156,7 +163,8 @@ static void flushcb(void) {
                 ++i;
                 continue;
             }
-            fprintf(g_out, "%s%04x", i ? "," : "", r->w[i]);
+            if (g_cbmask & (1u << i)) fprintf(g_out, "%s----", i ? "," : "");
+            else fprintf(g_out, "%s%04x", i ? "," : "", r->w[i]);
         }
         if (g_oracle) fprintf(g_out, r->count > 1 ? "), repeated\n" : ")\n");
         else if (r->count > 1) fprintf(g_out, ") at %lu, %lu times\n", r->at, r->count);
@@ -278,6 +286,15 @@ static void run(char* line) {
     } else if (strcmp(cmd, "cbyield") == 0) {
         /* cbyield 0|1: whether the callbacks call PeekMessage (yield) before returning */
         g_cbyield = atoi(nexttok(&p));
+    } else if (strcmp(cmd, "cbmask") == 0) {
+        /* cbmask HEX: the callback words whose bit is set print as "----" */
+        g_cbmask = (unsigned)strtoul(nexttok(&p), NULL, 16);
+    } else if (strcmp(cmd, "cbretafter") == 0) {
+        /* cbretafter MS HEX: MS ms from now on, the callbacks return HEX */
+        DWORD ms = strtoul(nexttok(&p), NULL, 10);
+        g_cbret2 = strtoul(nexttok(&p), NULL, 16);
+        g_cbswitch = GetCurrentTime() + ms;
+        if (!g_cbswitch) g_cbswitch = 1;
     } else if (strcmp(cmd, "cbret") == 0) {
         /* cbret HEX: what the callbacks return from now on (default 1) */
         g_cbret = strtoul(nexttok(&p), NULL, 16);
