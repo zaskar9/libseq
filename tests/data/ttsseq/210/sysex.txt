@@ -1,0 +1,226 @@
+mode oracle
+load TTSSEQ.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 0 512
+buf 1 128
+put 1 0 "F0 7E 7F 09 01 F7"
+put 1 64 "f0 43 10 4c 00 00 7e 00 f7"
+echo -- ENG_SYSX
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYSX.WRK" 0000 null 0000 0000
+call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
+call.d SEQGETSYSXBANKLEN 0100
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME 0100 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM 0100 0000
+call.d SEQGETSYSXBANKPARAM 0100 0001
+call.d SEQGETSYSXBANKPARAM 0100 0002
+call.d SEQGETSYSXBANKPARAM 0100 0003
+call.d SEQGETSYSXBANKPARAM 0100 0004
+call.d SEQGETSYSXBANKPARAM 0100 0005
+call.w SEQGETSYSXASCLEN 0100 0001
+call.w SEQGETSYSXASCLEN 0100 0002
+call.w SEQGETSYSXASCLEN 0100 0008
+call.w SEQGETSYSXASCLEN 0100 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0010
+dump 0 0 64
+call.d SEQGETSYSXBANKLEN 0101
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME 0101 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM 0101 0000
+call.d SEQGETSYSXBANKPARAM 0101 0001
+call.d SEQGETSYSXBANKPARAM 0101 0002
+call.d SEQGETSYSXBANKPARAM 0101 0003
+call.d SEQGETSYSXBANKPARAM 0101 0004
+call.d SEQGETSYSXBANKPARAM 0101 0005
+call.w SEQGETSYSXASCLEN 0101 0001
+call.w SEQGETSYSXASCLEN 0101 0002
+call.w SEQGETSYSXASCLEN 0101 0008
+call.w SEQGETSYSXASCLEN 0101 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0101 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0101 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0101 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0101 @0 0010
+dump 0 0 64
+call.w SEQDESTROYSEQ 0001
+echo -- SYN_KIND
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_KIND.WRK" 0000 null 0000 0000
+call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
+call.d SEQGETSYSXBANKLEN 0100
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME 0100 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM 0100 0000
+call.d SEQGETSYSXBANKPARAM 0100 0001
+call.d SEQGETSYSXBANKPARAM 0100 0002
+call.d SEQGETSYSXBANKPARAM 0100 0003
+call.d SEQGETSYSXBANKPARAM 0100 0004
+call.d SEQGETSYSXBANKPARAM 0100 0005
+call.w SEQGETSYSXASCLEN 0100 0001
+call.w SEQGETSYSXASCLEN 0100 0002
+call.w SEQGETSYSXASCLEN 0100 0008
+call.w SEQGETSYSXASCLEN 0100 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC 0100 @0 0010
+dump 0 0 64
+call.w SEQDESTROYSEQ 0001
+echo -- ENG_ORDR
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_ORDR.WRK" 0000 null 0000 0000
+call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
+call.w SEQDESTROYSEQ 0001
+echo == edits
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYSX.WRK" 0000 null 0000 0000
+call.w SEQCREATESYSXBANK 0001
+let 1
+call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM %1 0000
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.d SEQGETSYSXBANKPARAM %1 0004
+call.d SEQGETSYSXBANKPARAM %1 0005
+call.w SEQGETSYSXASCLEN %1 0001
+call.w SEQGETSYSXASCLEN %1 0002
+call.w SEQGETSYSXASCLEN %1 0008
+call.w SEQGETSYSXASCLEN %1 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 64
+call.w SEQSETSYSXBANKNAME %1 "Probe bank"
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM %1 0000
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.d SEQGETSYSXBANKPARAM %1 0004
+call.d SEQGETSYSXBANKPARAM %1 0005
+call.w SEQGETSYSXASCLEN %1 0001
+call.w SEQGETSYSXASCLEN %1 0002
+call.w SEQGETSYSXASCLEN %1 0008
+call.w SEQGETSYSXASCLEN %1 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 64
+call.w SEQSETSYSXBANKPARAM %1 0000 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0000
+call.w SEQSETSYSXBANKPARAM %1 0001 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.w SEQSETSYSXBANKPARAM %1 0002 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.w SEQSETSYSXBANKPARAM %1 0003 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.w SEQSETSYSXBANKPARAM %1 0004 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0004
+call.w SEQSETSYSXBANKPARAM %1 0005 d:00000001
+call.d SEQGETSYSXBANKPARAM %1 0005
+call.w SEQSAVESYSXBANK 0100 "C:\PROBE\ORC\OUT\B0.SYX"
+call.w SEQLOADSYSXBANK %1 "C:\PROBE\ORC\OUT\B0.SYX"
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM %1 0000
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.d SEQGETSYSXBANKPARAM %1 0004
+call.d SEQGETSYSXBANKPARAM %1 0005
+call.w SEQGETSYSXASCLEN %1 0001
+call.w SEQGETSYSXASCLEN %1 0002
+call.w SEQGETSYSXASCLEN %1 0008
+call.w SEQGETSYSXASCLEN %1 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 64
+call.w SEQEMPTYSYSXBANK %1
+call.d SEQGETSYSXBANKLEN %1
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0020
+dump 0 0 32
+call.d SEQGETSYSXBANKPARAM %1 0000
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.d SEQGETSYSXBANKPARAM %1 0004
+call.d SEQGETSYSXBANKPARAM %1 0005
+call.w SEQGETSYSXASCLEN %1 0001
+call.w SEQGETSYSXASCLEN %1 0002
+call.w SEQGETSYSXASCLEN %1 0008
+call.w SEQGETSYSXASCLEN %1 0010
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0001
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0002
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0008
+dump 0 0 64
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQSYSXBIN2ASC %1 @0 0010
+dump 0 0 64
+call.w SEQDESTROYSYSXBANK %1
+call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
+call.w SEQCLOSE

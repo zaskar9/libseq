@@ -1,0 +1,951 @@
+mode oracle
+load TTSSEQ.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 0 64
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SILENT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == rename 0
+call.w SEQSETMARKERNAME 0001 d:00000000 "Renamed"
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == retime 1
+call.w SEQSETMARKERTIME 0001 d:00000001 d:00000123 0000
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == retime 0 with flag 1
+call.w SEQSETMARKERTIME 0001 d:00000000 d:00000010 0001
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == insert at 0x300
+call.w SEQINSMARKER 0001 "New" d:00000300 0000
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == insert at 0 with flag 1
+call.w SEQINSMARKER 0001 "First" d:00000000 0001
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == insert at 0x300 again
+call.w SEQINSMARKER 0001 "Same time" d:00000300 0000
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == sort
+call.w SEQSORTMARKERS 0001 d:00000000
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == delete 1
+call.w SEQDELMARKER 0001 d:00000001
+call.d SEQNUMMARKERS 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000000 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000000 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000001 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000001 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000002 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000002 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000003 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000003 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000004 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000004 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000005 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000005 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000006 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000006 @0 null
+dump 0 0 4
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETMARKERNAME 0001 d:00000007 @0 0020
+dump 0 0 32
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 @0+4
+dump 0 0 8
+fill 0 0 ee ee ee ee
+call.w SEQGETMARKERTIME 0001 d:00000007 @0 null
+dump 0 0 4
+call.d SEQMARKERFORTIME 0001 d:00000000
+call.d SEQMARKERFORTIME 0001 d:00000001
+call.d SEQMARKERFORTIME 0001 d:00000077
+call.d SEQMARKERFORTIME 0001 d:00000078
+call.d SEQMARKERFORTIME 0001 d:000000ef
+call.d SEQMARKERFORTIME 0001 d:000000f0
+call.d SEQMARKERFORTIME 0001 d:000001df
+call.d SEQMARKERFORTIME 0001 d:000001e0
+call.d SEQMARKERFORTIME 0001 d:000001e1
+call.d SEQMARKERFORTIME 0001 d:000003c0
+call.d SEQMARKERFORTIME 0001 d:000005a0
+call.d SEQMARKERFORTIME 0001 d:00000777
+call.d SEQMARKERFORTIME 0001 d:00001000
+call.d SEQMARKERFORTIME 0001 d:00002345
+call.d SEQMARKERFORTIME 0001 d:00010000
+echo == other fixtures
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\AMAZING.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\CLIP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_CHAS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_KORD.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_METR.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_OVLP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_SPP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_STOP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_DENS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_MA.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_MB.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_MC.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_MD.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_ME.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_MF.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_SHTL.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_SPPD.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\EFILT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_CHAS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_LOOP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_METR.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_MULT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_ORDR.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_PARM.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYNC.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYSX.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_TMPO.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\FRERE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\FURELISE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\GREENS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\JINGLE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ODETOJOY.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\QUANT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ROWBOAT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SILENT.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_DENS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_KIND.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_MAPS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_MIN.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_OVLP.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_PARM.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_STRS.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_WAVE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\TWINKLE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\XPOSE.WRK" 0000 null 0000 0000
+call.d SEQNUMMARKERS 0002
+call.w SEQDESTROYSEQ 0002
+call.w SEQCLOSE

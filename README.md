@@ -36,6 +36,7 @@ this repository, so each statement about the engine can be traced to the observa
 | `tools/ttsprobe/` | The tools that observed it: a probe that calls the DLLs from scripts, a fake MIDI driver for Wine, analysis scripts |
 | `tests/data/songs/` | The songs every observation starts from |
 | `tests/data/cakewalk/` | What the Cakewalk programs made of them: saved files, edits, captured MIDI output |
+| `tests/data/ttsseq/` | What the engine DLLs answer when called directly, version by version |
 
 ## Status
 

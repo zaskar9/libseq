@@ -1,0 +1,1343 @@
+mode oracle
+load TTSSEQ.DLL
+call.w SEQOPEN 0000 0000
+buf 0 64
+buf 1 64
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_ORDR.WRK" 0000 null 0000 0000
+echo == put an event over index 2
+call.d SEQSEEK 0100 0000 d:00000002
+fill 1 0 f0 00 00 90 3c 64 78 00
+call.w SEQPUTEVT 0100 @1
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == put an event with a later time over index 3
+call.d SEQSEEK 0100 0000 d:00000003
+fill 1 0 00 03 00 91 40 50 10 00
+call.w SEQPUTEVT 0100 @1
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == insert an event at index 0
+call.d SEQSEEK 0100 0000 d:00000000
+fill 1 0 78 00 00 b0 07 64 00 00
+call.w SEQINSEVT 0100 @1
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == insert an event at the end
+call.d SEQSEEK 0100 0000 d:00000019
+fill 1 0 00 10 00 c0 05 00 00 00
+call.w SEQINSEVT 0100 @1
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == delete index 5
+call.d SEQSEEK 0100 0000 d:00000005
+call.w SEQDELEVT 0100
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == move index 1 to tick 0x300
+call.d SEQSEEK 0100 0000 d:00000001
+call.d SEQMOVEEVT 0100 d:00000300
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == move index 6 to tick 0
+call.d SEQSEEK 0100 0000 d:00000006
+call.d SEQMOVEEVT 0100 d:00000000
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == copy of index 4
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQGETEVTCOPY 0100 @1
+dump 1 0 8
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+echo == temporal sort
+call.d SEQTEMPORALSORT 0100
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+call.w SEQCLOSE

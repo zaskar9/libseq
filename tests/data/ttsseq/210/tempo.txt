@@ -1,0 +1,697 @@
+mode oracle
+load TTSSEQ.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 0 64
+call.w SEQGETMAXPPQ
+call.w SEQGETMINTEMPO
+call.w SEQGETMAXTEMPO
+echo -- ENG_TMPO
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_TMPO.WRK" 0000 null 0000 0000
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQGETTEMPO 0001 d:00000000
+call.w SEQTEMPOIXBYTICK 0001 d:00000000
+call.d SEQGETTEMPO 0001 d:00000001
+call.w SEQTEMPOIXBYTICK 0001 d:00000001
+call.d SEQGETTEMPO 0001 d:00000077
+call.w SEQTEMPOIXBYTICK 0001 d:00000077
+call.d SEQGETTEMPO 0001 d:00000078
+call.w SEQTEMPOIXBYTICK 0001 d:00000078
+call.d SEQGETTEMPO 0001 d:000000ef
+call.w SEQTEMPOIXBYTICK 0001 d:000000ef
+call.d SEQGETTEMPO 0001 d:000000f0
+call.w SEQTEMPOIXBYTICK 0001 d:000000f0
+call.d SEQGETTEMPO 0001 d:000001df
+call.w SEQTEMPOIXBYTICK 0001 d:000001df
+call.d SEQGETTEMPO 0001 d:000001e0
+call.w SEQTEMPOIXBYTICK 0001 d:000001e0
+call.d SEQGETTEMPO 0001 d:000001e1
+call.w SEQTEMPOIXBYTICK 0001 d:000001e1
+call.d SEQGETTEMPO 0001 d:000003c0
+call.w SEQTEMPOIXBYTICK 0001 d:000003c0
+call.d SEQGETTEMPO 0001 d:000005a0
+call.w SEQTEMPOIXBYTICK 0001 d:000005a0
+call.d SEQGETTEMPO 0001 d:00000777
+call.w SEQTEMPOIXBYTICK 0001 d:00000777
+call.d SEQGETTEMPO 0001 d:00001000
+call.w SEQTEMPOIXBYTICK 0001 d:00001000
+call.d SEQGETTEMPO 0001 d:00002345
+call.w SEQTEMPOIXBYTICK 0001 d:00002345
+call.d SEQGETTEMPO 0001 d:00010000
+call.w SEQTEMPOIXBYTICK 0001 d:00010000
+call.w SEQDESTROYSEQ 0001
+echo -- SYN_MAPS
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_MAPS.WRK" 0000 null 0000 0000
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQGETTEMPO 0001 d:00000000
+call.w SEQTEMPOIXBYTICK 0001 d:00000000
+call.d SEQGETTEMPO 0001 d:00000001
+call.w SEQTEMPOIXBYTICK 0001 d:00000001
+call.d SEQGETTEMPO 0001 d:00000077
+call.w SEQTEMPOIXBYTICK 0001 d:00000077
+call.d SEQGETTEMPO 0001 d:00000078
+call.w SEQTEMPOIXBYTICK 0001 d:00000078
+call.d SEQGETTEMPO 0001 d:000000ef
+call.w SEQTEMPOIXBYTICK 0001 d:000000ef
+call.d SEQGETTEMPO 0001 d:000000f0
+call.w SEQTEMPOIXBYTICK 0001 d:000000f0
+call.d SEQGETTEMPO 0001 d:000001df
+call.w SEQTEMPOIXBYTICK 0001 d:000001df
+call.d SEQGETTEMPO 0001 d:000001e0
+call.w SEQTEMPOIXBYTICK 0001 d:000001e0
+call.d SEQGETTEMPO 0001 d:000001e1
+call.w SEQTEMPOIXBYTICK 0001 d:000001e1
+call.d SEQGETTEMPO 0001 d:000003c0
+call.w SEQTEMPOIXBYTICK 0001 d:000003c0
+call.d SEQGETTEMPO 0001 d:000005a0
+call.w SEQTEMPOIXBYTICK 0001 d:000005a0
+call.d SEQGETTEMPO 0001 d:00000777
+call.w SEQTEMPOIXBYTICK 0001 d:00000777
+call.d SEQGETTEMPO 0001 d:00001000
+call.w SEQTEMPOIXBYTICK 0001 d:00001000
+call.d SEQGETTEMPO 0001 d:00002345
+call.w SEQTEMPOIXBYTICK 0001 d:00002345
+call.d SEQGETTEMPO 0001 d:00010000
+call.w SEQTEMPOIXBYTICK 0001 d:00010000
+call.w SEQDESTROYSEQ 0001
+echo -- ENG_ORDR
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_ORDR.WRK" 0000 null 0000 0000
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQGETTEMPO 0001 d:00000000
+call.w SEQTEMPOIXBYTICK 0001 d:00000000
+call.d SEQGETTEMPO 0001 d:00000001
+call.w SEQTEMPOIXBYTICK 0001 d:00000001
+call.d SEQGETTEMPO 0001 d:00000077
+call.w SEQTEMPOIXBYTICK 0001 d:00000077
+call.d SEQGETTEMPO 0001 d:00000078
+call.w SEQTEMPOIXBYTICK 0001 d:00000078
+call.d SEQGETTEMPO 0001 d:000000ef
+call.w SEQTEMPOIXBYTICK 0001 d:000000ef
+call.d SEQGETTEMPO 0001 d:000000f0
+call.w SEQTEMPOIXBYTICK 0001 d:000000f0
+call.d SEQGETTEMPO 0001 d:000001df
+call.w SEQTEMPOIXBYTICK 0001 d:000001df
+call.d SEQGETTEMPO 0001 d:000001e0
+call.w SEQTEMPOIXBYTICK 0001 d:000001e0
+call.d SEQGETTEMPO 0001 d:000001e1
+call.w SEQTEMPOIXBYTICK 0001 d:000001e1
+call.d SEQGETTEMPO 0001 d:000003c0
+call.w SEQTEMPOIXBYTICK 0001 d:000003c0
+call.d SEQGETTEMPO 0001 d:000005a0
+call.w SEQTEMPOIXBYTICK 0001 d:000005a0
+call.d SEQGETTEMPO 0001 d:00000777
+call.w SEQTEMPOIXBYTICK 0001 d:00000777
+call.d SEQGETTEMPO 0001 d:00001000
+call.w SEQTEMPOIXBYTICK 0001 d:00001000
+call.d SEQGETTEMPO 0001 d:00002345
+call.w SEQTEMPOIXBYTICK 0001 d:00002345
+call.d SEQGETTEMPO 0001 d:00010000
+call.w SEQTEMPOIXBYTICK 0001 d:00010000
+call.w SEQDESTROYSEQ 0001
+echo -- FURELISE
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\FURELISE.WRK" 0000 null 0000 0000
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQGETTEMPO 0001 d:00000000
+call.w SEQTEMPOIXBYTICK 0001 d:00000000
+call.d SEQGETTEMPO 0001 d:00000001
+call.w SEQTEMPOIXBYTICK 0001 d:00000001
+call.d SEQGETTEMPO 0001 d:00000077
+call.w SEQTEMPOIXBYTICK 0001 d:00000077
+call.d SEQGETTEMPO 0001 d:00000078
+call.w SEQTEMPOIXBYTICK 0001 d:00000078
+call.d SEQGETTEMPO 0001 d:000000ef
+call.w SEQTEMPOIXBYTICK 0001 d:000000ef
+call.d SEQGETTEMPO 0001 d:000000f0
+call.w SEQTEMPOIXBYTICK 0001 d:000000f0
+call.d SEQGETTEMPO 0001 d:000001df
+call.w SEQTEMPOIXBYTICK 0001 d:000001df
+call.d SEQGETTEMPO 0001 d:000001e0
+call.w SEQTEMPOIXBYTICK 0001 d:000001e0
+call.d SEQGETTEMPO 0001 d:000001e1
+call.w SEQTEMPOIXBYTICK 0001 d:000001e1
+call.d SEQGETTEMPO 0001 d:000003c0
+call.w SEQTEMPOIXBYTICK 0001 d:000003c0
+call.d SEQGETTEMPO 0001 d:000005a0
+call.w SEQTEMPOIXBYTICK 0001 d:000005a0
+call.d SEQGETTEMPO 0001 d:00000777
+call.w SEQTEMPOIXBYTICK 0001 d:00000777
+call.d SEQGETTEMPO 0001 d:00001000
+call.w SEQTEMPOIXBYTICK 0001 d:00001000
+call.d SEQGETTEMPO 0001 d:00002345
+call.w SEQTEMPOIXBYTICK 0001 d:00002345
+call.d SEQGETTEMPO 0001 d:00010000
+call.w SEQTEMPOIXBYTICK 0001 d:00010000
+call.w SEQDESTROYSEQ 0001
+echo -- E3_DENS
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_DENS.WRK" 0000 null 0000 0000
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQGETTEMPO 0001 d:00000000
+call.w SEQTEMPOIXBYTICK 0001 d:00000000
+call.d SEQGETTEMPO 0001 d:00000001
+call.w SEQTEMPOIXBYTICK 0001 d:00000001
+call.d SEQGETTEMPO 0001 d:00000077
+call.w SEQTEMPOIXBYTICK 0001 d:00000077
+call.d SEQGETTEMPO 0001 d:00000078
+call.w SEQTEMPOIXBYTICK 0001 d:00000078
+call.d SEQGETTEMPO 0001 d:000000ef
+call.w SEQTEMPOIXBYTICK 0001 d:000000ef
+call.d SEQGETTEMPO 0001 d:000000f0
+call.w SEQTEMPOIXBYTICK 0001 d:000000f0
+call.d SEQGETTEMPO 0001 d:000001df
+call.w SEQTEMPOIXBYTICK 0001 d:000001df
+call.d SEQGETTEMPO 0001 d:000001e0
+call.w SEQTEMPOIXBYTICK 0001 d:000001e0
+call.d SEQGETTEMPO 0001 d:000001e1
+call.w SEQTEMPOIXBYTICK 0001 d:000001e1
+call.d SEQGETTEMPO 0001 d:000003c0
+call.w SEQTEMPOIXBYTICK 0001 d:000003c0
+call.d SEQGETTEMPO 0001 d:000005a0
+call.w SEQTEMPOIXBYTICK 0001 d:000005a0
+call.d SEQGETTEMPO 0001 d:00000777
+call.w SEQTEMPOIXBYTICK 0001 d:00000777
+call.d SEQGETTEMPO 0001 d:00001000
+call.w SEQTEMPOIXBYTICK 0001 d:00001000
+call.d SEQGETTEMPO 0001 d:00002345
+call.w SEQTEMPOIXBYTICK 0001 d:00002345
+call.d SEQGETTEMPO 0001 d:00010000
+call.w SEQTEMPOIXBYTICK 0001 d:00010000
+call.w SEQDESTROYSEQ 0001
+echo == edits on ENG_TMPO
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_TMPO.WRK" 0000 null 0000 0000
+echo == set at 0x100
+call.w SEQSETTEMPO 0001 d:00000100 1234
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == insert at 0x200
+call.w SEQINSTEMPO 0001 d:00000200 2345
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == insert at an existing tick 0x1e0
+call.w SEQINSTEMPO 0001 d:000001e0 1111
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == set at 0x200
+call.w SEQSETTEMPO 0001 d:00000200 3456
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == delete at 1
+call.w SEQDELTEMPO 0001 d:00000001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == delete at 0x3c0
+call.w SEQDELTEMPO 0001 d:000003c0
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == recalc
+call.w SEQRECALCTEMPOMAP 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == clear to 50.00
+call.w SEQCLEARTEMPOMAP 0001 1388
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+echo == ratios
+call.w SEQGETTEMPORATIO 0001 0000
+call.w SEQGETTEMPORATIO 0001 0001
+call.w SEQGETTEMPORATIO 0001 0002
+call.w SEQWHICHTEMPORATIO 0001
+call.w SEQSETTEMPORATIO 0001 0001 0050
+call.w SEQGETTEMPORATIO 0001 0001
+call.w SEQSELECTTEMPORATIO 0001 0002
+call.w SEQWHICHTEMPORATIO 0001
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0010 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0020 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0030 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0040 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0050 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0060 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0080 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0100 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0041 @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 007f @0
+dump 0 0 12
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTEMPORATIO2STR 0001 @0
+dump 0 0 12
+echo == ppq
+call.w SEQSETPPQ 0001 00f0
+call.w SEQGETPPQ 0001
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.d SEQSEEK 0100 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.d SEQTELL 0100
+call.w SEQEOS 0100
+call.w SEQNXTEVT 0100
+call.d SEQRESCALETIME d:000001e0 0078 00f0
+call.d SEQRESCALETIME d:000001e0 00f0 0078
+call.d SEQRESCALETIME d:00000007 0078 0030
+call.d SEQRESCALETIME d:00012345 0060 01e0
+call.d SEQRESCALETIME d:00000001 0030 01e0
+echo == swap
+call.w SEQCREATESEQ 0000 0000
+call.w SEQSWAPTEMPOMAPS 0001 0002
+call.w SEQGETTEMPOMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0001 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0001 d:00000000 d:ffffffff cb4 d:00000000
+call.w SEQGETTEMPOMAPLEN 0002
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0005 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0006 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.w SEQGETTEMPOATIX 0002 0007 @0
+dump 0 0 4
+call.w SEQENUMTEMPOS 0002 d:00000000 d:ffffffff cb4 d:00000000
+call.w SEQCLOSE

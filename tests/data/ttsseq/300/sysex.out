@@ -1,0 +1,324 @@
+load TTSSEQ30.DLL -> ok
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+-- ENG_SYSX
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_SYSX.WRK",0000) -> 0001
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0001,0100,0000,0000)
+callback cb4(0001,0101,0000,0000)
+callback cb4(0000,0000,0000,0000)
+SEQGETSYSXBANKLEN(0100) -> 00000006
+SEQGETSYSXBANKNAME(0100,@0,0020) -> 0005
+dump 0+0:
+  47 4d 20 6f 6e 00 ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(0100,0000) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0001) -> 00000001
+SEQGETSYSXBANKPARAM(0100,0002) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0003) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0004) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0005) -> 00000000
+SEQGETSYSXASCLEN(0100,0001) -> 001f
+SEQGETSYSXASCLEN(0100,0002) -> 0019
+SEQGETSYSXASCLEN(0100,0008) -> 0013
+SEQGETSYSXASCLEN(0100,0010) -> 0013
+SEQSYSXBIN2ASC(0100,@0,0001) -> 0006
+dump 0+0:
+  46 30 20 0d 0a 37 45 20 0d 0a 37 46 20 0d 0a 30
+  39 20 0d 0a 30 31 20 0d 0a 46 37 20 0d 0a 00 ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0002) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 0d 0a 37 46 20 30 39 20 0d 0a
+  30 31 20 46 37 20 0d 0a 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0008) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0010) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKLEN(0101) -> 00000008
+SEQGETSYSXBANKNAME(0101,@0,0020) -> 000d
+dump 0+0:
+  4d 61 73 74 65 72 20 76 6f 6c 75 6d 65 00 ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(0101,0000) -> 00000000
+SEQGETSYSXBANKPARAM(0101,0001) -> 00000000
+SEQGETSYSXBANKPARAM(0101,0002) -> 00000001
+SEQGETSYSXBANKPARAM(0101,0003) -> 00000000
+SEQGETSYSXBANKPARAM(0101,0004) -> 00000000
+SEQGETSYSXBANKPARAM(0101,0005) -> 00000000
+SEQGETSYSXASCLEN(0101,0001) -> 0029
+SEQGETSYSXASCLEN(0101,0002) -> 0021
+SEQGETSYSXASCLEN(0101,0008) -> 001b
+SEQGETSYSXASCLEN(0101,0010) -> 0019
+SEQSYSXBIN2ASC(0101,@0,0001) -> 0008
+dump 0+0:
+  46 30 20 0d 0a 37 46 20 0d 0a 37 46 20 0d 0a 30
+  34 20 0d 0a 30 31 20 0d 0a 30 30 20 0d 0a 35 30
+  20 0d 0a 46 37 20 0d 0a 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0101,@0,0002) -> 0008
+dump 0+0:
+  46 30 20 37 46 20 0d 0a 37 46 20 30 34 20 0d 0a
+  30 31 20 30 30 20 0d 0a 35 30 20 46 37 20 0d 0a
+  00 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0101,@0,0008) -> 0008
+dump 0+0:
+  46 30 20 37 46 20 37 46 20 30 34 20 30 31 20 30
+  30 20 35 30 20 46 37 20 0d 0a 00 ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0101,@0,0010) -> 0008
+dump 0+0:
+  46 30 20 37 46 20 37 46 20 30 34 20 30 31 20 30
+  30 20 35 30 20 46 37 20 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQDESTROYSEQ(0001) -> 0001
+-- SYN_KIND
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000) -> 0001
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0001,0100,0000,0000)
+callback cb4(0000,0000,0000,0000)
+SEQGETSYSXBANKLEN(0100) -> 00000006
+SEQGETSYSXBANKNAME(0100,@0,0020) -> 0008
+dump 0+0:
+  47 4d 20 72 65 73 65 74 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(0100,0000) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0001) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0002) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0003) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0004) -> 00000000
+SEQGETSYSXBANKPARAM(0100,0005) -> 00000000
+SEQGETSYSXASCLEN(0100,0001) -> 001f
+SEQGETSYSXASCLEN(0100,0002) -> 0019
+SEQGETSYSXASCLEN(0100,0008) -> 0013
+SEQGETSYSXASCLEN(0100,0010) -> 0013
+SEQSYSXBIN2ASC(0100,@0,0001) -> 0006
+dump 0+0:
+  46 30 20 0d 0a 37 45 20 0d 0a 37 46 20 0d 0a 30
+  39 20 0d 0a 30 31 20 0d 0a 46 37 20 0d 0a 00 ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0002) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 0d 0a 37 46 20 30 39 20 0d 0a
+  30 31 20 46 37 20 0d 0a 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0008) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(0100,@0,0010) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQDESTROYSEQ(0001) -> 0001
+-- ENG_ORDR
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_ORDR.WRK",0000) -> 0001
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0000,0000,0000,0000)
+SEQDESTROYSEQ(0001) -> 0001
+== edits
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_SYSX.WRK",0000) -> 0001
+SEQCREATESYSXBANK(0001) -> 0102
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0001,0100,0000,0000)
+callback cb4(0001,0101,0000,0000)
+callback cb4(0001,0102,0000,0000)
+callback cb4(0000,0000,0000,0000)
+SEQGETSYSXBANKLEN(%1) -> 00000000
+SEQGETSYSXBANKNAME(%1,@0,0020) -> 0000
+dump 0+0:
+  00 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(%1,0000) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0001) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0002) -> ffffffff
+SEQGETSYSXBANKPARAM(%1,0003) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0004) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0005) -> 00000000
+SEQGETSYSXASCLEN(%1,0001) -> 0001
+SEQGETSYSXASCLEN(%1,0002) -> 0001
+SEQGETSYSXASCLEN(%1,0008) -> 0001
+SEQGETSYSXASCLEN(%1,0010) -> 0001
+SEQSYSXBIN2ASC(%1,@0,0001) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0002) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0008) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSETSYSXBANKNAME(%1,"Probe bank") -> 0001
+SEQGETSYSXBANKLEN(%1) -> 00000000
+SEQGETSYSXBANKNAME(%1,@0,0020) -> 000a
+dump 0+0:
+  50 72 6f 62 65 20 62 61 6e 6b 00 ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(%1,0000) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0001) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0002) -> ffffffff
+SEQGETSYSXBANKPARAM(%1,0003) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0004) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0005) -> 00000000
+SEQGETSYSXASCLEN(%1,0001) -> 0001
+SEQGETSYSXASCLEN(%1,0002) -> 0001
+SEQGETSYSXASCLEN(%1,0008) -> 0001
+SEQGETSYSXASCLEN(%1,0010) -> 0001
+SEQSYSXBIN2ASC(%1,@0,0001) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0002) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0008) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSETSYSXBANKPARAM(%1,0000,d:00000001) -> 0000
+SEQGETSYSXBANKPARAM(%1,0000) -> 00000000
+SEQSETSYSXBANKPARAM(%1,0001,d:00000001) -> 0001
+SEQGETSYSXBANKPARAM(%1,0001) -> 00000001
+SEQSETSYSXBANKPARAM(%1,0002,d:00000001) -> 0001
+SEQGETSYSXBANKPARAM(%1,0002) -> 00000001
+SEQSETSYSXBANKPARAM(%1,0003,d:00000001) -> 0001
+SEQGETSYSXBANKPARAM(%1,0003) -> 00000001
+SEQSETSYSXBANKPARAM(%1,0004,d:00000001) -> 0000
+SEQGETSYSXBANKPARAM(%1,0004) -> 00000000
+SEQSETSYSXBANKPARAM(%1,0005,d:00000001) -> 0000
+SEQGETSYSXBANKPARAM(%1,0005) -> 00000000
+SEQSAVESYSXBANK(0100,"C:\PROBE\ORC\OUT\B0.SYX") -> 0001
+SEQLOADSYSXBANK(%1,"C:\PROBE\ORC\OUT\B0.SYX") -> 0001
+SEQGETSYSXBANKLEN(%1) -> 00000006
+SEQGETSYSXBANKNAME(%1,@0,0020) -> 000a
+dump 0+0:
+  50 72 6f 62 65 20 62 61 6e 6b 00 ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(%1,0000) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0001) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0002) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0003) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0004) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0005) -> 00000000
+SEQGETSYSXASCLEN(%1,0001) -> 001f
+SEQGETSYSXASCLEN(%1,0002) -> 0019
+SEQGETSYSXASCLEN(%1,0008) -> 0013
+SEQGETSYSXASCLEN(%1,0010) -> 0013
+SEQSYSXBIN2ASC(%1,@0,0001) -> 0006
+dump 0+0:
+  46 30 20 0d 0a 37 45 20 0d 0a 37 46 20 0d 0a 30
+  39 20 0d 0a 30 31 20 0d 0a 46 37 20 0d 0a 00 ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0002) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 0d 0a 37 46 20 30 39 20 0d 0a
+  30 31 20 46 37 20 0d 0a 00 ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0008) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0006
+dump 0+0:
+  46 30 20 37 45 20 37 46 20 30 39 20 30 31 20 46
+  37 20 00 ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQEMPTYSYSXBANK(%1) -> 0001
+SEQGETSYSXBANKLEN(%1) -> 00000000
+SEQGETSYSXBANKNAME(%1,@0,0020) -> 000a
+dump 0+0:
+  50 72 6f 62 65 20 62 61 6e 6b 00 ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQGETSYSXBANKPARAM(%1,0000) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0001) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0002) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0003) -> 00000001
+SEQGETSYSXBANKPARAM(%1,0004) -> 00000000
+SEQGETSYSXBANKPARAM(%1,0005) -> 00000000
+SEQGETSYSXASCLEN(%1,0001) -> 0001
+SEQGETSYSXASCLEN(%1,0002) -> 0001
+SEQGETSYSXASCLEN(%1,0008) -> 0001
+SEQGETSYSXASCLEN(%1,0010) -> 0001
+SEQSYSXBIN2ASC(%1,@0,0001) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0002) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0008) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQSYSXBIN2ASC(%1,@0,0010) -> 0000
+dump 0+0:
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+  ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+SEQDESTROYSYSXBANK(%1) -> 0001
+SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
+callback cb4(0001,0100,0000,0000)
+callback cb4(0001,0101,0000,0000)
+callback cb4(0000,0000,0000,0000)
+SEQCLOSE() -> 0001
