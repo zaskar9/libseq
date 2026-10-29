@@ -33,6 +33,8 @@ this repository, so each statement about the engine can be traced to the observa
 | Folder | Content |
 |---|---|
 | `docs/reverse-engineering/` | How the engine was studied, step by step, and everything known about its interface |
+| `tests/data/songs/` | The songs every observation starts from |
+| `tests/data/cakewalk/` | What the Cakewalk programs made of them: saved files, edits, captured MIDI output |
 
 ## Status
 

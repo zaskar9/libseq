@@ -1,0 +1,7 @@
+# extracted from the end of ENG_METR-play.txt: opening ENG_MULT.WRK after that take
+      0.000 c0 0a
+      6.683 c1 0b
+     12.798 c2 0c
+     20.492 c0 0d
+     26.044 c3 0e
+     33.180 cc 0f

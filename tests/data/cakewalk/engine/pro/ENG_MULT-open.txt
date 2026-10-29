@@ -1,0 +1,7 @@
+      0.000 c0 0a
+      2.240 c1 0b
+      3.130 c2 0c
+      4.991 c0 0d
+      5.666 c3 0e
+      7.192 cc 0f
+# stopped after 6 lines
