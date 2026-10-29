@@ -1,0 +1,3509 @@
+@open
+buf 0 64
+buf 1 64
+echo -- ENG_ORDR
+@load ENG_ORDR.WRK
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+call.w SEQDESTROYSEQ 0001
+echo -- SYN_MAPS
+@load SYN_MAPS.WRK
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+call.w SEQDESTROYSEQ 0001
+echo -- E3_DENS
+@load E3_DENS.WRK
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+call.w SEQDESTROYSEQ 0001
+echo -- ENG_METR
+@load ENG_METR.WRK
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+call.w SEQDESTROYSEQ 0001
+echo == edits
+@load ENG_ORDR.WRK
+echo == insert 3/4 at measure 3
+call.w SEQINSMETER 0001 0003 0003 0002
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == insert 6/8 at measure 5
+call.w SEQINSMETER 0001 0005 0006 0003
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == insert 5/4 at measure 3 again
+call.w SEQINSMETER 0001 0003 0005 0002
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == set (layout unsure)
+call.w SEQSETMETER 0001 0002 0002 0003 0002
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == delete 2
+call.w SEQDELMETER 0001 0002
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == recalc
+call.w SEQRECALCMETERMAP 0001
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == delete 1
+call.w SEQDELMETER 0001 0001
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == clear to 3/2
+call.w SEQCLEARMETERMAP 0001 0003 0001
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQGETMETER 0001 d:00000000
+call.d SEQTICK2MEAS 0001 d:00000000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000000
+call.d SEQTICKPREVMEAS 0001 d:00000000
+call.d SEQTICKNEXTBEAT 0001 d:00000000
+call.d SEQTICKPREVBEAT 0001 d:00000000
+call.d SEQGETMETER 0001 d:00000001
+call.d SEQTICK2MEAS 0001 d:00000001
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000001 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000001 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000001
+call.d SEQTICKPREVMEAS 0001 d:00000001
+call.d SEQTICKNEXTBEAT 0001 d:00000001
+call.d SEQTICKPREVBEAT 0001 d:00000001
+call.d SEQGETMETER 0001 d:00000077
+call.d SEQTICK2MEAS 0001 d:00000077
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000077 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000077 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000077
+call.d SEQTICKPREVMEAS 0001 d:00000077
+call.d SEQTICKNEXTBEAT 0001 d:00000077
+call.d SEQTICKPREVBEAT 0001 d:00000077
+call.d SEQGETMETER 0001 d:00000078
+call.d SEQTICK2MEAS 0001 d:00000078
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000078 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000078 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000078
+call.d SEQTICKPREVMEAS 0001 d:00000078
+call.d SEQTICKNEXTBEAT 0001 d:00000078
+call.d SEQTICKPREVBEAT 0001 d:00000078
+call.d SEQGETMETER 0001 d:000000ef
+call.d SEQTICK2MEAS 0001 d:000000ef
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000ef @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000ef @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000ef
+call.d SEQTICKPREVMEAS 0001 d:000000ef
+call.d SEQTICKNEXTBEAT 0001 d:000000ef
+call.d SEQTICKPREVBEAT 0001 d:000000ef
+call.d SEQGETMETER 0001 d:000000f0
+call.d SEQTICK2MEAS 0001 d:000000f0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000000f0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000000f0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000000f0
+call.d SEQTICKPREVMEAS 0001 d:000000f0
+call.d SEQTICKNEXTBEAT 0001 d:000000f0
+call.d SEQTICKPREVBEAT 0001 d:000000f0
+call.d SEQGETMETER 0001 d:000001df
+call.d SEQTICK2MEAS 0001 d:000001df
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001df @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001df @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001df
+call.d SEQTICKPREVMEAS 0001 d:000001df
+call.d SEQTICKNEXTBEAT 0001 d:000001df
+call.d SEQTICKPREVBEAT 0001 d:000001df
+call.d SEQGETMETER 0001 d:000001e0
+call.d SEQTICK2MEAS 0001 d:000001e0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e0
+call.d SEQTICKPREVMEAS 0001 d:000001e0
+call.d SEQTICKNEXTBEAT 0001 d:000001e0
+call.d SEQTICKPREVBEAT 0001 d:000001e0
+call.d SEQGETMETER 0001 d:000001e1
+call.d SEQTICK2MEAS 0001 d:000001e1
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000001e1 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000001e1 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000001e1
+call.d SEQTICKPREVMEAS 0001 d:000001e1
+call.d SEQTICKNEXTBEAT 0001 d:000001e1
+call.d SEQTICKPREVBEAT 0001 d:000001e1
+call.d SEQGETMETER 0001 d:000003c0
+call.d SEQTICK2MEAS 0001 d:000003c0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000003c0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000003c0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000003c0
+call.d SEQTICKPREVMEAS 0001 d:000003c0
+call.d SEQTICKNEXTBEAT 0001 d:000003c0
+call.d SEQTICKPREVBEAT 0001 d:000003c0
+call.d SEQGETMETER 0001 d:000005a0
+call.d SEQTICK2MEAS 0001 d:000005a0
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:000005a0 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:000005a0 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:000005a0
+call.d SEQTICKPREVMEAS 0001 d:000005a0
+call.d SEQTICKNEXTBEAT 0001 d:000005a0
+call.d SEQTICKPREVBEAT 0001 d:000005a0
+call.d SEQGETMETER 0001 d:00000777
+call.d SEQTICK2MEAS 0001 d:00000777
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00000777 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00000777 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00000777
+call.d SEQTICKPREVMEAS 0001 d:00000777
+call.d SEQTICKNEXTBEAT 0001 d:00000777
+call.d SEQTICKPREVBEAT 0001 d:00000777
+call.d SEQGETMETER 0001 d:00001000
+call.d SEQTICK2MEAS 0001 d:00001000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00001000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00001000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00001000
+call.d SEQTICKPREVMEAS 0001 d:00001000
+call.d SEQTICKNEXTBEAT 0001 d:00001000
+call.d SEQTICKPREVBEAT 0001 d:00001000
+call.d SEQGETMETER 0001 d:00002345
+call.d SEQTICK2MEAS 0001 d:00002345
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00002345 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00002345 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00002345
+call.d SEQTICKPREVMEAS 0001 d:00002345
+call.d SEQTICKNEXTBEAT 0001 d:00002345
+call.d SEQTICKPREVBEAT 0001 d:00002345
+call.d SEQGETMETER 0001 d:00010000
+call.d SEQTICK2MEAS 0001 d:00010000
+fill 0 0 ee ee ee ee ee ee
+call.d SEQTICK2MBT 0001 d:00010000 @0 @0+2 @0+4
+dump 0 0 6
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0000
+dump 1 0 16
+fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQTICK2MBTSTR 0001 d:00010000 @1 0001
+dump 1 0 16
+call.d SEQTICKNEXTMEAS 0001 d:00010000
+call.d SEQTICKPREVMEAS 0001 d:00010000
+call.d SEQTICKNEXTBEAT 0001 d:00010000
+call.d SEQTICKPREVBEAT 0001 d:00010000
+call.d SEQMBT2TICK 0001 0001 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 0000
+call.d SEQMBT2TICK 0001 0002 0003 0011
+call.d SEQMBT2TICK 0001 0005 0002 0077
+call.d SEQMBT2TICK 0001 0080 0001 0000
+call.d SEQMBT2TICK 0001 0003 0007 0000
+call.d SEQMBT2TICK 0001 0000 0001 0000
+call.d SEQMBT2TICK 0001 0002 0001 01f4
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1:1:000" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "2:1:0" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "3:2:010" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "4:3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 " 2 : 2 : 5" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "9:9:999" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "x" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "1.2.3" @0 @0+2 @0+4
+dump 0 0 6
+fill 0 0 ee ee ee ee ee ee
+call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
+dump 0 0 6
+echo == swap
+call.w SEQCREATESEQ 0000 0000
+call.w SEQSWAPMETERMAPS 0001 0002
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.w SEQGETMETERMAPLEN 0002
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0002 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0002 0000 ffff cb4 d:00000000
+@close
