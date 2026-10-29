@@ -1,0 +1,11 @@
+build/
+build-*/
+.build/
+.swiftpm/
+.idea/
+.DS_Store
+__pycache__/
+# the Cakewalk engines are proprietary: they come from your own disks, never from this repository
+*.DLL
+*.DL_
+*.dll
