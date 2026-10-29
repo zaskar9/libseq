@@ -19,7 +19,7 @@ SEQSTOP() -> 0001
 == continue to the end
 SEQSTART(null,0000,0000) -> 0001
 SEQIDLE() -> 0001
-== rewind and play from 0
+== rewind, play from 0 for 1.75 s (between two notes), stop
 SEQREWIND(0001) -> 00000000
 SEQGETNOW(0001) -> 00000000
 SEQSTART(null,0000,0000) -> 0001

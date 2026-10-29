@@ -21,12 +21,12 @@ idle 1000
 echo == continue to the end
 @play
 idle 6000
-echo == rewind and play from 0
+echo == rewind, play from 0 for 1.75 s (between two notes), stop
 call.d SEQREWIND 0001
 call.d SEQGETNOW 0001
 sleep 1000
 @play
-idle 2000
+idle 1750
 @stop
 idle 1000
 @close
