@@ -32,7 +32,14 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
   `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
   masked, as they differ from run to run.
-- 1.01 is covered for 153 of its 158 API exports. Not covered: `SeqInsertRange` (no working
-  layout found yet), `SeqIOSeek/Read/Write` (valid only inside the file callbacks) and
-  `SeqConfigMidi` (a dialog). Of the functions new in 2.10 and 3.00 only
-  `SeqReceiveSysxBankEx` has a suite so far.
+- Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
+  whether the meaning of every argument is known. For the 158 API exports of 1.01:
+  - 152 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).
+  - 1 is called, but the meaning of its arguments is not known: `SeqSetMeter` (marked "?" in
+    `signatures.md`). It counts as covered.
+  - 1 is not called, because no layout tried has a visible effect: `SeqInsertRange`.
+  - 4 have known layouts but are not called on their own: `SeqIOSeek/Read/Write` work only
+    inside the callbacks of loading and saving a file, and `SeqConfigMidi` opens a dialog.
+
+  So `coverage.txt` reports 153 of 158 as covered: the 152 and `SeqSetMeter`.
+- Of the functions new in 2.10 and 3.00 only `SeqReceiveSysxBankEx` has a suite so far.
