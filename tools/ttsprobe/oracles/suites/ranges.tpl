@@ -822,4 +822,139 @@ call.d SEQTELL 0100
 call.w SEQEOS 0100
 call.w SEQNXTEVT 0100
 call.w SEQDESTROYSEQ 0001
+echo == insert range (1.01 and 2.10): no effect on a loaded stream
+?101,210 @load ENG_ORDR.WRK
+?101,210 call.d SEQSEEK 0100 0000 d:00000002
+?101,210 call.d SEQINSERTRANGE 0100 0000 0000 0000
+?101,210 call.d SEQINSERTRANGE 0100 0002 0000 0078
+?101,210 call.d SEQINSERTRANGE 0100 ffff ffff ffff
+?101,210 call.d SEQTELL 0100
+?101,210 call.d SEQSEEK 0100 0000 d:00000000
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT 0100 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL 0100
+?101,210 call.w SEQEOS 0100
+?101,210 call.w SEQNXTEVT 0100
+?101,210 call.w SEQDESTROYSEQ 0001
 @close

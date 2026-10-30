@@ -45,7 +45,7 @@ established.
 | `SeqDeleteRange(stream, d from, d thru)` | d | |
 | `SeqDisplaceEarlier/Later(stream, d from, d amount)` | d | |
 | `SeqTemporalSort(stream)` | d | |
-| `SeqInsertRange(stream, ?, d ?)` | d | ? returns 0 |
+| `SeqInsertRange(stream, w, w, w)` | d | no working layout: on a loaded stream it returns 0 and changes nothing, whatever the other words; on a new empty stream it crashes; 3.00 crashes. Not imported by any program |
 | `SeqMergeStreams(seq, a, seq b, b, flag, d offset)`; 3.00: `(seq, a, seq b, b, flag, d count, d offset)` | w | a new stream in `seq`: the events of stream `a`, and those of `b` moved later by `offset` (3.00: the first `count` events of `b`); at equal times `a` comes first. `a` is destroyed, `b` too when `flag` is not 0. Returns the new stream. The third word has no visible effect (the programs pass `b`'s sequence) |
 | `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind (1, 2, ...); the name is kept, not copied |
 | `SeqUnregisterEventKind(p name)` | w | |
@@ -78,18 +78,24 @@ established.
 
 ## Meter and positions
 
+A meter entry has a key signature and a meter. `key` is the number of sharps, negative for flats
+(0xFFFD = 3 flats); results carry it as a byte (0x00FD). `meter` is the power of two of the
+denominator in the high byte and the numerator in the low byte: 0x0204 = 4/4, 0x0306 = 6/8. These
+layouts come from Cakewalk Apprentice 1.04 editing its Meter/Key view [trace]; until 2026-10-30 the
+suites passed numerator and denominator as two words, which the engine took as key and meter.
+
 | Call | Result | Notes |
 |---|---|---|
 | `SeqGetMeterMapLen(seq)` | w | |
-| `SeqGetMeterAtIx(seq, index, p d measure)` | d | the meter (0x0204 = 4/4) |
+| `SeqGetMeterAtIx(seq, index, p measure)` | d | key << 16 \| meter; the entry's measure (a word) goes to the pointer |
 | `SeqMeterIxByTick(seq, d tick)` | d | |
-| `SeqGetMeter(seq, d tick)` | d | |
-| `SeqInsMeter(seq, measure, numerator, denominator power)` | w | |
-| `SeqDelMeter(seq, n)` | w | |
-| `SeqSetMeter(seq, w, w, w, w)` | w | ? |
-| `SeqClearMeterMap(seq, numerator, denominator power)` | w | |
-| `SeqRecalcMeterMap(seq)` | d | |
-| `SeqEnumMeters(seq, from, thru, p callback, d value)` | d | callback with 4 words, then (0, 0, d value) |
+| `SeqGetMeter(seq, d tick)` | d | key << 16 \| meter in effect at the tick |
+| `SeqInsMeter(seq, measure, key, meter)` | w | kept in measure order; an entry at the same measure is replaced |
+| `SeqDelMeter(seq, measure)` | w | deletes the entry in effect at the measure, also the first one |
+| `SeqSetMeter(seq, d tick, key, meter)` | w | changes the entry in effect at the tick; positions are recalculated |
+| `SeqClearMeterMap(seq, key, meter)` | w | one entry at measure 1 |
+| `SeqRecalcMeterMap(seq)` | d | the number of entries |
+| `SeqEnumMeters(seq, from, thru, p callback, d value)` | d | callback(key, meter, d value) per entry, then (0, 0, d value) |
 | `SeqSwapMeterMaps(seq, seq)` | w | |
 | `SeqMeterCopy(dst, src, d from, d thru, p ?)` | w | from the traces |
 | `SeqMeterPaste(dst, src, d at, 1, 0)` | w | from the traces |

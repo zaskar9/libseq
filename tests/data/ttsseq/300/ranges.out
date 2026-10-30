@@ -823,4 +823,5 @@ SEQTELL(0100) -> 00000013
 SEQEOS(0100) -> 0001
 SEQNXTEVT(0100) -> 0000
 SEQDESTROYSEQ(0001) -> 0001
+== insert range (1.01 and 2.10): no effect on a loaded stream
 SEQCLOSE() -> 0001

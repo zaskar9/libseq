@@ -137,6 +137,15 @@ def _():
     ]
     for title, c in cases:
         L += [f'echo == {title}', '@load ENG_ORDR.WRK', c] + walk('0100', STREAMS['ENG_ORDR']['0100'] + 2) + ['call.w SEQDESTROYSEQ 0001']
+    # SeqInsertRange (4 words in 1.01 and 2.10) fails on a loaded stream whatever the arguments: it asks
+    # Windows to grow the stream's memory by a fixed 0xA011F000 bytes, which fails, and returns 0.
+    # On a new empty stream it crashes, and in 3.00 every layout tried crashes; neither is called here.
+    L += ['echo == insert range (1.01 and 2.10): no effect on a loaded stream', '?101,210 @load ENG_ORDR.WRK',
+          '?101,210 call.d SEQSEEK 0100 0000 d:00000002']
+    for args in ('0000 0000 0000', '0002 0000 0078', 'ffff ffff ffff'):
+        L += [f'?101,210 call.d SEQINSERTRANGE 0100 {args}']
+    L += ['?101,210 call.d SEQTELL 0100'] + ['?101,210 ' + c for c in walk('0100', STREAMS['ENG_ORDR']['0100'] + 1)] + \
+         ['?101,210 call.w SEQDESTROYSEQ 0001']
     L += ['@close']
     return L
 
@@ -232,17 +241,33 @@ def _():
     L = ['@open', 'buf 0 64', 'buf 1 64']
     for song in ['ENG_ORDR', 'SYN_MAPS', 'E3_DENS', 'ENG_METR']:
         L += [f'echo -- {song}', f'@load {song}.WRK'] + metermap() + positions() + ['call.w SEQDESTROYSEQ 0001']
+    # A meter entry is a key signature (sharps, negative for flats) and a meter word: the power of two
+    # of the denominator in the high byte, the numerator in the low byte (0x0204 = 4/4) [trace of
+    # Cakewalk Apprentice 1.04's Meter/Key view]. SeqDelMeter and SeqSetMeter act on the entry in
+    # effect at a measure or a tick.
     L += ['echo == edits', '@load ENG_ORDR.WRK']
-    for title, c in [('insert 3/4 at measure 3', 'call.w SEQINSMETER 0001 0003 0003 0002'),
-                     ('insert 6/8 at measure 5', 'call.w SEQINSMETER 0001 0005 0006 0003'),
-                     ('insert 5/4 at measure 3 again', 'call.w SEQINSMETER 0001 0003 0005 0002'),
-                     ('set (layout unsure)', 'call.w SEQSETMETER 0001 0002 0002 0003 0002'),
-                     ('delete 2', 'call.w SEQDELMETER 0001 0002'),
+    for title, c in [('insert 3/4 at measure 3', 'call.w SEQINSMETER 0001 0003 0000 0203'),
+                     ('insert 6/8, 2 sharps at measure 5', 'call.w SEQINSMETER 0001 0005 0002 0306'),
+                     ('insert 5/4, 3 flats at measure 3 again', 'call.w SEQINSMETER 0001 0003 fffd 0205'),
+                     ('set 7/4, 1 flat for the entry in effect at tick 0x20002', 'call.w SEQSETMETER 0001 d:00020002 ffff 0207'),
+                     ('delete the entry in effect at measure 2', 'call.w SEQDELMETER 0001 0002'),
                      ('recalc', 'call.w SEQRECALCMETERMAP 0001'),
-                     ('delete 1', 'call.w SEQDELMETER 0001 0001'),
-                     ('clear to 3/2', 'call.w SEQCLEARMETERMAP 0001 0003 0001')]:
+                     ('delete the entry in effect at measure 1', 'call.w SEQDELMETER 0001 0001'),
+                     ('clear to 3/2, 4 sharps', 'call.w SEQCLEARMETERMAP 0001 0004 0103')]:
         L += [f'echo == {title}', c] + metermap() + positions()
     L += ['echo == swap', 'call.w SEQCREATESEQ 0000 0000', 'call.w SEQSWAPMETERMAPS 0001 0002'] + metermap('0001') + metermap('0002')
+    # SeqSetMeter(seq, tick32, key, meter) changes the entry in effect at the tick
+    L += ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    for t in (0, 0x3bf, 0x3c0, 0x68f, 0x690, 0xffffffff):
+        L += [f'echo == set 7/8, 1 sharp at tick {t:#x}: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)', 'call.w SEQCREATESEQ 0000 0000',
+              'call.w SEQINSMETER 0001 0003 0000 0203', 'call.w SEQINSMETER 0001 0005 0000 0306', 'call.w SEQRECALCMETERMAP 0001',
+              'call.d SEQMBT2TICK 0001 0005 0001 0000', f'call.w SEQSETMETER 0001 d:{t:08x} 0001 0307'] + metermap() + \
+             ['call.d SEQMBT2TICK 0001 0005 0001 0000', 'call.w SEQRECALCMETERMAP 0001', 'call.d SEQMBT2TICK 0001 0005 0001 0000',
+              'call.w SEQDESTROYSEQ 0001']
+    for title, c in [('delete the entry in effect at measure 4 (the one at 3)', 'call.w SEQDELMETER 0001 0004'),
+                     ('delete at measure 9 (the one at 5)', 'call.w SEQDELMETER 0001 0009')]:
+        L += [f'echo == {title}', 'call.w SEQCREATESEQ 0000 0000', 'call.w SEQINSMETER 0001 0003 0000 0203',
+              'call.w SEQINSMETER 0001 0005 0000 0306', c] + metermap() + ['call.w SEQDESTROYSEQ 0001']
     L += ['@close']
     return L
 

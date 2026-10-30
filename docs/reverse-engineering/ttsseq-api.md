@@ -159,7 +159,7 @@ Track > Archive in Cakewalk Apprentice 1.04 calls `SeqSetStreamParam(stream, 8, 
 |---|---|---|
 | `SeqGetPPQ(seq)` | 1 | 120 [probe] |
 | `SeqGetTempo(seq, tick32)` | 3 | bpm × 100 (default 10000) [probe] |
-| `SeqGetMeter(seq, tick32)` | 3 | 0x0204 = 4/4: numerator, then the power of two of the denominator [probe] |
+| `SeqGetMeter(seq, tick32)` | 3 | the key signature in DX, the meter in AX: 0x0204 = 4/4, the numerator in the low byte, the power of two of the denominator in the high byte [probe, trace] |
 | `SeqMBT2Tick(seq, measure, beat, tick)` | 4 | measure 128 beat 1 = 60960 (1-based) [probe] |
 | `SeqTick2Meas(seq, tick32)` | 3 | measure (1-based) [probe] |
 | `SeqTick2MBT(seq, tick32, &measure, &beat, &tick)` | 9 | [sweep] |
@@ -431,6 +431,12 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - `SeqSetSeqParam` returns 1, or 0 for a parameter the version does not have.
 - `SeqCreateStream(seq, ?, ?)` adds an empty stream; `SeqAdoptStream(seq, stream)` gives it a new
   handle; `SeqCloneStream(seq, stream, flag)` copies the events with flag 0 and not with flag 1.
+- The meter map, from Cakewalk Apprentice 1.04's Meter/Key view [trace] and the probe [probe]:
+  `SeqInsMeter(seq, measure, key, meter)` adds an entry (or replaces the one at that measure),
+  `SeqSetMeter(seq, tick32, key, meter)` changes the entry in effect at the tick, and
+  `SeqDelMeter(seq, measure)` deletes the entry in effect at the measure, also the one at measure
+  1. Apprentice calls `SeqRecalcMeterMap(seq)` after each; it returns the number of entries.
+  `SeqSetMeter` recalculates the positions itself.
 - `SeqInsMarker(seq, name, time32, flag)` keeps the markers in time order;
   `SeqGetMarkerTime(seq, index32, &time, &flag)` and `SeqSetMarkerTime(seq, index32, time32, flag)`
   carry the same flag (the "Locked" marker of the test file suggests SMPTE lock).
@@ -447,8 +453,11 @@ function the oracle suites call, found by trying layouts through the probe. Note
 
 - Sizes: all exports that are API are measured except `SeqInsertRange` in 3.00 (4 words in 1.01
   and 2.10; every layout tried crashes in 3.00, and no program was seen calling it).
-- Layouts not found yet: `SeqInsertRange` (one returns, without effect), `SeqSetMeter`; the step
-  record calls return but record nothing without MIDI input.
+- The step record calls return but record nothing without MIDI input.
+- `SeqInsertRange` (4 words in 1.01 and 2.10) has no layout that works, and no program imports
+  it. On a loaded stream every call asks Windows to grow the stream's memory by 0xA011F000 bytes,
+  whatever the arguments; that fails, the stream is unchanged, and the result is 0. On a new,
+  empty stream the call grows the memory and then crashes [probe, relay].
 - The third word of `SeqMergeStreams` and the zero words of `SeqReceiveSysxBank` and
   `SeqReceiveSysxBankEx`: no visible effect yet.
 - Parameters 3, 30 and 31: not from any dialog, no effect on playback; probably recording.

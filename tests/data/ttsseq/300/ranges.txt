@@ -825,4 +825,5 @@ call.d SEQTELL 0100
 call.w SEQEOS 0100
 call.w SEQNXTEVT 0100
 call.w SEQDESTROYSEQ 0001
+echo == insert range (1.01 and 2.10): no effect on a loaded stream
 call.w SEQCLOSE

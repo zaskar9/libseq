@@ -1160,7 +1160,7 @@ call.w SEQDESTROYSEQ 0001
 echo == edits
 @load ENG_ORDR.WRK
 echo == insert 3/4 at measure 3
-call.w SEQINSMETER 0001 0003 0003 0002
+call.w SEQINSMETER 0001 0003 0000 0203
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0001 0000 @0
@@ -1447,8 +1447,8 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == insert 6/8 at measure 5
-call.w SEQINSMETER 0001 0005 0006 0003
+echo == insert 6/8, 2 sharps at measure 5
+call.w SEQINSMETER 0001 0005 0002 0306
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0001 0000 @0
@@ -1735,8 +1735,8 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == insert 5/4 at measure 3 again
-call.w SEQINSMETER 0001 0003 0005 0002
+echo == insert 5/4, 3 flats at measure 3 again
+call.w SEQINSMETER 0001 0003 fffd 0205
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0001 0000 @0
@@ -2023,8 +2023,8 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == set (layout unsure)
-call.w SEQSETMETER 0001 0002 0002 0003 0002
+echo == set 7/4, 1 flat for the entry in effect at tick 0x20002
+call.w SEQSETMETER 0001 d:00020002 ffff 0207
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0001 0000 @0
@@ -2311,7 +2311,7 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == delete 2
+echo == delete the entry in effect at measure 2
 call.w SEQDELMETER 0001 0002
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
@@ -2887,7 +2887,7 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == delete 1
+echo == delete the entry in effect at measure 1
 call.w SEQDELMETER 0001 0001
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
@@ -3175,8 +3175,8 @@ dump 0 0 6
 fill 0 0 ee ee ee ee ee ee
 call.w SEQMBTSTR2MBT 0001 "0:0:0" @0 @0+2 @0+4
 dump 0 0 6
-echo == clear to 3/2
-call.w SEQCLEARMETERMAP 0001 0003 0001
+echo == clear to 3/2, 4 sharps
+call.w SEQCLEARMETERMAP 0001 0004 0103
 call.w SEQGETMETERMAPLEN 0001
 fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0001 0000 @0
@@ -3506,4 +3506,244 @@ fill 0 0 ee ee ee ee
 call.d SEQGETMETERATIX 0002 0005 @0
 dump 0 0 4
 call.w SEQENUMMETERS 0002 0000 ffff cb4 d:00000000
+call.w SEQDESTROYSEQ 0002
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0x0: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:00000000 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0x3bf: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:000003bf 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0x3c0: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:000003c0 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0x68f: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:0000068f 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0x690: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:00000690 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == set 7/8, 1 sharp at tick 0xffffffff: entries at measures 1 (4/4), 3 (3/4) and 5 (6/8)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQSETMETER 0001 d:ffffffff 0001 0307
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQRECALCMETERMAP 0001
+call.d SEQMBT2TICK 0001 0005 0001 0000
+call.w SEQDESTROYSEQ 0001
+echo == delete the entry in effect at measure 4 (the one at 3)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQDELMETER 0001 0004
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.w SEQDESTROYSEQ 0001
+echo == delete at measure 9 (the one at 5)
+call.w SEQCREATESEQ 0000 0000
+call.w SEQINSMETER 0001 0003 0000 0203
+call.w SEQINSMETER 0001 0005 0000 0306
+call.w SEQDELMETER 0001 0009
+call.w SEQGETMETERMAPLEN 0001
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0000 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0001 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0002 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0003 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0004 @0
+dump 0 0 4
+fill 0 0 ee ee ee ee
+call.d SEQGETMETERATIX 0001 0005 @0
+dump 0 0 4
+call.w SEQENUMMETERS 0001 0000 ffff cb4 d:00000000
+call.w SEQDESTROYSEQ 0001
 @close

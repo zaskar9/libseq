@@ -33,7 +33,7 @@ ok   play_ENG_SYNC: midi: 71 messages, times within 7.5 ms
 ok   play_ENG_SYSX: midi: 71 messages, times within 13.6 ms
 ok   play_ENG_TMPO: midi: 97 messages, times within 13.7 ms
 ok   play_FURELISE: midi: 175 messages, times within 24.7 ms
-ok   ranges: midi: 66 messages in the same order
+ok   ranges: midi: 69 messages in the same order
 ok   record: out: 2 lines differ, first at 46: '  18 00 00 c0 05 00 00 00' / '  1a 00 00 c0 05 00 00 00'; midi: 98 messages in the same order
 ok   seqparams: midi: 55 messages in the same order
 ok   streamparams: midi: 83 messages in the same order
