@@ -43,8 +43,9 @@
  *                             lparam high,lparam low)", and "cbdo msg MSG LINE" answers them
  *   add N HEX                 add HEX to variable N (set N HEX sets it)
  *   letw N K                  keep word K of the callback running its commands in variable N
- *   cbmask HEX                callback words whose bit is set print as "----" (values that differ
- *                             from run to run, such as free memory)
+ *   cbmask HEX [merge]        callback words whose bit is set print as "----" (values that differ
+ *                             from run to run, such as free memory); with "merge", repeated calls
+ *                             that differ only in those words are counted as one
  *   cbyield 0|1               whether the callbacks yield (PeekMessage) before returning (default 0);
  *                             needed when the engine waits in a loop that calls the callback
  * Argument cbN (N = 0..8) is a far pointer to a callback taking N words (Pascal: it removes them);
@@ -88,6 +89,7 @@ static DWORD g_cbret = 1;
 static DWORD g_cbret2 = 0, g_cbswitch = 0; /* "cbretafter": from tick g_cbswitch on, return g_cbret2 */
 static int g_cbyield = 0;
 static unsigned g_cbmask = 0; /* "cbmask": callback words not printed */
+static int g_cbmerge = 0;     /* "cbmask HEX merge": repeats that differ only in masked words merge */
 /* "cbdo": commands run inside a callback */
 #define MAXDO 32
 typedef struct { int id; long match; char line[400]; } CbDo;
@@ -144,10 +146,11 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
             return ret;
         }
     }
-    /* repeated identical calls (a polling loop) are counted, not stored again */
-    if (g_cbhead != g_cbtail && g_cb[last].id == id && g_cb[last].w[0] == w0 && g_cb[last].w[1] == w1 &&
-        g_cb[last].w[2] == w2 && g_cb[last].w[3] == w3 && g_cb[last].w[4] == w4 && g_cb[last].w[5] == w5 &&
-        g_cb[last].w[6] == w6 && g_cb[last].w[7] == w7) { ++g_cb[last].count; return g_cbret; }
+    /* repeated identical calls (a polling loop) are counted, not stored again; with "cbmask HEX
+     * merge" the masked words do not count, as they do not print */
+#define SAMEW(k, v) ((g_cbmerge && (g_cbmask & (1u << (k)))) || g_cb[last].w[k] == (v))
+    if (g_cbhead != g_cbtail && g_cb[last].id == id && SAMEW(0, w0) && SAMEW(1, w1) && SAMEW(2, w2) &&
+        SAMEW(3, w3) && SAMEW(4, w4) && SAMEW(5, w5) && SAMEW(6, w6) && SAMEW(7, w7)) { ++g_cb[last].count; return g_cbret; }
     if (next == g_cbtail) { ++g_cblost; return g_cbret; }
     g_cb[g_cbhead].count = 1;
     g_cb[g_cbhead].dlen = -1;
@@ -401,8 +404,12 @@ static void run(char* line) {
         /* ret HEX: inside a callback's commands, what this call of the callback returns */
         g_doret = strtoul(nexttok(&p), NULL, 16);
     } else if (strcmp(cmd, "cbmask") == 0) {
-        /* cbmask HEX: the callback words whose bit is set print as "----" */
+        /* cbmask HEX [merge]: the callback words whose bit is set print as "----"; with "merge",
+         * repeated calls that differ only in those words count as one */
+        char* m;
         g_cbmask = (unsigned)strtoul(nexttok(&p), NULL, 16);
+        m = nexttok(&p);
+        g_cbmerge = m != NULL && strcmp(m, "merge") == 0;
     } else if (strcmp(cmd, "cbretafter") == 0) {
         /* cbretafter MS HEX: MS ms from now on, the callbacks return HEX */
         DWORD ms = strtoul(nexttok(&p), NULL, 10);
