@@ -437,6 +437,15 @@ function the oracle suites call, found by trying layouts through the probe. Note
   `SeqDelMeter(seq, measure)` deletes the entry in effect at the measure, also the one at measure
   1. Apprentice calls `SeqRecalcMeterMap(seq)` after each; it returns the number of entries.
   `SeqSetMeter` recalculates the positions itself.
+- `SeqInsertRange(dst, index32, src)` (4 words in all three versions) inserts copies of all
+  events of stream `src` into stream `dst` before the index and returns 1. The events keep their
+  times and `dst` is not sorted again (`SeqTemporalSort` does that); `src` is unchanged, the
+  cursor of `dst` too. No program imports it. How the layout was found: every earlier attempt
+  passed a number where the source stream goes. Wine's relay trace then showed the engine asking
+  to grow the stream's memory by 0xA011F000 bytes whatever the arguments, which is the length the
+  engine reports for a stream that does not exist (0x74023E00) times 8 bytes per event. So one
+  argument had to be a stream handle; in the last word it worked. An index past the end of `dst`
+  crashes [probe, relay].
 - `SeqInsMarker(seq, name, time32, flag)` keeps the markers in time order;
   `SeqGetMarkerTime(seq, index32, &time, &flag)` and `SeqSetMarkerTime(seq, index32, time32, flag)`
   carry the same flag (the "Locked" marker of the test file suggests SMPTE lock).
@@ -451,15 +460,10 @@ function the oracle suites call, found by trying layouts through the probe. Note
 
 ## Open
 
-- Sizes: all exports that are API are measured except `SeqInsertRange` in 3.00 (4 words in 1.01
-  and 2.10; every layout tried crashes in 3.00, and no program was seen calling it).
+- Sizes: all exports that are API are measured.
 - The step record calls return but record nothing without MIDI input.
-- `SeqInsertRange` (4 words in 1.01 and 2.10) has no layout that works, and no program imports
-  it. On a loaded stream every call asks Windows to grow the stream's memory by 0xA011F000 bytes,
-  whatever the arguments; that fails, the stream is unchanged, and the result is 0. On a new,
-  empty stream the call grows the memory and then crashes [probe, relay].
-- The third word of `SeqMergeStreams` and the zero words of `SeqReceiveSysxBank` and
-  `SeqReceiveSysxBankEx`: no visible effect yet.
+- The third word of `SeqMergeStreams` and the zero words of the sysex receive calls: no visible
+  effect yet.
 - Parameters 3, 30 and 31: not from any dialog, no effect on playback; probably recording.
 - The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",

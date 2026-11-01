@@ -55,7 +55,7 @@
 | `SEQINSEVT` | #29: 3 | #29: 3 | #29: 3 |  |
 | `SEQDELEVT` | #30: 1 | #30: 1 | #30: 1 |  |
 | `SEQMOVEEVT` | #31: 3 | #31: 3 | #31: 3 |  |
-| `SEQINSERTRANGE` | #35: 4 | #35: 4 | #35: ? |  |
+| `SEQINSERTRANGE` | #35: 4 | #35: 4 | #35: 4 | 3.00 measured with a valid source stream (the sweep crashed) |
 | `SEQDELETERANGE` | #36: 5 | #36: 5 | #36: 5 |  |
 | `SEQDISPLACEEARLIER` | #37: 5 | #37: 5 | #37: 5 |  |
 | `SEQDISPLACELATER` | #38: 5 | #38: 5 | #38: 5 |  |

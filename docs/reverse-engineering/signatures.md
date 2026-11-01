@@ -45,7 +45,7 @@ established.
 | `SeqDeleteRange(stream, d from, d thru)` | d | |
 | `SeqDisplaceEarlier/Later(stream, d from, d amount)` | d | |
 | `SeqTemporalSort(stream)` | d | |
-| `SeqInsertRange(stream, w, w, w)` | d | no working layout: on a loaded stream it returns 0 and changes nothing, whatever the other words; on a new empty stream it crashes; 3.00 crashes. Not imported by any program |
+| `SeqInsertRange(dst, d index, src)` | d | inserts copies of all events of `src` before `index`, keeping their times, without sorting; `src` is unchanged; 1. An index past the end, or a `src` that is not a stream, crashes or fails. Not imported by any program |
 | `SeqMergeStreams(seq, a, seq b, b, flag, d offset)`; 3.00: `(seq, a, seq b, b, flag, d count, d offset)` | w | a new stream in `seq`: the events of stream `a`, and those of `b` moved later by `offset` (3.00: the first `count` events of `b`); at equal times `a` comes first. `a` is destroyed, `b` too when `flag` is not 0. Returns the new stream. The third word has no visible effect (the programs pass `b`'s sequence) |
 | `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind (1, 2, ...); the name is kept, not copied |
 | `SeqUnregisterEventKind(p name)` | w | |

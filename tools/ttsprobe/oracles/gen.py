@@ -125,7 +125,7 @@ def _():
 
 @suite('ranges')
 def _():
-    L = ['@open', 'buf 0 64']
+    L = ['@open', 'buf 0 64', 'buf 1 64']
     cases = [
         ('delete range 0x78..0x1e0', 'call.w SEQDELETERANGE 0100 d:00000078 d:000001e0'),
         ('delete range 0..0x78', 'call.w SEQDELETERANGE 0100 d:00000000 d:00000078'),
@@ -137,15 +137,27 @@ def _():
     ]
     for title, c in cases:
         L += [f'echo == {title}', '@load ENG_ORDR.WRK', c] + walk('0100', STREAMS['ENG_ORDR']['0100'] + 2) + ['call.w SEQDESTROYSEQ 0001']
-    # SeqInsertRange (4 words in 1.01 and 2.10) fails on a loaded stream whatever the arguments: it asks
-    # Windows to grow the stream's memory by a fixed 0xA011F000 bytes, which fails, and returns 0.
-    # On a new empty stream it crashes, and in 3.00 every layout tried crashes; neither is called here.
-    L += ['echo == insert range (1.01 and 2.10): no effect on a loaded stream', '?101,210 @load ENG_ORDR.WRK',
-          '?101,210 call.d SEQSEEK 0100 0000 d:00000002']
-    for args in ('0000 0000 0000', '0002 0000 0078', 'ffff ffff ffff'):
-        L += [f'?101,210 call.d SEQINSERTRANGE 0100 {args}']
-    L += ['?101,210 call.d SEQTELL 0100'] + ['?101,210 ' + c for c in walk('0100', STREAMS['ENG_ORDR']['0100'] + 1)] + \
-         ['?101,210 call.w SEQDESTROYSEQ 0001']
+    # SeqInsertRange(dst, index32, src) inserts copies of all events of src into dst before the
+    # index, keeping their times (the stream is not sorted again); src stays as it is. An index
+    # past the end of dst crashes, and so does a src that is not a stream.
+    def source(events):
+        R = ['call.w SEQCREATESEQ 0000 0000', 'call.w SEQCREATESTREAM 0002 0000 0000', 'let 1']
+        for i, e in enumerate(events):
+            R += [f'fill 1 0 {e}', f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @1']
+        return R
+    two = ['00 05 00 91 50 51 10 00', '50 00 00 b2 07 33 00 00']
+    for title, at, events in [('insert range: two events at index 0', 0, two),
+                              ('insert range: two events at index 3', 3, two),
+                              ('insert range: two events at the end (index 19)', 19, two),
+                              ('insert range: an empty stream at index 3', 3, [])]:
+        n = STREAMS['ENG_ORDR']['0100'] + len(events)
+        L += [f'echo == {title}', '@load ENG_ORDR.WRK'] + source(events) + \
+             ['call.d SEQSEEK 0100 0000 d:00000005', f'call.d SEQINSERTRANGE 0100 d:{at:08x} %1', 'call.d SEQTELL 0100'] + \
+             walk('0100', n + 1) + ['call.d SEQSTREAMLEN %1'] + walk('%1', len(events) + 1) + \
+             ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    L += ['echo == insert range, then sort', '@load ENG_ORDR.WRK'] + source(two) + \
+         ['call.d SEQINSERTRANGE 0100 d:00000000 %1', 'call.d SEQTEMPORALSORT 0100'] + walk('0100', STREAMS['ENG_ORDR']['0100'] + 3) + \
+         ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
     L += ['@close']
     return L
 

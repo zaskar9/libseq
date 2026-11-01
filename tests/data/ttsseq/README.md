@@ -34,11 +34,9 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
   masked, as they differ from run to run.
 - Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
   whether the meaning of every argument is known. For the 158 API exports of 1.01:
-  - 153 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).
-  - 1 is called, but has no working layout: `SeqInsertRange`. On a loaded stream it returns 0
-    and changes nothing, whatever the arguments, and no program imports it.
+  - 154 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).
   - 4 have known layouts but are not called on their own: `SeqIOSeek/Read/Write` work only
     inside the callbacks of loading and saving a file, and `SeqConfigMidi` opens a dialog.
 
-  So `coverage.txt` reports 154 of 158 as covered: the 153 and `SeqInsertRange`.
+  So `coverage.txt` reports 154 of 158 as covered.
 - Of the functions new in 2.10 and 3.00 only `SeqReceiveSysxBankEx` has a suite so far.
