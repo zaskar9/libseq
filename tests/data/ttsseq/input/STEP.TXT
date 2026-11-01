@@ -1,0 +1,22 @@
+# notes for the step record suite (steprec); times from the moment the engine connects to the
+# input (SeqOpen). Step recording starts at about 1 s; the probe deletes the last step at about 6 s.
+2000 90 3c 64
+2200 80 3c 40
+# a chord: one step when the last key is up
+3000 90 40 50
+3050 90 43 51
+3200 80 40 00
+3220 80 43 00
+# a controller: recorded at the current position, no step
+4000 b0 07 64
+5000 90 48 70
+5300 80 48 00
+# after the delete, with duration 0x1E0 and velocity 0x40
+7000 90 4c 40
+7100 80 4c 00
+8000 e0 00 50
+8100 d0 30
+8200 a0 4c 20
+8300 c0 05
+9000 90 4f 30
+9010 90 4f 00

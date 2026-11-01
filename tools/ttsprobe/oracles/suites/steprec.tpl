@@ -1,0 +1,126 @@
+#! input STEP.TXT
+#! secs 40
+@open
+buf 0 16
+buf 2 16
+win
+call.w SEQCREATESEQ 0000 0000
+sleep 800
+set 3 0
+call.v SEQSTEPRECPARAMS d:00000000 0077 0000
+call.w SEQSTEPRECSETUP 0001 hwnd
+let 7
+call.v SEQSTEPRECPARAMS d:00000000 0077 0000
+set 5 77
+set 6 0
+cbdo msg 0464 add 3 78
+cbdo msg 0464 call.d SEQSETNOW 0001 %d3
+cbdo msg 0464 call.v SEQSTEPRECPARAMS %d3 %5 %6
+cbdo msg 0464 call.d SEQRECCOUNT
+sleep 5000
+echo == delete the last step, then duration 0x1e0 and velocity 0x40
+call.d SEQRECCOUNT
+call.w SEQSETRECCOUNT d:00000004
+call.d SEQRECCOUNT
+fill 2 0 00 00 00 91 30 31 32 00
+call.w SEQRECORDEVENT @2
+call.d SEQRECCOUNT
+add 3 ffffff88
+set 5 1e0
+set 6 40
+call.d SEQSETNOW 0001 %d3
+call.v SEQSTEPRECPARAMS %d3 %5 %6
+sleep 4500
+cbdo -
+echo == end
+call.d SEQRECCOUNT
+call.w SEQSTEPRECTERM
+call.d SEQRECCOUNT
+call.d SEQGETNOW 0001
+?300 call.w SEQGETRECORDBUFFER
+call.d SEQSTREAMLEN %7
+?101,210 call.w SEQMERGESTREAMS 0001 0000 0001 %7 0001 d:00000000
+?300 call.w SEQMERGESTREAMS 0001 0000 0001 %7 0001 d:ffffffff d:00000000
+let 1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQENUMSTREAMS 0001 cb4 d:00000000
+@close

@@ -418,6 +418,38 @@ Cakewalk Professional 2.00 under Wine stalls for 2 s after the count-in: it hide
 and Wine waits for a window manager that the virtual display does not run
 (`wait_for_withdrawn_state`). The probe has no windows and no stall.
 
+- `SeqRecordEvent(event)` (2 words) adds an event to the take while recording runs, at the
+  current position: the time in the 8-byte event is ignored, status, data and duration are kept.
+  It returns 1, and `SeqRecCount()` counts it [probe]. Cakewalk Professional 2.00 and the demo
+  import it; no call was seen.
+
+### Step recording
+
+From Cakewalk Apprentice 1.04's Step Record dialog (Professional 2.00's makes the same calls)
+[trace], repeated by the probe with a window of its own and scripted input (suite `steprec`)
+[probe]:
+
+- `SeqStepRecSetup(seq, hwnd)` starts it and returns a new, empty stream of the sequence, which
+  collects the take. `hwnd` is the window the engine reports to.
+- `SeqStepRecParams(position32, duration, velocity)` sets where the next step goes, the duration
+  of its notes, and a velocity for them (0 keeps the played one). The dialog calls it after every
+  step with the next position (and `SeqSetNow` to the same tick, which the engine does not need).
+- A step is complete when the last key of it is up: a chord is one step. Its notes go in at the
+  position, with the given duration (0 gives notes of length 0). Controllers, wheel and patch
+  changes go in at the current position with duration 0 and make no step. The record filter
+  (parameter 28) applies as in real-time recording; sysex is not taken.
+- After each step the engine posts message 0x464 (WM_USER + 0x64) to the window, wParam 0x100,
+  lParam the number of events so far. The dialog then moves its position on by the step size.
+- `SeqSetRecCount(n32)` keeps the first n events of the take: the dialog's Delete removes the
+  last step that way and moves the position back. Advance only moves the position (a rest).
+- `SeqStepRecTerm()` ends it and returns the number of events. On Keep, the dialog makes the
+  track with `SeqMergeStreams(seq, 0, seq, take, 1, 0)`: stream 0 as the first stream means none,
+  so the new stream holds the take, which is destroyed. Then it sets sequence parameter 3 to 1,
+  as after a real-time take.
+- 3.00 differs [probe]: `SeqRecordEvent` also adds an event during step recording (at the step
+  position); `SeqStepRecTerm` sets the count back to 0; `SeqGetRecordBuffer()` returns the take's
+  stream.
+
 ## Program callbacks
 
 Cakewalk Apprentice 1.04 exports them by name, so the tracer shows the engine calling them: `LoadProc` and
@@ -467,6 +499,8 @@ From Cakewalk Apprentice 1.04 (2.10) and Cakewalk Professional 2.00 (3.00) doing
   - There is no time-base conversion: with `seq` at 240 ppq and `b`'s sequence at 120 ppq, the
     ticks of `b` are taken as they are.
   - The third word had no visible effect in any test; the programs pass the sequence of `b`.
+  - Stream 0 as `a` means no stream: the new stream holds only `b`'s events. The programs merge a
+    take that way, `b` being the take and the flag 1 [trace, probe].
 
 ## Call layouts
 
@@ -510,7 +544,6 @@ function the oracle suites call, found by trying layouts through the probe. Note
 ## Open
 
 - Sizes: all exports that are API are measured.
-- The step record calls return but record nothing without MIDI input.
 - The third word of `SeqMergeStreams` and the zero words of the sysex receive calls: no visible
   effect yet.
 - Parameters 3, 30 and 31: not from any dialog, no effect on playback; probably recording.

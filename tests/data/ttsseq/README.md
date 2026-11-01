@@ -9,6 +9,7 @@ and compare.
 |---|---|
 | `101/`, `210/`, `300/` | per suite: the script as run on that version (`.txt`), the probe's output (`.out`), the MIDI output in capture format (`.midi`), the files the suite saved (`SUITE/`) |
 | `input/IN3.TXT`, `input/SYSX.TXT` | the scripted MIDI input of the `record` and `sysexin` suites (milliseconds after the engine opens the input, then the bytes) |
+| `input/STEP.TXT` | the MIDI input of the `steprec` suite |
 | `input/PORTS.INI` | the `TTSSEQ.INI` of the `ports` suite: two output devices in reverse order, sync to port 2 |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
 | `coverage.txt` | the exports each version's suites call and do not call |
