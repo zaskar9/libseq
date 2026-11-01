@@ -16,10 +16,18 @@ index b21a00d..11d12de 100644
              return ExceptionContinueExecution;
      }
 diff --git a/dlls/krnl386.exe16/kernel16_private.h b/dlls/krnl386.exe16/kernel16_private.h
-index 9cf60d0..a40f971 100644
+index 9cf60d0..d19ca11 100644
 --- a/dlls/krnl386.exe16/kernel16_private.h
 +++ b/dlls/krnl386.exe16/kernel16_private.h
-@@ -347,4 +347,8 @@ static inline DWORD stack32_pop( CONTEXT *context )
+@@ -281,6 +281,7 @@ extern HTASK16 TASK_SpawnTask( NE_MODULE *pModule, WORD cmdShow,
+                                LPCSTR cmdline, BYTE len, HANDLE *hThread );
+ extern void TASK_ExitTask(void);
+ extern HTASK16 TASK_GetTaskFromThread( DWORD thread );
++extern DWORD TASK_GetTaskThreads( DWORD *ids, DWORD max );
+ extern TDB *TASK_GetCurrent(void);
+ extern void TASK_InstallTHHook( THHOOK *pNewThook );
+ 
+@@ -347,4 +348,8 @@ static inline DWORD stack32_pop( CONTEXT *context )
                          "call " __ASM_STDCALL("NtContinue",8) "\n\t"    \
                          "ret" ) /* fake ret to make copy protections happy */
  
@@ -28,28 +36,58 @@ index 9cf60d0..a40f971 100644
 +extern void WOWTHUNK_Sti(void);
 +
  #endif  /* __WINE_KERNEL16_PRIVATE_H */
+diff --git a/dlls/krnl386.exe16/task.c b/dlls/krnl386.exe16/task.c
+index 534b912..aafd512 100644
+--- a/dlls/krnl386.exe16/task.c
++++ b/dlls/krnl386.exe16/task.c
+@@ -521,6 +521,24 @@ HTASK16 TASK_GetTaskFromThread( DWORD thread )
+ }
+ 
+ 
++/***********************************************************************
++ *           TASK_GetTaskThreads
++ *
++ * The thread ids of the Win16 tasks, at most max of them.
++ */
++DWORD TASK_GetTaskThreads( DWORD *ids, DWORD max )
++{
++    DWORD n = 0;
++    TDB *p = TASK_GetPtr( hFirstTask );
++    while (p && n < max)
++    {
++        ids[n++] = HandleToULong( p->teb->ClientId.UniqueThread );
++        p = TASK_GetPtr( p->hNext );
++    }
++    return n;
++}
++
++
+ /***********************************************************************
+  *           TASK_CallTaskSignalProc
+  */
 diff --git a/dlls/krnl386.exe16/wowthunk.c b/dlls/krnl386.exe16/wowthunk.c
-index 22471d6..89e688f 100644
+index 22471d6..4134208 100644
 --- a/dlls/krnl386.exe16/wowthunk.c
 +++ b/dlls/krnl386.exe16/wowthunk.c
-@@ -421,6 +421,76 @@ WORD WINAPI K32WOWHandle16( HANDLE handle, WOW_HANDLE_TYPE type )
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include <stdarg.h>
++#include <stdio.h>
+ #include <errno.h>
+ 
+ #include "wine/winbase16.h"
+@@ -421,6 +422,166 @@ WORD WINAPI K32WOWHandle16( HANDLE handle, WOW_HANDLE_TYPE type )
      }
  }
  
 +/* WINE_WIN16_IRQ_CALLBACKS: callbacks at "interrupt time" (for observing 16-bit multimedia programs
 + * that wait in a loop for a timer or MIDI callback, as Windows 3.1 allows): set to anything, the
 + * callbacks of non-task threads run without the Win16 lock; set to "serial", they also run one at a
-+ * time, and 16-bit cli ... sti keeps them out, as disabling interrupts does. */
-+static CRITICAL_SECTION irq_section;
-+static CRITICAL_SECTION_DEBUG irq_section_debug =
-+{
-+    0, 0, &irq_section,
-+    { &irq_section_debug.ProcessLocksList, &irq_section_debug.ProcessLocksList },
-+      0, 0, { (DWORD_PTR)(__FILE__ ": irq_section") }
-+};
-+static CRITICAL_SECTION irq_section = { &irq_section_debug, -1, 0, 0, 0, 0 };
-+
-+static int irq_mode = -1;  /* WINE_WIN16_IRQ_CALLBACKS: 0 unset, 1 set, 2 "serial" */
++ * time in the order they come, while the tasks' 16-bit code stands still, and 16-bit cli ... sti
++ * keeps them out, as disabling interrupts does. WINE_IRQ_TIMING=1 reports waits and holds. */
++static int irq_mode = -1;  /* 0 unset, 1 set, 2 "serial" */
++static int irq_timing;
 +
 +/**********************************************************************
 + *           irq_callback
@@ -64,9 +102,46 @@ index 22471d6..89e688f 100644
 +    {
 +        char value[16];
 +        DWORD len = GetEnvironmentVariableA( "WINE_WIN16_IRQ_CALLBACKS", value, sizeof(value) );
++        irq_timing = GetEnvironmentVariableA( "WINE_IRQ_TIMING", NULL, 0 ) != 0;
 +        irq_mode = !len ? 0 : (len < sizeof(value) && !strcmp( value, "serial" )) ? 2 : 1;
 +    }
 +    return irq_mode && !kernel_get_thread_data()->htask16;
++}
++
++/* The "interrupt" lock: a ticket lock, so that callbacks and the tasks' cli are served in the order
++ * they ask (a critical section let a frequent timer callback starve the MIDI input callback). */
++static LONG irq_next, irq_serving;
++static DWORD irq_owner, irq_depth;
++
++static LONGLONG irq_now_us(void)
++{
++    LARGE_INTEGER c, f;
++    QueryPerformanceCounter( &c );
++    QueryPerformanceFrequency( &f );
++    return c.QuadPart * 1000000 / f.QuadPart;
++}
++
++static void irq_lock( const char *who )
++{
++    DWORD self = GetCurrentThreadId();
++    LONG ticket;
++    LONGLONG start = 0;
++
++    if (irq_owner == self) { irq_depth++; return; }
++    if (irq_timing) start = irq_now_us();
++    ticket = InterlockedIncrement( &irq_next ) - 1;
++    while (*(volatile LONG *)&irq_serving != ticket) Sleep( 0 );
++    irq_owner = self;
++    irq_depth = 1;
++    if (irq_timing && irq_now_us() - start >= 5000)
++        fprintf( stderr, "irq: %s %04lx waited %lu us\n", who, self, (ULONG)(irq_now_us() - start) );
++}
++
++static void irq_unlock(void)
++{
++    if (--irq_depth) return;
++    irq_owner = 0;
++    InterlockedIncrement( &irq_serving );
 +}
 +
 +/* cli and sti of 16-bit code: with "serial" interrupt-time callbacks, cli keeps them out (takes their
@@ -83,7 +158,7 @@ index 22471d6..89e688f 100644
 +        if (InterlockedCompareExchange( (LONG *)&cli_tls, index, TLS_OUT_OF_INDEXES ) != TLS_OUT_OF_INDEXES) TlsFree( index );
 +    }
 +    if (TlsGetValue( cli_tls )) return;
-+    EnterCriticalSection( &irq_section );
++    irq_lock( "cli" );
 +    TlsSetValue( cli_tls, (void *)1 );
 +}
 +
@@ -91,25 +166,85 @@ index 22471d6..89e688f 100644
 +{
 +    if (irq_mode != 2 || cli_tls == TLS_OUT_OF_INDEXES || !TlsGetValue( cli_tls )) return;
 +    TlsSetValue( cli_tls, NULL );
-+    LeaveCriticalSection( &irq_section );
++    irq_unlock();
 +}
 +
-+/* the Win16 lock for an ordinary callback; for an interrupt-time one a lock of its own, so that
++/* While a "serial" callback runs, the Win16 tasks that are in 16-bit code stand still, as a program
++ * does while an interrupt handler runs. A task in 32-bit code (inside Windows) goes on: stopping it
++ * there could stop it holding a lock the callback needs. Guarded by the interrupt lock. */
++static HANDLE frozen[16];
++static DWORD nfrozen;
++
++static void freeze_tasks(void)
++{
++    DWORD ids[16], n = TASK_GetTaskThreads( ids, 16 ), self = GetCurrentThreadId(), i;
++    CONTEXT ctx;
++    HANDLE h;
++
++    nfrozen = 0;
++    for (i = 0; i < n; i++)
++    {
++        if (ids[i] == self) continue;
++        if (!(h = OpenThread( THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT, FALSE, ids[i] ))) continue;
++        if (SuspendThread( h ) == (DWORD)-1) { CloseHandle( h ); continue; }
++        ctx.ContextFlags = CONTEXT_CONTROL;
++        if (GetThreadContext( h, &ctx ) && !ldt_is_system( ctx.SegCs ))
++        {
++            frozen[nfrozen++] = h;
++            continue;
++        }
++        ResumeThread( h );
++        CloseHandle( h );
++    }
++}
++
++static void thaw_tasks(void)
++{
++    while (nfrozen)
++    {
++        HANDLE h = frozen[--nfrozen];
++        ResumeThread( h );
++        CloseHandle( h );
++    }
++}
++
++/* the Win16 lock for an ordinary callback; for an interrupt-time one the interrupt lock, so that
 + * such callbacks run one at a time, as interrupt handlers do, but while a task holds the Win16 lock */
++static LONGLONG hold_start;
++
 +static void enter_callback( BOOL irq )
 +{
-+    if (!irq) _EnterWin16Lock(); else if (irq_mode == 2) EnterCriticalSection( &irq_section );
++    if (!irq) _EnterWin16Lock();
++    else if (irq_mode == 2)
++    {
++        irq_lock( "callback" );
++        if (irq_depth == 1)
++        {
++            freeze_tasks();
++            if (irq_timing) hold_start = irq_now_us();
++        }
++    }
 +}
 +
 +static void leave_callback( BOOL irq )
 +{
-+    if (!irq) _LeaveWin16Lock(); else if (irq_mode == 2) LeaveCriticalSection( &irq_section );
++    if (!irq) _LeaveWin16Lock();
++    else if (irq_mode == 2)
++    {
++        if (irq_depth == 1)
++        {
++            if (irq_timing && irq_now_us() - hold_start >= 5000)
++                fprintf( stderr, "irq: callback %04lx ran %lu us\n", GetCurrentThreadId(), (ULONG)(irq_now_us() - hold_start) );
++            thaw_tasks();
++        }
++        irq_unlock();
++    }
 +}
 +
  /**********************************************************************
   *           K32WOWCallback16Ex         (KERNEL32.55)
   */
-@@ -433,6 +503,7 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
+@@ -433,6 +594,7 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
       * copy them to the 16-bit stack ...
       */
      char *stack = (char *)CURRENT_STACK16 - cbArgs;
@@ -117,7 +252,7 @@ index 22471d6..89e688f 100644
  
      memcpy( stack, pArgs, cbArgs );
  
-@@ -460,9 +531,10 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
+@@ -460,9 +622,10 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
          *((SEGPTR *)stack) = call16_ret_addr;
          cbArgs += sizeof(SEGPTR);
  
@@ -130,7 +265,7 @@ index 22471d6..89e688f 100644
  
          if (TRACE_ON(relay))
          {
-@@ -500,10 +572,11 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
+@@ -500,10 +663,11 @@ BOOL WINAPI K32WOWCallback16Ex( DWORD vpfn16, DWORD dwFlags,
           * the callee to do so; after the routine has returned, the 16-bit
           * stack pointer is always reset to the position it had before.
           */

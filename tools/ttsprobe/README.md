@@ -82,14 +82,16 @@ Wine calls them from threads of its own, and only when no thread runs 16-bit cod
 lock). TTSSEQ 1.01 waits for MIDI Start in a loop inside `SeqPlayStart` that only its MIDI input
 callback can end, so under Wine it waits for ever and blocks the other threads too.
 `wine/krnl386-irq.patch` adds `WINE_WIN16_IRQ_CALLBACKS`: set to `serial`, callbacks on threads
-that are not Win16 tasks run at once without the Win16 lock, one at a time, and 16-bit `cli` ...
-`sti` (which Wine otherwise ignores) holds them off, as disabling interrupts does. Unset, Wine
-behaves as before. `build-wine16.sh` builds this `krnl386.exe16` too; a suite asks for the mode
-with `#! irq`, and `runcw.sh` passes the variable on. Even so, a Continue after a Song Position
-sometimes leaves the engines deaf to the clock under Wine (about one run in six, on all three);
-the sync suite avoids that case. `sweep/syncexp.py VER SONG SPEC...` runs one sync experiment
-from the command line: input messages, clocks and probe steps in one list, and a time line of
-what came back.
+that are not Win16 tasks run at once without the Win16 lock, one at a time in the order they
+come, while the program's 16-bit code stands still (it is suspended if it is in 16-bit code, as
+an interrupt stops a program), and 16-bit `cli` ... `sti` (which Wine otherwise ignores) holds
+them off, as disabling interrupts does. Unset, Wine behaves as before. `build-wine16.sh` builds
+this `krnl386.exe16` too; a suite asks for the mode with `#! irq`, and `runcw.sh` passes the
+variable on; `WINE_IRQ_TIMING=1` reports callbacks that waited or ran 5 ms or more. Letting the
+program run on beside the callbacks was not enough: it made a Continue after a Song Position
+leave the engines deaf to the clock in about one run in five (see `ttsseq-api.md`).
+`sweep/syncexp.py VER SONG SPEC...` runs one sync experiment from the command line: input
+messages, clocks and probe steps in one list, and a time line of what came back.
 
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
 probe's `cbretafter MS HEX` switches the callbacks' result after MS milliseconds, and `cbmask HEX`

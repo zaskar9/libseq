@@ -10,8 +10,9 @@
 #   MIDI drivers at interrupt time, while the program runs; Wine runs them only when no thread is in
 #   16-bit code. A program that waits in a loop for such a callback (TTSSEQ 1.01 waiting for MIDI
 #   Start) then never sees it. With WINE_WIN16_IRQ_CALLBACKS=serial the patched module runs them
-#   at once, one at a time, and lets 16-bit cli ... sti keep them out, as disabling interrupts
-#   does (the sync suite, "#! irq"). Unset, Wine behaves as before.
+#   at once, one at a time, while the program's 16-bit code stands still, and lets 16-bit
+#   cli ... sti keep them out, as disabling interrupts does (the sync suite, "#! irq"). Unset,
+#   Wine behaves as before.
 #
 # Both change Wine only. Needs: git, flex, bison, gcc and the MinGW cross compiler for i686
 # (i686-w64-mingw32-gcc). Install the results over Wine's own modules (keep the originals):
