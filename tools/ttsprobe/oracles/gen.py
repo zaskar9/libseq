@@ -710,6 +710,43 @@ def _():
     return L
 
 
+def sync_input():
+    """The scripted MIDI input of the sync suite (tests/data/ttsseq/input/SYNC.TXT)."""
+    L = ['# MIDI sync for the sync suite (written by tools/ttsprobe/oracles/gen.py): times in ms from the',
+         '# moment the engine connects to the input (SeqOpen). Clocks (F8) every 50 ms are 5 ticks each at',
+         '# 120 ticks per quarter. The MIDI Time Code at the end is quarter frames (F1) for 30 fps from',
+         '# 00:00:10:00.',
+         '# 1: clocks while the engine waits do not start it']
+
+    def clk(a, b, p=50):
+        t = a
+        while t < b + 0.01:
+            L.append(f'{t:g} f8'); t += p
+    clk(1500, 1600)
+    L.append('# Start; two clocks (ticks 0 to 9), six (10 to 39), then 28 at twice the rate')
+    L.append('2000 fa'); clk(2200, 2250); clk(2500, 2750); clk(3000, 3675, 25); L.append('4000 fc')
+    L.append('# 2: Continue without a Song Position: from where it stopped; four clocks')
+    L.append('4500 fb'); clk(4700, 4850); L.append('5000 fc')
+    L.append('# Song Position while stopped (16 sixteenths: tick 480), Continue, two clocks')
+    L += ['5100 f2 10 00', '6200 fb']; clk(6400, 6450)
+    L.append('# Song Position 0 while playing: kept for the next Continue; two clocks, Stop')
+    L.append('6500 f2 00 00'); clk(6550, 6600); L.append('6800 fc')
+    L.append('7800 fb'); clk(7900, 8050); L.append('8200 fc')
+    L.append('# 3: Start while the start callback polls')
+    L.append('8600 fa'); clk(8800, 8950); L.append('9100 fc')
+    L.append('# A Stop while the engine waits is kept: the Start that follows stops at once')
+    L += ['9400 fc', '9600 fa']
+    L.append('# 4: MIDI Time Code, 00:00:10:00 at 30 fps, from 10300 to 13800 ms')
+    fps, k, frame = 30, 0, 10 * 30
+    qf = 1000.0 / (fps * 4)
+    while 10300 + k * qf <= 13800:
+        piece, f = k % 8, frame + (k // 8) * 2
+        ss, ff = f // fps, f % fps
+        vals = [ff & 15, ff >> 4, ss & 15, ss >> 4, 0, 0, 0, 3 << 1]
+        L.append(f'{10300 + k * qf:.1f} f1 {(piece << 4) | vals[piece]:02x}'); k += 1
+    return L
+
+
 @suite('sync')
 def _():
     # External sync with the scripted input SYNC.TXT; the times below are those of its messages
@@ -741,10 +778,11 @@ def _():
           'echo == Stop at 4000', 'idle 300'] + now + ['call.w SEQEXPIRED',
           'echo == Continue at 4500 without a Song Position: from where it stopped; four clocks; Stop',
           '@play'] + now + ['idle 450'] + now + ['idle 300'] + now + \
-         ['echo == Song Position 480 at 5100 while stopped; Continue at 6200', '@play'] + now + \
-         ['echo == Song Position 0 at 6500 while playing; Stop at 6800', 'idle 400'] + now + ['idle 400'] + now + \
-         ['echo == Continue at 7800: from the Song Position kept; Stop at 8100', '@play'] + now + \
-         ['idle 400'] + now + \
+         ['echo == Song Position 480 at 5100 while stopped; Continue at 6200; two clocks', '@play'] + now + \
+         ['idle 280'] + now + ['echo == Song Position 0 at 6500 while playing; two clocks; Stop at 6800',
+          'idle 220'] + now + ['idle 300'] + now + \
+         ['echo == Continue at 7800: from the Song Position kept; four clocks; Stop at 8200', '@play'] + now + \
+         ['idle 350'] + now + ['idle 200'] + now + \
          ['echo == Start at 8600 while the start callback polls; four clocks; Stop', 'cbret 0'] + play_cb + now + \
          ['idle 450'] + now + ['idle 250', '?300 dump 0 0 4',
           'echo == Stop at 9400 while waiting is kept: the Start at 9600 stops at once', '@play'] + now + \
@@ -755,7 +793,7 @@ def _():
          ['call.w SEQSETPLAYINGSEQ 0002', 'fill 0 0 ee ee ee ee', '?!300 call.w SEQPLAYSTART null',
           '?300 call.w SEQSTART null @0', 'call.d SEQGETNOW 0002', '?300 dump 0 0 4',
           'echo == the code stops at 13800; the engine runs on for 0.5 s, then stops', 'idle 2500',
-          'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
+          'call.d SEQGETNOW 0002', 'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
          ['call.w SEQEXPIRED', '@close']
     return L
 
@@ -765,6 +803,9 @@ def main():
         with open(os.path.join(HERE, 'suites', name + '.tpl'), 'w') as f:
             f.write('\n'.join(fn()) + '\n')
         print('wrote', name)
+    with open(os.path.join(HERE, '..', '..', '..', 'tests', 'data', 'ttsseq', 'input', 'SYNC.TXT'), 'w') as f:
+        f.write('\n'.join(sync_input()) + '\n')
+    print('wrote input/SYNC.TXT')
 
 
 if __name__ == '__main__':

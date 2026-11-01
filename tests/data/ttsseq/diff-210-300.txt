@@ -80,7 +80,7 @@
     ttsseq/210: SEQGETSTREAMNAME(%2,@0,0081) -> 0001
     ttsseq/300: SEQGETSTREAMNAME(%2,@0,0081) -> 000a
 == sync: 5 differences
-  SEQGETNOW (2x), e.g. after SEQGETNOW(0001) -> 00000000
+  SEQGETNOW (2x), e.g. after SEQGETNOW(0001) -> 00000011
     ttsseq/210: SEQPLAYSTART(cb3) -> 0001
     ttsseq/300: SEQSTART(cb3,@0) -> 0001
   SEQIDLE (1x), e.g. after SEQIDLE() -> 0001

@@ -282,23 +282,26 @@ constant 120 bpm and no SMPTE offset:
   of the code in ticks (12.25 s: 2940 at 120 bpm and 120 ppq; 3.00's pointer gets the same).
 - The playback follows the code. When the code stops, the engine runs on for about 0.5 s, then
   stops (All Notes Off, `SeqIdle` returns 1). Code that starts after the song's end runs on past
-  it. Once, with code from 00:00:00:00, the playback stopped after 3.5 s while the code went on;
-  not explained.
+  it.
 - Open: the SMPTE offset (the file's TIMEFMT), other frame rates, tempo changes, hours and minutes
   in the callback's third word.
 
 ### Under Wine
 
-- The engines rely on Windows 3.1 calling the timer and MIDI input callbacks at interrupt time.
-  Wine calls them only while no thread runs 16-bit code; `krnl386-irq.patch` with
-  `WINE_WIN16_IRQ_CALLBACKS=serial` calls them at once, one at a time, and lets the engine's own
-  `cli` ... `sti` hold them off (the engines use them in pairs, at one to four places).
-- Even so, a Continue after a Song Position sometimes leaves the engine deaf to the clock: `Now`
-  stays at the position, nothing plays, until Stop. About one run in six on each version, also
-  with a second between the Song Position and the Continue; never without a Song Position. The
-  timer keeps running and the clock callbacks come in; what differs is not visible from outside.
-  Whether Windows 3.1 does the same is open. The `sync` suite plays no clocks after such a
-  Continue.
+- The engines rely on Windows 3.1 calling the timer and MIDI input callbacks at interrupt time:
+  the program stands still while a callback runs. Wine calls them only while no thread runs
+  16-bit code. `krnl386-irq.patch` with `WINE_WIN16_IRQ_CALLBACKS=serial` calls them at once and
+  one at a time, in the order they come, stops the program's 16-bit code while one runs, and lets
+  the engine's own `cli` ... `sti` hold them off (the engines use them in pairs, at one to four
+  places).
+- A first version of the patch let the program run on beside the callbacks. Then a Continue after
+  a Song Position left the engines deaf to the clock in about one run in five, on all three
+  versions: Now stayed at the position and nothing played until Stop. It happened only while the
+  start call waited without a callback, in a loop that runs on beside the callbacks; with a
+  callback that yields, on unchanged Wine, 30 runs gave no failure. With the program stopped
+  during callbacks, 30 runs per version with the tightest timing (Continue 200 ms after the Song
+  Position, first clock 50 ms later) gave none either. So it was the emulation, not the engines.
+  The same change ended a time code run that once stopped early.
 
 ## Playback through the probe compared with libseq 0.8.1
 
@@ -653,8 +656,7 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - The `[Options]` settings of `TTSSEQ.INI`. The engines' strings name `SyncOutputPort` (all),
   `SyncAllowRateTweak`, `TimerPeriod` and `TimerResolution` (2.10, 3.00). 3.00 reads them with the
   defaults 1, 1, 2 and 1, and `SendLocalOn` (default 0) when it closes [relay].
-- External sync: MIDI Time Code with an offset, other frame rates and tempo changes; why a
-  Continue after a Song Position sometimes leaves the engine deaf under Wine.
+- External sync: MIDI Time Code with an offset, other frame rates and tempo changes.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
   callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA

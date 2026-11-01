@@ -52,18 +52,22 @@ idle 450
 call.d SEQGETNOW 0001
 idle 300
 call.d SEQGETNOW 0001
-echo == Song Position 480 at 5100 while stopped; Continue at 6200
+echo == Song Position 480 at 5100 while stopped; Continue at 6200; two clocks
 call.w SEQSTART null 0000 0000
 call.d SEQGETNOW 0001
-echo == Song Position 0 at 6500 while playing; Stop at 6800
-idle 400
+idle 280
 call.d SEQGETNOW 0001
-idle 400
+echo == Song Position 0 at 6500 while playing; two clocks; Stop at 6800
+idle 220
 call.d SEQGETNOW 0001
-echo == Continue at 7800: from the Song Position kept; Stop at 8100
+idle 300
+call.d SEQGETNOW 0001
+echo == Continue at 7800: from the Song Position kept; four clocks; Stop at 8200
 call.w SEQSTART null 0000 0000
 call.d SEQGETNOW 0001
-idle 400
+idle 350
+call.d SEQGETNOW 0001
+idle 200
 call.d SEQGETNOW 0001
 echo == Start at 8600 while the start callback polls; four clocks; Stop
 cbret 0
@@ -92,6 +96,7 @@ call.d SEQGETNOW 0002
 dump 0 0 4
 echo == the code stops at 13800; the engine runs on for 0.5 s, then stops
 idle 2500
+call.d SEQGETNOW 0002
 call.w SEQEXPIRED
 echo == the callback gives up at once
 cbret 1

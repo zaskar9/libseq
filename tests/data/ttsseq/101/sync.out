@@ -42,18 +42,20 @@ SEQGETNOW(0001) -> 000000b1
 SEQGETNOW(0001) -> 000000c0
 SEQIDLE() -> 0001
 SEQGETNOW(0001) -> 000000c0
-== Song Position 480 at 5100 while stopped; Continue at 6200
+== Song Position 480 at 5100 while stopped; Continue at 6200; two clocks
 SEQPLAYSTART(null) -> 0001
 SEQGETNOW(0001) -> 000001e0
-== Song Position 0 at 6500 while playing; Stop at 6800
-SEQGETNOW(0001) -> 000001e0
+SEQGETNOW(0001) -> 000001e5
+== Song Position 0 at 6500 while playing; two clocks; Stop at 6800
+SEQGETNOW(0001) -> 000001ef
 SEQIDLE() -> 0001
-SEQGETNOW(0001) -> 000001e0
-== Continue at 7800: from the Song Position kept; Stop at 8100
+SEQGETNOW(0001) -> 000001ef
+== Continue at 7800: from the Song Position kept; four clocks; Stop at 8200
 SEQPLAYSTART(null) -> 0001
 SEQGETNOW(0001) -> 00000000
+SEQGETNOW(0001) -> 00000011
 SEQIDLE() -> 0001
-SEQGETNOW(0001) -> 00000000
+SEQGETNOW(0001) -> 00000011
 == Start at 8600 while the start callback polls; four clocks; Stop
 SEQPLAYSTART(cb3) -> 0001
 callback cb3(0002,0000,0000)
@@ -77,6 +79,7 @@ SEQPLAYSTART(null) -> 0001
 SEQGETNOW(0002) -> 00000b7c
 == the code stops at 13800; the engine runs on for 0.5 s, then stops
 SEQIDLE() -> 0001
+SEQGETNOW(0002) -> 00000d20
 SEQEXPIRED() -> 0001
 == the callback gives up at once
 SEQPLAYSTART(cb3) -> 0000

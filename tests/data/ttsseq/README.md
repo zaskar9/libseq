@@ -39,8 +39,7 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
   masked, as they differ from run to run.
 - The `sync` suite needs Wine's KRNL386 with `tools/ttsprobe/wine/krnl386-irq.patch`
   (`#! irq`): 1.01 waits for MIDI Start in a loop that only an interrupt-time callback can end.
-  It repeats on all three versions; it plays no clocks after a Continue that follows a Song
-  Position, which under Wine sometimes leaves the engines deaf to the clock.
+  It repeats on all three versions (four runs each).
 - Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
   whether the meaning of every argument is known. For the 158 API exports of 1.01:
   - 157 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).

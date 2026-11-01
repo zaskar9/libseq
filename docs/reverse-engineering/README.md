@@ -122,8 +122,13 @@ With it, the probe showed how the engines wait for Start, follow the clock and t
 and what the start callback is told. 2.10 and 3.00 at first ignored the clock altogether; varying
 the order of the calls showed that they take the clock source when the sequence becomes the
 playing one. A trace of Cakewalk Apprentice 1.04 showed that it always sets the internal clock
-after loading a file. One effect stayed unexplained: under Wine a Continue after a Song Position
-sometimes leaves the engine deaf to the clock. The `sync` suite records the rest.
+after loading a file. The `sync` suite records the results.
+
+One effect looked like a flaw of the engines: a Continue after a Song Position sometimes left
+them deaf to the clock. Counting runs showed that it happened only when the program kept running
+beside the callbacks, which cannot happen on Windows 3.1. Once the patch also stopped the
+program's 16-bit code while a callback ran, and served the callbacks in order, 90 runs gave no
+failure, and the suite plays clocks after such a Continue again.
 
 ## In this folder
 

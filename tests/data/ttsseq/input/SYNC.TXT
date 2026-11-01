@@ -1,8 +1,6 @@
-# MIDI sync for the sync suite: times in ms from the moment the engine connects to the input
-# (SeqOpen). Clocks (F8) every 50 ms are 5 ticks each at 120 ticks per quarter; the first clock
-# comes 200 ms after Start or Continue. No clocks follow a Continue after a Song Position: under
-# Wine all three engines then ignore the clocks in about one run of six (see the notes). The
-# MIDI Time Code at the end was written by a short script: quarter frames (F1) for 30 fps from
+# MIDI sync for the sync suite (written by tools/ttsprobe/oracles/gen.py): times in ms from the
+# moment the engine connects to the input (SeqOpen). Clocks (F8) every 50 ms are 5 ticks each at
+# 120 ticks per quarter. The MIDI Time Code at the end is quarter frames (F1) for 30 fps from
 # 00:00:10:00.
 # 1: clocks while the engine waits do not start it
 1500 f8
@@ -54,14 +52,22 @@
 4800 f8
 4850 f8
 5000 fc
-# Song Position while stopped (16 sixteenths: tick 480), Continue
+# Song Position while stopped (16 sixteenths: tick 480), Continue, two clocks
 5100 f2 10 00
 6200 fb
-# Song Position 0 while playing: kept for the next Continue
+6400 f8
+6450 f8
+# Song Position 0 while playing: kept for the next Continue; two clocks, Stop
 6500 f2 00 00
+6550 f8
+6600 f8
 6800 fc
 7800 fb
-8100 fc
+7900 f8
+7950 f8
+8000 f8
+8050 f8
+8200 fc
 # 3: Start while the start callback polls
 8600 fa
 8800 f8
