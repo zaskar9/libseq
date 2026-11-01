@@ -801,6 +801,106 @@ def _():
           'call.d SEQGETNOW 0002', 'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
          ['call.w SEQEXPIRED', '@close']
     return L
+OPTS_USUAL = {'SyncOutputPort': 1}
+OPTS = {  # the [Options] of the two options suites (tests/data/ttsseq/input/OPTS1.INI, OPTS2.INI)
+    1: {'SendLocalOff': 0, 'SendLocalOn': 1, 'ForceNoteOff': 1, 'Timebase': 96, 'SysxSendPacketSize': 100,
+        'SysxReceiveBuffersSize': 32, 'RecordLengthDesired': 1, 'ChaseDelay': 5, 'FlywheelAmount': 1},
+    2: {'SendLocalOff': 2, 'SendLocalOn': 2, 'Timebase': 7, 'SysxSendPacketSize': 0, 'SysxReceiveBuffers': 1,
+        'RecordLengthDesired': 0},
+}
+
+
+def opts_ini(n):
+    o = dict(OPTS_USUAL, **OPTS[n])
+    return ['[Options]'] + [f'{k}={v}' for k, v in o.items()] + \
+        ['[MIDI Output Devices]', '0=Fake - MIDI Out', '[MIDI Input Devices]', '0=Fake - MIDI In']
+
+
+def opts_input():
+    """The scripted MIDI input of the options1 suite (tests/data/ttsseq/input/OPTS1.TXT)."""
+    a = [0xf0, 0x7d] + [0x10] * 98 + [0xf7]
+    a[33] = 0x7f  # the second byte of the second 32-byte input buffer
+    b = [0xf0, 0x7d] + [i % 100 for i in range(98)] + [0xf7]
+    L = ['# MIDI input for the options1 suite (written by tools/ttsprobe/oracles/gen.py): times in ms from',
+         '# the moment the engine connects to the input (SeqOpen).',
+         '# 1: two sysex messages of 101 bytes; in the first, 7F is the second byte of the second',
+         '# 32-byte input buffer',
+         '2000 ' + ' '.join(f'{x:02x}' for x in a), '2400 ' + ' '.join(f'{x:02x}' for x in b),
+         '# 2: 1100 notes on, 2 ms apart, to record (a 1 x 8 KB record buffer holds 1024 events)']
+    L += [f'{4000 + 2 * i} 90 {0x24 + i % 40:02x} 40' for i in range(1100)]
+    L.append('# 3: MIDI Time Code, 00:00:10:00 at 30 fps, from 11500 to 15000 ms')
+    fps, k, frame = 30, 0, 10 * 30
+    qf = 1000.0 / (fps * 4)
+    while 11500 + k * qf <= 15000:
+        piece, f = k % 8, frame + (k // 8) * 2
+        ss, ff = f // fps, f % fps
+        vals = [ff & 15, ff >> 4, ss & 15, ss >> 4, 0, 0, 0, 3 << 1]
+        L.append(f'{11500 + k * qf:.1f} f1 {(piece << 4) | vals[piece]:02x}'); k += 1
+    return L
+
+
+def fill_text(buf, text):
+    """fill commands that put text (zero-terminated) into a probe buffer, 120 bytes a line"""
+    data = text.encode('latin1') + b'\0'
+    return [f'fill {buf} {i} ' + ' '.join(f'{x:02x}' for x in data[i:i + 120]) for i in range(0, len(data), 120)]
+
+
+@suite('options1')
+def _():
+    # TTSSEQ.INI [Options] other than the usual ones (OPTS1.INI; read by SeqOpen): no Local Control
+    # Off when the port opens, Local On when it closes (2.10, 3.00); note-offs as 8n kk 40 (3.00);
+    # new sequences at 96 ppq (2.10, 3.00); sysex sent in packets of 100 bytes; sysex received into
+    # 32-byte buffers, where 1.01 and 2.10 drop a buffer whose second byte is 7E or 7F (they look for
+    # universal sysex in every buffer, 3.00 in every message); a record buffer of 1 x 8 KB, which
+    # holds 1024 events (2.10, 3.00); time code locked after 0.5 s instead of 2 s, and a run-on of
+    # 0.1 s instead of 0.5 s when it stops. Sequence 1 has no thru, count-in or recording metronome.
+    big = 'F0 7D ' + ' '.join(f'{i % 100:02X}' for i in range(297)) + ' F7'
+    L = ['#! input OPTS1.TXT', '#! ini OPTS1.INI', '#! secs 40', '#! irq', '@open', 'buf 0 16', 'buf 1 1024',
+         'echo == a new sequence', 'call.w SEQCREATESEQ 0000 0000', 'call.w SEQGETPPQ 0001',
+         'call.w SEQSETSEQPARAM 0001 0007 d:00000000', 'call.w SEQSETSEQPARAM 0001 0010 d:00000000',
+         'call.w SEQSETSEQPARAM 0001 000e d:00000000',
+         'echo == send a bank with one sysex message of 300 bytes', 'call.w SEQCREATESYSXBANK 0001', 'let 1'] + \
+        fill_text(1, big) + \
+        ['call.w SEQSYSXASC2BIN %1 @1 @0', 'call.d SEQGETSYSXBANKLEN %1', 'call.w SEQSENDSYSXBANK %1 0000 0000',
+         'echo == receive two messages of 101 bytes (2000 and 2400 ms)', 'call.w SEQCREATESYSXBANK 0001', 'let 2',
+         'cbmask f merge', 'cbyield 1', 'cbret 0', 'sleep 200', 'cbretafter 2600 1',
+         'call.w SEQRECEIVESYSXBANK %2 cb4 0000 0000 0000', 'cbmask 0', 'call.d SEQGETSYSXBANKLEN %2',
+         'fill 1 0 00', 'call.w SEQSYSXBIN2ASC %2 @1 0020', 'dump 1 0 330',
+         'echo == record 1100 notes (4000 to 6200 ms)', 'call.w SEQSETPLAYINGSEQ 0001',
+         'call.w SEQSETSTANDBYSEQ 0000', 'cbret 0',
+         '?101,210 call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3',
+         '?300 call.w SEQRECORD 0001', '?300 call.w SEQSTART cb3 0000 0000', '?300 call.w SEQGETRECORDBUFFER',
+         '?300 call.w SEQSETRECORDBUFFERPARAMS 0000 0000 0000', 'idle 3800',
+         '?101,210 call.w SEQRECORDSTOP', '?101,210 call.d SEQRECCOUNT',
+         '?300 call.w SEQGETRECORDBUFFER', '?300 call.w SEQRECORD 0000', '?300 call.w SEQSTOP',
+         '?300 call.d SEQSTREAMLEN 0100',
+         'echo == play E2_OVLP (overlapping notes)', '@load E2_OVLP.WRK', 'call.w SEQSETPLAYINGSEQ 0002',
+         'call.w SEQSETSTANDBYSEQ 0000', '@play', 'idle 2600', '@stop', 'idle 200',
+         'echo == MIDI Time Code from 00:00:10:00 (11500 to 15000 ms)',
+         '?101 call.w SEQSETSRCCLOCK 0003', '?!101 call.w SEQSETSRCCLOCK 0002 0003', 'call.w SEQSETPLAYINGSEQ 0002',
+         'fill 0 0 ee ee ee ee', '?!300 call.w SEQPLAYSTART null', '?300 call.w SEQSTART null @0',
+         'call.d SEQGETNOW 0002', '?300 dump 0 0 4', 'idle 3500', 'call.d SEQGETNOW 0002', 'call.w SEQEXPIRED',
+         '@close']
+    return L
+
+
+@suite('options2')
+def _():
+    # TTSSEQ.INI [Options] at odd values (OPTS2.INI): SendLocalOff and SendLocalOn 2 count as on;
+    # Timebase 7 gives 24 ppq (2.10, 3.00: below 24 counts as 24, above 480 as 480, other values not
+    # in the list as 120); SysxSendPacketSize 0 sends one byte at a time; SysxReceiveBuffers 1 makes
+    # the receive fail (-4); RecordLengthDesired 0 counts as 16.
+    L = ['#! input OPTS2.TXT', '#! ini OPTS2.INI', '#! secs 30', '@open', 'buf 0 16', 'buf 1 64',
+         'call.w SEQCREATESEQ 0000 0000', 'call.w SEQGETPPQ 0001',
+         'echo == send a bank of 6 bytes', 'call.w SEQCREATESYSXBANK 0001', 'let 1'] + \
+        fill_text(1, 'F0 7D 01 02 03 F7') + \
+        ['call.w SEQSYSXASC2BIN %1 @1 @0', 'call.w SEQSENDSYSXBANK %1 0000 0000', 'sleep 800',
+         'echo == receive with one buffer (a message at 2000 ms)', 'call.w SEQCREATESYSXBANK 0001', 'let 2',
+         'cbmask c', 'cbyield 1', 'cbret 0', 'cbretafter 1500 1',
+         'call.w SEQRECEIVESYSXBANK %2 cb4 0000 0000 0000', 'call.d SEQGETSYSXBANKLEN %2',
+         '@close']
+    return L
+
 
 def main():
     os.makedirs(os.path.join(HERE, 'suites'), exist_ok=True)
@@ -808,9 +908,14 @@ def main():
         with open(os.path.join(HERE, 'suites', name + '.tpl'), 'w') as f:
             f.write('\n'.join(fn()) + '\n')
         print('wrote', name)
-    with open(os.path.join(HERE, '..', '..', '..', 'tests', 'data', 'ttsseq', 'input', 'SYNC.TXT'), 'w') as f:
-        f.write('\n'.join(sync_input()) + '\n')
-    print('wrote input/SYNC.TXT')
+    inputs = os.path.join(HERE, '..', '..', '..', 'tests', 'data', 'ttsseq', 'input')
+    for name, lines, nl in [('SYNC.TXT', sync_input(), '\n'), ('OPTS1.TXT', opts_input(), '\n'),
+                            ('OPTS2.TXT', ['# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)',
+                                          '2000 f0 7d 01 02 03 f7'], '\n'),
+                            ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
+        with open(os.path.join(inputs, name), 'w', newline='') as f:
+            f.write(nl.join(lines) + nl)
+        print('wrote input/' + name)
 
 
 if __name__ == '__main__':

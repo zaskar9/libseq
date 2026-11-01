@@ -11,6 +11,7 @@ and compare.
 | `input/IN3.TXT`, `input/SYSX.TXT` | the scripted MIDI input of the `record` and `sysexin` suites (milliseconds after the engine opens the input, then the bytes) |
 | `input/STEP.TXT` | the MIDI input of the `steprec` suite |
 | `input/SYNC.TXT` | the MIDI input of the `sync` suite: MIDI Clock, Start, Continue, Stop, Song Position and MIDI Time Code |
+| `input/OPTS1.INI`, `input/OPTS2.INI`, `input/OPTS1.TXT`, `input/OPTS2.TXT` | the `TTSSEQ.INI` and the MIDI input of the `options1` and `options2` suites: `[Options]` other than the usual ones (written by `gen.py`) |
 | `input/PORTS.INI` | the `TTSSEQ.INI` of the `ports` suite: two output devices in reverse order, sync to port 2 |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
 | `coverage.txt` | the exports each version's suites call and do not call |
@@ -37,6 +38,8 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
   `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
   masked, as they differ from run to run.
+- The `options1` and `options2` suites run with their own `TTSSEQ.INI` (`#! ini`), one setting
+  changed for each effect they show; `options1` also needs the KRNL386 below for time code.
 - The `sync` and `play_E3_SPPD` suites need Wine's KRNL386 with
   `tools/ttsprobe/wine/krnl386-irq.patch` (`#! irq`): 1.01 waits for MIDI Start in a loop that
   only an interrupt-time callback can end, and the locate delay of 2.10 and 3.00 is a loop during

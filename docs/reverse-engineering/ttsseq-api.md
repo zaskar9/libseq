@@ -278,10 +278,11 @@ constant 120 bpm and no SMPTE offset:
 - With source 3 the start call calls back (3, 0, 0) once and (5, 0, 0) while no code comes in.
   Once the code has been read (two frames), the engine sends the search-back output and calls
   back (4, seconds × 256 + frame, 0) with the incoming time, for about 2 s (from 10:04 to
-  12:03 for code that began at 10:00). Then the start call returns, and `SeqGetNow` is the time
+  12:03 for code that began at 10:00; `ChaseDelay` in `TTSSEQ.INI`, in tenths of a second). Then
+  the start call returns, and `SeqGetNow` is the time
   of the code in ticks (12.25 s: 2940 at 120 bpm and 120 ppq; 3.00's pointer gets the same).
-- The playback follows the code. When the code stops, the engine runs on for about 0.5 s, then
-  stops (All Notes Off, `SeqIdle` returns 1). Code that starts after the song's end runs on past
+- The playback follows the code. When the code stops, the engine runs on for about 0.5 s
+  (`FlywheelAmount`, in tenths of a second), then stops (All Notes Off, `SeqIdle` returns 1). Code that starts after the song's end runs on past
   it.
 - Open: the SMPTE offset (the file's TIMEFMT), other frame rates, tempo changes, hours and minutes
   in the callback's third word.
@@ -375,6 +376,17 @@ without the patch is a little less exact than 86Box's.
     Professional then says "Out of memory") [probe, trace, relay].
   - Every complete message is appended to the bank, also to a bank that already has bytes.
     Universal messages (F0 7E and F0 7F) are left out; channel messages are ignored [probe].
+  - The engine prepares `SysxReceiveBuffers` buffers of `SysxReceiveBuffersSize` bytes (128 and
+    512 by default, `TTSSEQ.INI`). A longer message fills several buffers. 1.01 and 2.10 look for
+    universal sysex in every buffer, not every message: a buffer whose second byte is 7E or 7F is
+    left out, even in the middle of a message. 3.00 looks at messages only [probe, suite
+    `options1`].
+- `SeqSendSysxBank(bank, 0, 0)` sends the bank's bytes in packets of `SysxSendPacketSize` bytes
+  (1024 by default), cut without regard to where messages begin and end, one `midiOutLongMsg`
+  each. Between packets the engine waits about 65 ms in a loop that reads `GetCurrentTime`, before
+  the call returns; the wait does not depend on the packet size or the timer settings [relay,
+  probe]. Wine's ALSA driver adds an F0 or F7 to a packet that does not begin or end with one,
+  so the fake port logs every packet as a message of its own.
   - The other words, zero in Professional's call, had no visible effect [probe].
 - Receiving sysex under Wine needs Wine's 16-bit MMSYSTEM to pass input buffers between 16 and
   32 bits, which Wine 9.0 does not (`tools/ttsprobe/wine/mmsystem16-midiin.patch`).
@@ -444,13 +456,29 @@ how 3.00 replaces the program callbacks of the file functions.
 ### TTSSEQ.INI
 
 All three versions read `TTSSEQ.INI` (3.00 too; its file has no other INI name) [exp strings].
-Sections `[MIDI Output Devices]` and `[MIDI Input Devices]` (`0=<device name>`, ...) and
-`[Options]`. The option names in the files: `SyncOutputPort`, `ConfigMIDI`, `Timebase`,
-`FlywheelAmount`, `ChaseDelay`, `SysxSendPacketSize`, `SysxReceiveBuffers`,
-`SysxReceiveBuffersSize`, `SendLocalOff`, `TimerPeriod`, `TimerResolution`. `SendLocalOff`
-belongs with the Local Control Off that every engine sends when it opens a port. `SyncOutputPort`,
-`TimerPeriod` and `TimerResolution` are written by `SeqConfigMidi` (below); the others are not
-tried yet.
+Sections `[MIDI Output Devices]` and `[MIDI Input Devices]` (`0=<device name>`, ...; below) and
+`[Options]`. Wine's relay trace of `GetPrivateProfileInt` shows which keys each version reads,
+with which default, and when; changing one key at a time showed what each does [relay, probe;
+`tools/ttsprobe/sweep/options.py`, suites `options1`, `options2`, `ports`]:
+
+| Key | Default | Read | Effect |
+|---|---|---|---|
+| `SyncOutputPort` | 1 | `SeqOpen` | the port for MIDI sync output (2.10, 3.00; 1.01 sends none). A value outside the output ports (0, or more than there are) shows "An invalid Sync Output Port 'n' was specified. Please re-check the following list of devices to use..." and then the device dialog, in all three versions; Cancel there makes `SeqOpen` return 3 with no port open |
+| `SendLocalOff` | 1 | `SeqOpen` | Local Control Off (CC 122 = 0) on all 16 channels when the port opens; 0 sends none, any other value counts as 1 |
+| `SendLocalOn` | 0 | `SeqClose` (2.10, 3.00) | not 0: Local Control On (CC 122 = 127) on all 16 channels when the port closes, before All Sound Off. 1.01 does not read it |
+| `ForceNoteOff` | 0 | `SeqOpen` (3.00) | not 0: the end of a note goes out as 8n kk 40 instead of 9n kk 00. The note-off the engine sends when a key that is sounding starts again stays 9n kk 00; `SeqTxMidiMsg` sends what it is given |
+| `Timebase` | 120 | `SeqOpen` | the PPQ of new sequences (`SeqCreateSeq`) in 2.10 and 3.00. Below 24 counts as 24, above 480 as 480 (in 3.00 also -5, read unsigned); of the values in between, 24, 48, 72, 96, 168, 192, 360, 384 and 480 were kept, and 25, 47, 60, 100, 200 and 400 gave 120. 1.01 reads it, but its new sequences stay at 120 |
+| `TimerPeriod`, `TimerResolution` | 10 and 5; 3.00: 2 and 1 | 1.01: `SeqOpen`, every file load and `SeqSetPlayingSeq`; 2.10: `SeqOpen` and `SeqSetPlayingSeq`; 3.00: `SeqOpen` | the engine's multimedia timer: `timeSetEvent(period, resolution, ..., periodic)` and `timeBeginPeriod(resolution)`; 0 counts as 1. They change only the timing. `SeqConfigMidi` (3.00) writes High 2 and 1, Medium 5 and 2, Low 10 and 5 |
+| `SysxSendPacketSize` | 1024 | `SeqOpen` | the packet size for sending sysex (above); 0 sends one byte at a time |
+| `SysxReceiveBuffers`, `SysxReceiveBuffersSize` | 128 and 512 | `SeqOpen` | the input buffers for receiving sysex (above). With fewer than 2 buffers the receive returns -4 when a message comes in; a size of 0 crashed the probe |
+| `RecordLengthDesired` | 16 | `SeqOpen` (2.10, 3.00) | the record buffer: n × 8 KB + 256 bytes (`GlobalReAlloc`), 1024 events per 8 KB. Events beyond it are lost: with 1, a take of 1100 notes keeps 1024 (2.10's `SeqRecCount`, 3.00's record buffer). 0 counts as 16. 1.01 does not read it and kept all 1100 |
+| `ChaseDelay` | 20 | `SeqOpen` | MIDI Time Code: how long the engine locks to the code before the start call returns, in tenths of a second (5: 0.5 s, 40: 4 s). No effect on MIDI clock |
+| `FlywheelAmount` | 5 | `SeqOpen` | MIDI Time Code: how long the engine runs on when the code stops, in tenths of a second (1: 0.1 s, 20: 2 s). No effect on MIDI clock |
+| `SyncAllowRateTweak` | 1 | with the timer keys | no visible effect: not on following MIDI clock, not on time code 5 % fast, not on the sync output |
+
+Other names in the files: `ConfigMIDI` (the dialog). Defaults and times are the same in all three
+versions except where noted. `SyncOutputPort`, `TimerPeriod` and `TimerResolution` are written by
+`SeqConfigMidi` (below); the others are only read.
 
 ### Devices: `SeqConfigMidi` and the port assignment
 
@@ -660,9 +688,7 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
   `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
-- The `[Options]` settings of `TTSSEQ.INI`. The engines' strings name `SyncOutputPort` (all),
-  `SyncAllowRateTweak`, `TimerPeriod` and `TimerResolution` (2.10, 3.00). 3.00 reads them with the
-  defaults 1, 1, 2 and 1, and `SendLocalOn` (default 0) when it closes [relay].
+- `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - External sync: MIDI Time Code with an offset, other frame rates and tempo changes.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
   callback.

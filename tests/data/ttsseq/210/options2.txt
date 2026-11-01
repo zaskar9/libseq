@@ -1,0 +1,28 @@
+mode oracle
+#! input OPTS2.TXT
+#! ini OPTS2.INI
+#! secs 30
+load TTSSEQ.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 0 16
+buf 1 64
+call.w SEQCREATESEQ 0000 0000
+call.w SEQGETPPQ 0001
+echo == send a bank of 6 bytes
+call.w SEQCREATESYSXBANK 0001
+let 1
+fill 1 0 46 30 20 37 44 20 30 31 20 30 32 20 30 33 20 46 37 00
+call.w SEQSYSXASC2BIN %1 @1 @0
+call.w SEQSENDSYSXBANK %1 0000 0000
+sleep 800
+echo == receive with one buffer (a message at 2000 ms)
+call.w SEQCREATESYSXBANK 0001
+let 2
+cbmask c
+cbyield 1
+cbret 0
+cbretafter 1500 1
+call.w SEQRECEIVESYSXBANK %2 cb4 0000 0000 0000
+call.d SEQGETSYSXBANKLEN %2
+call.w SEQCLOSE

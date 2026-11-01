@@ -1,0 +1,16 @@
+load TTSSEQ.DLL -> ok
+SEQWIRE(0001) -> 0000
+SEQOPEN(0000,0000) -> 0000
+SEQCREATESEQ(0000,0000) -> 0001
+SEQGETPPQ(0001) -> 0018
+== send a bank of 6 bytes
+SEQCREATESYSXBANK(0001) -> 0100
+SEQSYSXASC2BIN(%1,@1,@0) -> 0000
+SEQSENDSYSXBANK(%1,0000,0000) -> 0001
+== receive with one buffer (a message at 2000 ms)
+SEQCREATESYSXBANK(0001) -> 0101
+SEQRECEIVESYSXBANK(%2,cb4,0000,0000,0000) -> fffc
+callback cb4(0000,0000,----,----), repeated
+callback cb4(0000,0006,----,----), repeated
+SEQGETSYSXBANKLEN(%2) -> 00000000
+SEQCLOSE() -> 0001

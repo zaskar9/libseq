@@ -1,0 +1,2 @@
+# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)
+2000 f0 7d 01 02 03 f7

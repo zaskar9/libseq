@@ -130,6 +130,18 @@ beside the callbacks, which cannot happen on Windows 3.1. Once the patch also st
 program's 16-bit code while a callback ran, and served the callbacks in order, 90 runs gave no
 failure, and the suite plays clocks after such a Continue again.
 
+### 8. The options in TTSSEQ.INI (2026-11-01)
+
+Wine's relay trace of `GetPrivateProfileInt` listed the `[Options]` keys each version reads,
+with their defaults and the call that reads them: eleven in 1.01, thirteen in 2.10, fourteen in
+3.00, more than the strings had suggested. `tools/ttsprobe/sweep/options.py` then ran small
+scripts once with the usual file and once per changed key, and compared the output, the MIDI and
+the engine's own Windows calls. Most keys do what their names say; a few needed a closer look.
+The sysex receive buffers showed that 1.01 and 2.10 test for universal sysex in every input
+buffer rather than every message, which drops part of a long message. An invalid sync port opens
+a message and the device dialog from `SeqOpen`. One key, `SyncAllowRateTweak`, showed no effect.
+The suites `options1` and `options2` keep the results.
+
 ## In this folder
 
 | File | Content |
