@@ -37,8 +37,10 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
   `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
   masked, as they differ from run to run.
-- The `sync` suite needs Wine's KRNL386 with `tools/ttsprobe/wine/krnl386-irq.patch`
-  (`#! irq`): 1.01 waits for MIDI Start in a loop that only an interrupt-time callback can end.
+- The `sync` and `play_E3_SPPD` suites need Wine's KRNL386 with
+  `tools/ttsprobe/wine/krnl386-irq.patch` (`#! irq`): 1.01 waits for MIDI Start in a loop that
+  only an interrupt-time callback can end, and the locate delay of 2.10 and 3.00 is a loop during
+  which the timer must go on running.
   It repeats on all three versions (four runs each).
 - Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
   whether the meaning of every argument is known. For the 158 API exports of 1.01:

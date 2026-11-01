@@ -1,5 +1,6 @@
 mode oracle
 #! secs 32
+#! irq
 load TTSSEQ.DLL
 call.w SEQOPEN 0000 0000
 call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E3_SPPD.WRK" 0000 null 0000 0000

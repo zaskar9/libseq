@@ -1,5 +1,6 @@
 mode oracle
 #! secs 32
+#! irq
 load TTSSEQ30.DLL
 call.w SEQWIRE 0001
 call.w SEQOPEN 0000 0000

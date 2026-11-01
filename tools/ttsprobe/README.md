@@ -66,7 +66,7 @@ in a buffer that has gone out of scope, so the fake logs them as `sysex 00 00 00
 channel has the real bytes); and under Wine only one thread runs 16-bit code at a time, so a
 function that waits in a loop (the SPP locate delay, the count-in) blocks the engine's timer unless
 the loop yields. The probe's `cbyield 1` makes its callbacks yield; for a loop without a callback
-see interrupt-time callbacks below.
+(the locate delay, the wait for MIDI Start) see interrupt-time callbacks below.
 
 Sysex input needs one more change to Wine. A 16-bit program receives system exclusive messages
 into buffers it hands to the driver (`midiInPrepareHeader`, `midiInAddBuffer`); Wine 9.0 does not

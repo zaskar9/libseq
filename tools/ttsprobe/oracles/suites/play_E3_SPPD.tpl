@@ -1,4 +1,5 @@
 #! secs 32
+#! irq
 @open
 @load E3_SPPD.WRK
 call.w SEQSETPLAYINGSEQ 0001

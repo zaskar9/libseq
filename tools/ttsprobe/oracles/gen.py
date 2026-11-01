@@ -393,10 +393,15 @@ PLAY_SONGS = ['E2_CHAS', 'E2_KORD', 'E2_METR', 'E2_OVLP', 'E2_SPP', 'E2_STOP', '
 PLAY_MS = {'E3_DENS': 20000, 'FURELISE': 30000}
 
 
+# Songs whose playback needs the timer to run while the start call waits in a loop (the locate
+# delay after the SPP): with interrupt-time callbacks, as on Windows 3.1 ("#! irq").
+PLAY_IRQ = {'E3_SPPD'}
+
+
 def make_play(song):
     def fn():
         ms = PLAY_MS.get(song, 12000)
-        return [f'#! secs {ms // 1000 + 20}', '@open', f'@load {song}.WRK', 'call.w SEQSETPLAYINGSEQ 0001',
+        return [f'#! secs {ms // 1000 + 20}'] + (['#! irq'] if song in PLAY_IRQ else []) + ['@open', f'@load {song}.WRK', 'call.w SEQSETPLAYINGSEQ 0001',
                 'call.w SEQSETSTANDBYSEQ 0000', 'call.d SEQGETNOW 0001', 'sleep 2500', '@play', f'idle {ms}', '@close']
     return fn
 

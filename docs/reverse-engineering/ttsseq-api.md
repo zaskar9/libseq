@@ -316,8 +316,10 @@ version (from just after the SPP to the stop burst):
   within 5 ms; the worst ordinary case is 27 ms (2.10, ENG_LOOP). Exceptions:
   - 1.01, ENG_PARM: the stop at the end comes 125 ms late. The demo did the same in 86Box, so it
     is the engine's, not the program's.
-  - 2.10 and 3.00, E3_SPPD (locate delay 5): Continue comes 275 ms after the SPP and the first
-    note is shorter. This is an artefact of Wine; see "Locate delay" below.
+  - 2.10 and 3.00, E3_SPPD (locate delay 5): on unchanged Wine, Continue comes 275 ms after the
+    SPP and the first note is shorter. This was an artefact of Wine; with interrupt-time
+    callbacks, which the suite now uses, the playback matches the 86Box capture (see "Locate
+    delay" below).
 - Wine against 86Box for the same engine (2.10, ENG_ORDR): same order, note times within 3.3 ms.
 
 So the probe can replace the manual 86Box captures for engine questions, on all three versions.
@@ -327,13 +329,18 @@ So the probe can replace the manual 86Box captures for engine questions, on all 
 `SeqPlayStart` sends the SPP, then waits `delay × 55 ms` (VARS 15; 55 ms is the DOS clock tick)
 by calling `GetCurrentTime` in a loop, then sends Continue, all before it returns [probe, Wine
 relay trace: 2,719 `GetCurrentTime` calls on the program's thread between the two messages].
-Under Wine only one thread runs 16-bit code at a time, so the engine's timer callback cannot run
-during that loop: no Clock, no events, and the overdue clocks come out in a burst afterwards (15 in
-one millisecond), which also shortens the first note. On Windows 3.1 the timer interrupt runs
-regardless; the 86Box takes show what the engine does there: the idle Clock continues through the
-delay, and playback timing starts at Continue (first note full length, the next one 2 s after
-Continue). The same lock can delay the timer callback whenever the program's thread is busy, so
-Wine's timing is a little less exact than 86Box's.
+On Windows 3.1 the timer interrupt runs regardless; the 86Box takes show what the engine does
+there: the idle Clock continues through the delay, and playback timing starts at Continue (first
+note full length, the next one 2 s after Continue). On unchanged Wine only one thread runs 16-bit
+code at a time, so the engine's timer callback cannot run during that loop: no Clock, no events,
+and the overdue clocks come out in a burst afterwards (15 in one millisecond), which also
+shortens the first note (214 ms instead of 490) and brings the next one 1.71 s after Continue.
+With interrupt-time callbacks (`krnl386-irq.patch`, `#! irq`), the probe gives what 86Box gave:
+Clock every 20 ms or so through the delay, no burst, the first note 5 to 9 ms after Continue and
+490 to 498 ms long, the next one 2.0 s after Continue (2.10 and 3.00, two runs each). The suite
+`play_E3_SPPD` runs this way. 1.01 has no locate delay and plays the same either way. The Win16
+lock can also delay the timer callback whenever the program's thread is busy, so Wine's timing
+without the patch is a little less exact than 86Box's.
 
 ## Sysex banks and markers
 
