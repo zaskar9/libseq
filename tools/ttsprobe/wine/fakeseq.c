@@ -4,9 +4,11 @@
  * Build: gcc -m32 -shared -fPIC -O2 -pthread.
  * Log: $FAKESEQ_LOG (default /tmp/midilog.txt), one line per event:
  *   <ms since the sequencer was opened> <kind> <bytes...>
- * Input: $FAKESEQ_INPUT names a script of lines "<ms> <hex bytes...>" (a channel message or a
- * complete F0...F7 sysex; '#' starts a comment). When Wine connects to the input port, a thread
- * delivers each message <ms> after the connection and logs it as "in <bytes>" on the same clock.
+ * Input: $FAKESEQ_INPUT names a script of lines "<ms> <hex bytes...>" (a channel message, a
+ * complete F0...F7 sysex, MIDI sync (F8 Clock, FA Start, FB Continue, FC Stop, F2 Song Position
+ * Pointer) or a MIDI Time Code quarter frame (F1); '#' starts a comment; <ms> may have decimals).
+ * When Wine connects to the input port, a thread delivers each message <ms> after the connection
+ * and logs it as "in <bytes>" on the same clock.
  * With $FAKESEQ_INPUT_GO set to a file name, the times count from when that file appears instead
  * (touch it to start the script; logged as "go").
  * With $FAKESEQ_OUTPUTS=2 there is a second output port, "MIDI Out 2", and every output line
@@ -46,7 +48,9 @@ enum {
     SND_SEQ_EVENT_NOTEON = 6, SND_SEQ_EVENT_NOTEOFF = 7, SND_SEQ_EVENT_KEYPRESS = 8,
     SND_SEQ_EVENT_CONTROLLER = 10, SND_SEQ_EVENT_PGMCHANGE = 11, SND_SEQ_EVENT_CHANPRESS = 12,
     SND_SEQ_EVENT_PITCHBEND = 13, SND_SEQ_EVENT_CONTROL14 = 14, SND_SEQ_EVENT_NONREGPARAM = 15,
-    SND_SEQ_EVENT_REGPARAM = 16, SND_SEQ_EVENT_SYSEX = 130
+    SND_SEQ_EVENT_REGPARAM = 16, SND_SEQ_EVENT_SONGPOS = 20, SND_SEQ_EVENT_QFRAME = 22,
+    SND_SEQ_EVENT_START = 30, SND_SEQ_EVENT_CONTINUE = 31, SND_SEQ_EVENT_STOP = 32, SND_SEQ_EVENT_CLOCK = 36,
+    SND_SEQ_EVENT_SYSEX = 130
 };
 #define SND_SEQ_PORT_CAP_READ (1 << 0)
 #define SND_SEQ_PORT_CAP_WRITE (1 << 1)
@@ -225,6 +229,15 @@ static int ev_from_bytes(snd_seq_event_t* ev, unsigned char* sx, const unsigned 
     case 0xc0: ev->type = SND_SEQ_EVENT_PGMCHANGE; ev->data.control.channel = ch; ev->data.control.value = b[1]; return 1;
     case 0xd0: ev->type = SND_SEQ_EVENT_CHANPRESS; ev->data.control.channel = ch; ev->data.control.value = b[1]; return 1;
     case 0xe0: ev->type = SND_SEQ_EVENT_PITCHBEND; ev->data.control.channel = ch; ev->data.control.value = (b[1] | (b[2] << 7)) - 8192; return 1;
+    }
+    /* system common and real-time messages (MIDI sync, MTC) */
+    switch (b[0]) {
+    case 0xf1: if (n < 2) return 0; ev->type = SND_SEQ_EVENT_QFRAME; ev->data.control.value = b[1]; return 1;
+    case 0xf2: if (n < 3) return 0; ev->type = SND_SEQ_EVENT_SONGPOS; ev->data.control.value = b[1] | (b[2] << 7); return 1;
+    case 0xf8: ev->type = SND_SEQ_EVENT_CLOCK; return 1;
+    case 0xfa: ev->type = SND_SEQ_EVENT_START; return 1;
+    case 0xfb: ev->type = SND_SEQ_EVENT_CONTINUE; return 1;
+    case 0xfc: ev->type = SND_SEQ_EVENT_STOP; return 1;
     }
     if (b[0] == 0xf0 && n <= 256) { ev->type = SND_SEQ_EVENT_SYSEX; memcpy(sx, b, (size_t)n); ev->data.ext.len = (unsigned int)n; ev->data.ext.ptr = sx; return 1; }
     return 0;

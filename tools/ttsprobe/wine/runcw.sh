@@ -7,6 +7,8 @@
 #   FAKESEQ_INPUT   a script of timed messages for the fake input port; FAKESEQ_INPUT_GO a file
 #                   whose appearance starts it (see fakeseq.c)
 #   FAKESEQ_OUTPUTS 2 gives the fake a second output port, and the log the port of each message
+#   WINE_WIN16_IRQ_CALLBACKS  "serial": timer and MIDI callbacks run at once, as at interrupt time
+#                   on Windows 3.1 (needs Wine's krnl386.exe16 with krnl386-irq.patch)
 #   DISPLAY         the X display (default :99, for example Xvfb)
 . "$(dirname "$0")/../env.sh"
 dir=$1; exe=$2; log=$3; secs=$4; shift 4
@@ -14,4 +16,5 @@ cd "$dir" || exit 1
 env -i HOME="$HOME" PATH=/usr/bin:/bin DISPLAY="${DISPLAY:-:99}" WINEPREFIX="$WINEPREFIX" \
     LD_PRELOAD="$FAKESEQ_LIB" FAKESEQ_LOG="${FAKESEQ_LOG:-/dev/null}" \
     ${FAKESEQ_INPUT:+FAKESEQ_INPUT=$FAKESEQ_INPUT} ${FAKESEQ_INPUT_GO:+FAKESEQ_INPUT_GO=$FAKESEQ_INPUT_GO} ${FAKESEQ_OUTPUTS:+FAKESEQ_OUTPUTS=$FAKESEQ_OUTPUTS} \
+    ${WINE_WIN16_IRQ_CALLBACKS:+WINE_WIN16_IRQ_CALLBACKS=$WINE_WIN16_IRQ_CALLBACKS} \
     WINEDEBUG="${TRACE:-+snoop}" timeout "$secs" wine "$exe" "$@" > "$log" 2>&1

@@ -12,8 +12,8 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
 | Folder | Content |
 |---|---|
 | `probe/` | `ttsprobe.c`, a 16-bit Windows program that loads a DLL and calls its functions from a script; `first.txt`, the first script |
-| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` and `build-mmsystem16.sh` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
-| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`) |
+| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync) and `build-wine16.sh` (builds both), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
+| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`), single external-sync experiments (`syncexp.py`) |
 | `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants |
 | `record/` | recording with Cakewalk Professional 2.00 itself, from scripted MIDI input |
 | `oracles/` | the oracle suites and their tools (below) |
@@ -33,7 +33,7 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
    `V300` with a `TTSSEQ.INI` naming the fake ports, copies the test songs, builds
    `libfakeseq.so` and `ttsprobe.exe`, and tells you how to patch Wine's ALSA driver (2.10 and
    3.00 skip MIDI ports whose manufacturer ID is Wine's placeholder 255) and how to build Wine's
-   16-bit MMSYSTEM with MIDI input buffers (below).
+   16-bit MMSYSTEM with MIDI input buffers and its KRNL386 with interrupt-time callbacks (below).
 4. Start a display: `Xvfb :99 &`.
 
 ## The probe
@@ -57,21 +57,39 @@ such a log.
 Out" and "Fake - MIDI In". Everything sent to the output is written to `$FAKESEQ_LOG` with a
 millisecond timestamp; `analysis/fake2cap.py` turns that into the capture format of
 `tests/data/cakewalk/engine/`. `$FAKESEQ_INPUT` names a script of `<ms> <hex bytes>` lines that the
-input port delivers after Wine connects to it (or after the file `$FAKESEQ_INPUT_GO` appears).
+input port delivers after Wine connects to it (or after the file `$FAKESEQ_INPUT_GO` appears):
+channel messages, sysex, MIDI sync (`f8` Clock, `fa` Start, `fb` Continue, `fc` Stop, `f2 lsb msb`
+Song Position Pointer) and MIDI Time Code quarter frames (`f1 nn`).
 
 Two things to know: Wine 9.0 passes Song Position Pointer and other system common messages to ALSA
 in a buffer that has gone out of scope, so the fake logs them as `sysex 00 00 00` (Wine's `+midi`
 channel has the real bytes); and under Wine only one thread runs 16-bit code at a time, so a
 function that waits in a loop (the SPP locate delay, the count-in) blocks the engine's timer unless
-the loop yields. The probe's `cbyield 1` makes its callbacks yield.
+the loop yields. The probe's `cbyield 1` makes its callbacks yield; for a loop without a callback
+see interrupt-time callbacks below.
 
 Sysex input needs one more change to Wine. A 16-bit program receives system exclusive messages
 into buffers it hands to the driver (`midiInPrepareHeader`, `midiInAddBuffer`); Wine 9.0 does not
 translate those buffers between 16 and 32 bits and returns an error, which `SeqReceiveSysxBank`
 reports as -4 and Cakewalk Professional 2.00 as "Out of memory". `wine/mmsystem16-midiin.patch`
 translates them the way Wine already translates the buffers of MIDI output, and
-`wine/build-mmsystem16.sh` builds the patched `mmsystem.dll16` for the installed Wine version. Like
+`wine/build-wine16.sh` builds the patched `mmsystem.dll16` for the installed Wine version. Like
 the ALSA driver patch, it changes Wine, not Cakewalk's files.
+
+External sync needs a change to how Wine runs callbacks. Windows 3.1 calls the callbacks of
+multimedia timers and MIDI drivers at interrupt time: they interrupt the program wherever it is.
+Wine calls them from threads of its own, and only when no thread runs 16-bit code (the Win16
+lock). TTSSEQ 1.01 waits for MIDI Start in a loop inside `SeqPlayStart` that only its MIDI input
+callback can end, so under Wine it waits for ever and blocks the other threads too.
+`wine/krnl386-irq.patch` adds `WINE_WIN16_IRQ_CALLBACKS`: set to `serial`, callbacks on threads
+that are not Win16 tasks run at once without the Win16 lock, one at a time, and 16-bit `cli` ...
+`sti` (which Wine otherwise ignores) holds them off, as disabling interrupts does. Unset, Wine
+behaves as before. `build-wine16.sh` builds this `krnl386.exe16` too; a suite asks for the mode
+with `#! irq`, and `runcw.sh` passes the variable on. Even so, a Continue after a Song Position
+sometimes leaves the engines deaf to the clock under Wine (about one run in six, on all three);
+the sync suite avoids that case. `sweep/syncexp.py VER SONG SPEC...` runs one sync experiment
+from the command line: input messages, clocks and probe steps in one list, and a time line of
+what came back.
 
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
 probe's `cbretafter MS HEX` switches the callbacks' result after MS milliseconds, and `cbmask HEX`

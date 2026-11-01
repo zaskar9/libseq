@@ -7,7 +7,9 @@
 # The raw logs (Wine trace, fake port log) go to $TTSPROBE_WORK/oracles/VER/.
 # Suite header lines: "#! input FILE" feeds $INPUTS/FILE (tests/data/ttsseq/input) to the fake MIDI input;
 # "#! secs N" sets the time limit (default 90); "#! outputs 2" gives the fake a second output port;
-# "#! ini FILE" runs the suite with $INPUTS/FILE as TTSSEQ.INI (the usual one is put back after).
+# "#! ini FILE" runs the suite with $INPUTS/FILE as TTSSEQ.INI (the usual one is put back after);
+# "#! irq" runs timer and MIDI callbacks without the Win16 lock, as at interrupt time on Windows 3.1
+# (needs Wine's krnl386.exe16 built with wine/krnl386-irq.patch; see wine/build-wine16.sh).
 # OUTDIR=name writes to $TTSSEQ_DATA/name instead.
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/../env.sh"
@@ -22,12 +24,13 @@ for s in "${suites[@]}"; do
   input=$(sed -n 's/^#! input //p' "$tpl")
   outputs=$(sed -n 's/^#! outputs //p' "$tpl")
   ini=$(sed -n 's/^#! ini //p' "$tpl")
+  irq=$(grep -q '^#! irq' "$tpl" && echo 1)
   [ -n "$ini" ] && { cp "$V/TTSSEQ.INI" "$raw/TTSSEQ.INI.saved"; cp "$INPUTS/$ini" "$V/TTSSEQ.INI"; }
   rm -rf "$ORC/OUT"; mkdir -p "$ORC/OUT"
   python3 "$here/render.py" $ver "$tpl" > "$out/$s.txt"
   cp "$out/$s.txt" "$V/orc.txt"; rm -f "$V/orc.out"
   : > "$raw/$s.fake"
-  FAKESEQ_LOG="$raw/$s.fake" FAKESEQ_INPUT=${input:+$INPUTS/$input} FAKESEQ_OUTPUTS=$outputs TRACE=-all \
+  FAKESEQ_LOG="$raw/$s.fake" FAKESEQ_INPUT=${input:+$INPUTS/$input} FAKESEQ_OUTPUTS=$outputs WINE_WIN16_IRQ_CALLBACKS=${irq:+serial} TRACE=-all \
       "$RUNCW" "$V" ttsprobe.exe "$raw/$s.log" $secs orc.txt orc.out || true
   [ -n "$ini" ] && cp "$raw/TTSSEQ.INI.saved" "$V/TTSSEQ.INI"
   tr -d '\r' < "$V/orc.out" > "$out/$s.out" 2>/dev/null || echo "(no output)" > "$out/$s.out"
