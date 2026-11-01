@@ -30,8 +30,10 @@ Three versions were studied:
 - **No changes to Cakewalk's files.** The programs and DLLs ran as shipped. Where the environment
   needed adjusting, it was the environment: one byte of Wine's own ALSA driver (the manufacturer
   ID its MIDI ports report), a fake ALSA sequencer library that Wine loads instead of the real
-  one, and Wine's 16-bit MMSYSTEM, which did not pass buffers for system exclusive input between
-  16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`).
+  one, Wine's 16-bit MMSYSTEM, which did not pass buffers for system exclusive input between
+  16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`), and Wine's
+  KRNL386, to call timer and MIDI callbacks at interrupt time as Windows 3.1 does
+  (`tools/ttsprobe/wine/krnl386-irq.patch`).
 - **No Cakewalk files in this repository.** The DLLs and programs come from the user's own disks.
   The repository holds only what the observations produced, and songs written for the purpose.
 
@@ -106,6 +108,22 @@ open, so the probe learned to run commands inside its callbacks (suite `fileio`)
 `SeqConfigMidi` is a dialog: the probe called it while `xdotool` worked the dialog, with a second
 fake output port, and the results are in `devices/`. Its effect, the port assignment in
 `TTSSEQ.INI`, has a suite of its own (`ports`). The dialog itself is not ported.
+
+### 7. External sync (2026-11-01)
+
+The fake MIDI input learned to send MIDI Clock, Start, Continue, Stop, Song Position Pointer and
+MIDI Time Code. The first run on 1.01 hung: with MIDI sync, `SeqPlayStart` waits for Start in a
+loop that calls nothing, and only the MIDI input callback can end it. Windows 3.1 calls that
+callback at interrupt time, in the middle of the loop; Wine waits until no thread runs 16-bit
+code, which never happens. Wine's call trace showed the program thread holding the Win16 lock
+and the callback threads waiting for it. A change to Wine's KRNL386 (`krnl386-irq.patch`) runs
+such callbacks at once, one at a time, and makes the engine's own `cli` ... `sti` keep them out.
+With it, the probe showed how the engines wait for Start, follow the clock and the time code,
+and what the start callback is told. 2.10 and 3.00 at first ignored the clock altogether; varying
+the order of the calls showed that they take the clock source when the sequence becomes the
+playing one. A trace of Cakewalk Apprentice 1.04 showed that it always sets the internal clock
+after loading a file. One effect stayed unexplained: under Wine a Continue after a Song Position
+sometimes leaves the engine deaf to the clock. The `sync` suite records the rest.
 
 ## In this folder
 

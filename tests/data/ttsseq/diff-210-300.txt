@@ -79,6 +79,19 @@
   SEQSETSTREAMNAME (1x), e.g. after SEQSETSTREAMNAME(%2,"New stream") -> 0001
     ttsseq/210: SEQGETSTREAMNAME(%2,@0,0081) -> 0001
     ttsseq/300: SEQGETSTREAMNAME(%2,@0,0081) -> 000a
+== sync: 5 differences
+  SEQGETNOW (2x), e.g. after SEQGETNOW(0001) -> 00000000
+    ttsseq/210: SEQPLAYSTART(cb3) -> 0001
+    ttsseq/300: SEQSTART(cb3,@0) -> 0001
+  SEQIDLE (1x), e.g. after SEQIDLE() -> 0001
+    ttsseq/210: 
+    ttsseq/300: dump 0+0: |   00 00 00 00
+  SEQSETPLAYINGSEQ (1x), e.g. after SEQSETPLAYINGSEQ(0002) -> 0001
+    ttsseq/210: SEQPLAYSTART(null) -> 0001
+    ttsseq/300: SEQSTART(null,@0) -> 0001
+  SEQEXPIRED (1x), e.g. after SEQEXPIRED() -> 0001
+    ttsseq/210: SEQPLAYSTART(cb3) -> 0000
+    ttsseq/300: SEQSTART(cb3,@0) -> 0000
 == sysex: 6 differences
   SEQGETSYSXBANKLEN (6x), e.g. after SEQGETSYSXBANKLEN(0100) -> 00000006
     ttsseq/210: SEQGETSYSXBANKNAME(0100,@0,0020) -> 0001

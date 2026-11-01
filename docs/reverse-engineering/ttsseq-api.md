@@ -33,7 +33,8 @@ prints them). All functions are Pascal: the callee pops its arguments [sweep].
   functions (programs keep their own data in "baggage" instead, below) and widens the I/O byte
   count to 32 bits.
 - 3.00 renames `SeqPlayStart`/`SeqPlayStop` to `SeqStart`/`SeqStop` and `SeqStart` takes 4 words
-  (a callback and a 32-bit value) where `SeqPlayStart` took 2 (a callback) [exp, sweep, trace].
+  (a callback and a far pointer to a 32-bit value) where `SeqPlayStart` took 2 (a callback) [exp,
+  sweep, trace, probe; see "External sync"].
 
 ## Handles
 
@@ -202,6 +203,102 @@ unless noted [probe]:
   sends it [probe]. The 86Box captures never showed an SPP because 86Box's MIDI output does not
   pass it on; midicap itself parses `F2`.
 - MIDI sync (2.10 and 3.00, parameter 6): Start or Continue, Clock also while stopped, Stop [probe].
+- A start call while playing returns 0 [probe].
+- `SeqExpired()` is 1 while the transport is stopped and 0 while it plays, from the moment the
+  start call returns. At the end of the song, or after a Stop from outside, it turns 1 when
+  `SeqIdle` reports the stop, not before [probe, suite `sync`].
+
+## External sync
+
+All of this is the same in 1.01, 2.10 and 3.00 unless noted [probe, suite `sync`, and single runs
+of `tools/ttsprobe/sweep/syncexp.py`]. The fake MIDI input sent MIDI Clock (`F8`), Start (`FA`),
+Continue (`FB`), Stop (`FC`), Song Position Pointer (`F2`) and MIDI Time Code quarter frames
+(`F1`).
+
+### The clock source
+
+- `SeqSetSrcClock` takes 0 (the internal timer), 1 (MIDI sync) or 3 (MIDI Time Code) and returns
+  1. Any other value (2, 4, 0x103, 0xFFFF) returns 0 and leaves the source as it was. Cakewalk for
+  DOS also synced to FSK; 2 may have been its number. A `.WRK` file sets the source on load from
+  VARS byte 13, through the same check.
+- 1.01 has one source for the engine. 2.10 and 3.00 keep one per sequence, and the playing
+  sequence's source is taken when `SeqSetPlayingSeq` makes it the playing sequence. A source
+  changed after that only decides whether the start call waits: set to 1 after
+  `SeqSetPlayingSeq`, the start waits for Start, but then neither the clock nor the timer moves
+  the playback. Programs set the source first, as Cakewalk Apprentice 1.04 does.
+- Cakewalk Apprentice 1.04 has no clock setting. After loading a file it calls
+  `SeqSetSrcClock(seq, 0)`, so its songs always play on the internal clock [trace under Wine].
+  Its strings "Follow MIDI Sync", "Follow SMPTE/MTC", "Waiting for MIDI Sync" and "Chasing to
+  %02u:%02u:%02u:%02u." belong to the full program.
+- On the internal clock, incoming Start, Continue, Stop and clocks are ignored [probe, Apprentice
+  under Wine].
+
+### Waiting for Start
+
+- With source 1 the start call (`SeqPlayStart`, `SeqStart` in 3.00) returns only when Start or
+  Continue comes in. Clocks, Song Position and Stop do not end the wait, and it does not time out
+  (20 s tried). The call sends the search-back output for Now first, as on the internal clock.
+- Meanwhile it calls its callback (`StartProc`, as for the count-in) with (2, 0, 0) once, then
+  with (5, 0, 0) over and over. The callback returns 0 to go on waiting; anything else gives up,
+  and the start call returns 0. With a null callback the engine waits in a loop that calls nothing
+  at all. On Windows 3.1 the MIDI input interrupt ends it; under Wine that needs a changed Wine
+  (`tools/ttsprobe/wine/krnl386-irq.patch`), or the program hangs.
+- A Stop that comes in while the engine waits is kept: the start call returns 1 at the Start, and
+  the playback stops at once (All Notes Off, `SeqIdle` returns 1). A Stop before the start call
+  is forgotten.
+- 3.00's `SeqStart(callback, p start)` writes the tick where the playback starts to the dword at
+  `start` (0 from the beginning, the Song Position, the time of the time code). Cakewalk
+  Professional 2.00 passes a null pointer [trace]; a pointer that is not valid crashes at the start.
+
+### Following MIDI clock
+
+- Start plays from tick 0. Continue plays from the last Song Position received, else from where
+  the playback stopped. A Song Position while stopped does not change `SeqGetNow` until the
+  Continue; while playing it does not move the playback, but it is kept for the next
+  Continue. At a Song Position during the wait, and at Continue, the engine sends the search-back
+  output for the new position.
+- A clock is ppq / 24 ticks (5 at 120 ppq; 20 at 480, 4 at 96, 2 at 48 tried). The first clock
+  after Start plays the events of ticks 0 to 4, the next one those of 5 to 9, and so on: all
+  events of a clock's span go out together when the clock comes in, a few milliseconds later
+  (the timer's period), not spread over the span. Shown with events off the grid (QUANT: ticks 1,
+  7, 17, 37, 53; a copy of its second track with events at ticks 10, 12, 16, 17, 19 and 20).
+- The song's tempo map plays no part: the time between clocks is the tempo. When the clocks pause,
+  the playback holds where it is, notes stay on, and nothing times out.
+- `SeqGetNow` after a clock: the time of the last event that clock played; if it played none, the
+  previous value plus ppq / 24. The first clock after Start or Continue does not add. With QUANT
+  the values after clocks 0, 1, 2, ... are 1, 7, 12, 17, 22, 27, 30, 37, 42, 47, 53; with
+  ENG_ORDR 0, 5, 10, 15. Continue at 177 and four clocks give 192.
+- Stop ends the playback: All Notes Off on every channel, and `SeqIdle` returns 1.
+
+### Following MIDI Time Code
+
+Tried with 30 fps quarter frames from 00:00:00:00, 00:00:01:00 and 00:00:10:00, songs at a
+constant 120 bpm and no SMPTE offset:
+
+- With source 3 the start call calls back (3, 0, 0) once and (5, 0, 0) while no code comes in.
+  Once the code has been read (two frames), the engine sends the search-back output and calls
+  back (4, seconds × 256 + frame, 0) with the incoming time, for about 2 s (from 10:04 to
+  12:03 for code that began at 10:00). Then the start call returns, and `SeqGetNow` is the time
+  of the code in ticks (12.25 s: 2940 at 120 bpm and 120 ppq; 3.00's pointer gets the same).
+- The playback follows the code. When the code stops, the engine runs on for about 0.5 s, then
+  stops (All Notes Off, `SeqIdle` returns 1). Code that starts after the song's end runs on past
+  it. Once, with code from 00:00:00:00, the playback stopped after 3.5 s while the code went on;
+  not explained.
+- Open: the SMPTE offset (the file's TIMEFMT), other frame rates, tempo changes, hours and minutes
+  in the callback's third word.
+
+### Under Wine
+
+- The engines rely on Windows 3.1 calling the timer and MIDI input callbacks at interrupt time.
+  Wine calls them only while no thread runs 16-bit code; `krnl386-irq.patch` with
+  `WINE_WIN16_IRQ_CALLBACKS=serial` calls them at once, one at a time, and lets the engine's own
+  `cli` ... `sti` hold them off (the engines use them in pairs, at one to four places).
+- Even so, a Continue after a Song Position sometimes leaves the engine deaf to the clock: `Now`
+  stays at the position, nothing plays, until Stop. About one run in six on each version, also
+  with a second between the Song Position and the Continue; never without a Song Position. The
+  timer keeps running and the clock callbacks come in; what differs is not visible from outside.
+  Whether Windows 3.1 does the same is open. The `sync` suite plays no clocks after such a
+  Continue.
 
 ## Playback through the probe compared with libseq 0.8.1
 
@@ -465,7 +562,10 @@ callback thunks [probe]:
   pointer, a length): message 4 while loading (it must return 1), 1 while playing; message 3 came
   with a failed load. Loading a file with string events of a registered kind fails unless the
   program's `LoadProc` is there. `SeqCallEventProc` takes 4 words.
-- `StartProc`: the count-in callback (Recording, above).
+- `StartProc`: the count-in callback (Recording, above), and the callback of a start that waits
+  for MIDI sync or time code (External sync, above): (1, beats left, 0) counting in, (2, 0, 0)
+  waiting for MIDI sync, (3, 0, 0) waiting for time code, (4, seconds × 256 + frame, 0) locking
+  to it, (5, 0, 0) still waiting.
 
 ## Copy and paste
 
@@ -550,7 +650,11 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
   `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
-- The `[Options]` settings of `TTSSEQ.INI`.
+- The `[Options]` settings of `TTSSEQ.INI`. The engines' strings name `SyncOutputPort` (all),
+  `SyncAllowRateTweak`, `TimerPeriod` and `TimerResolution` (2.10, 3.00). 3.00 reads them with the
+  defaults 1, 1, 2 and 1, and `SendLocalOn` (default 0) when it closes [relay].
+- External sync: MIDI Time Code with an offset, other frame rates and tempo changes; why a
+  Continue after a Song Position sometimes leaves the engine deaf under Wine.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
   callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA

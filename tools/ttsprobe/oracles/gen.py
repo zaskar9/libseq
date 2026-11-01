@@ -710,6 +710,55 @@ def _():
     return L
 
 
+@suite('sync')
+def _():
+    # External sync with the scripted input SYNC.TXT; the times below are those of its messages
+    # (ms after SeqOpen). The clock source is 0 internal, 1 MIDI clock, 3 MIDI Time Code; other
+    # values are refused and leave it unchanged. 2.10 and 3.00 keep it per sequence and take the
+    # playing sequence's source when it is made the playing sequence, so it is set before
+    # SeqSetPlayingSeq. With source 1 or 3 the start call waits for Start or Continue (or for the
+    # time code) and calls its callback meanwhile: (2, 0, 0) for MIDI sync or (3, 0, 0) for time code
+    # once, then (5, 0, 0) while it waits and (4, time, 0) while it locks to the time code; a
+    # non-zero return gives up (the call returns 0). 3.00's SeqStart writes the start tick through
+    # its second argument. A Stop received while waiting is kept and stops the playback as soon as it
+    # starts. 1.01 waits without a callback in a loop that only a MIDI input callback can end, hence
+    # "#! irq".
+    def src(v, seq='0001'):
+        return [f'?101 call.w SEQSETSRCCLOCK {v}', f'?!101 call.w SEQSETSRCCLOCK {seq} {v}',
+                '?101 call.w SEQGETSRCCLOCK', f'?!101 call.w SEQGETSRCCLOCK {seq}']
+    now = ['call.d SEQGETNOW 0001']
+    play_cb = ['fill 0 0 ee ee ee ee', '?!300 call.w SEQPLAYSTART cb3', '?300 call.w SEQSTART cb3 @0']
+    L = ['#! input SYNC.TXT', '#! secs 40', '#! irq', '@open', 'buf 0 16', '@load QUANT.WRK',
+         'echo == clock source values']
+    for v in ('0001', '0002', '0003', '0004', '0103', 'ffff', '0000'):
+        L += src(v)
+    L += ['echo == MIDI sync: wait for Start (clocks at 1500 to 1600 do not end it)'] + src('0001') + \
+         ['call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'call.w SEQEXPIRED', '@play'] + now + \
+         ['echo == Start at 2000, two clocks: ticks 0 to 9 are played; Now is the time of the last event',
+          'echo == played, else 5 ticks more than before', 'idle 400'] + now + \
+         ['echo == six more clocks', 'idle 500'] + now + \
+         ['echo == 28 clocks at twice the rate', 'idle 1000'] + now + ['call.w SEQEXPIRED',
+          'echo == Stop at 4000', 'idle 300'] + now + ['call.w SEQEXPIRED',
+          'echo == Continue at 4500 without a Song Position: from where it stopped; four clocks; Stop',
+          '@play'] + now + ['idle 450'] + now + ['idle 300'] + now + \
+         ['echo == Song Position 480 at 5100 while stopped; Continue at 6200', '@play'] + now + \
+         ['echo == Song Position 0 at 6500 while playing; Stop at 6800', 'idle 400'] + now + ['idle 400'] + now + \
+         ['echo == Continue at 7800: from the Song Position kept; Stop at 8100', '@play'] + now + \
+         ['idle 400'] + now + \
+         ['echo == Start at 8600 while the start callback polls; four clocks; Stop', 'cbret 0'] + play_cb + now + \
+         ['idle 450'] + now + ['idle 250', '?300 dump 0 0 4',
+          'echo == Stop at 9400 while waiting is kept: the Start at 9600 stops at once', '@play'] + now + \
+         ['idle 300'] + now + ['call.w SEQEXPIRED',
+          'echo == MIDI Time Code from 00:00:10:00 at 10300 (ENG_ORDR, which ends before 00:00:10:00):',
+          'echo == the start returns 2 s after the code locks, at the time of the code',
+          '@load ENG_ORDR.WRK'] + src('0003', '0002') + \
+         ['call.w SEQSETPLAYINGSEQ 0002', 'fill 0 0 ee ee ee ee', '?!300 call.w SEQPLAYSTART null',
+          '?300 call.w SEQSTART null @0', 'call.d SEQGETNOW 0002', '?300 dump 0 0 4',
+          'echo == the code stops at 13800; the engine runs on for 0.5 s, then stops', 'idle 2500',
+          'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
+         ['call.w SEQEXPIRED', '@close']
+    return L
+
 def main():
     os.makedirs(os.path.join(HERE, 'suites'), exist_ok=True)
     for name, fn in SUITES.items():

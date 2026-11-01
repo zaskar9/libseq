@@ -1,0 +1,90 @@
+load TTSSEQ30.DLL -> ok
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\QUANT.WRK",0000) -> 0001
+== clock source values
+SEQSETSRCCLOCK(0001,0001) -> 0001
+SEQGETSRCCLOCK(0001) -> 0001
+SEQSETSRCCLOCK(0001,0002) -> 0000
+SEQGETSRCCLOCK(0001) -> 0001
+SEQSETSRCCLOCK(0001,0003) -> 0001
+SEQGETSRCCLOCK(0001) -> 0003
+SEQSETSRCCLOCK(0001,0004) -> 0000
+SEQGETSRCCLOCK(0001) -> 0003
+SEQSETSRCCLOCK(0001,0103) -> 0000
+SEQGETSRCCLOCK(0001) -> 0003
+SEQSETSRCCLOCK(0001,ffff) -> 0000
+SEQGETSRCCLOCK(0001) -> 0003
+SEQSETSRCCLOCK(0001,0000) -> 0001
+SEQGETSRCCLOCK(0001) -> 0000
+== MIDI sync: wait for Start (clocks at 1500 to 1600 do not end it)
+SEQSETSRCCLOCK(0001,0001) -> 0001
+SEQGETSRCCLOCK(0001) -> 0001
+SEQSETPLAYINGSEQ(0001) -> 0001
+SEQSETSTANDBYSEQ(0000) -> 0001
+SEQEXPIRED() -> 0001
+SEQSTART(null,0000,0000) -> 0001
+SEQGETNOW(0001) -> 00000000
+== Start at 2000, two clocks: ticks 0 to 9 are played; Now is the time of the last event
+== played, else 5 ticks more than before
+SEQGETNOW(0001) -> 00000007
+== six more clocks
+SEQGETNOW(0001) -> 00000025
+== 28 clocks at twice the rate
+SEQGETNOW(0001) -> 000000b1
+SEQEXPIRED() -> 0000
+== Stop at 4000
+SEQIDLE() -> 0001
+SEQGETNOW(0001) -> 000000b1
+SEQEXPIRED() -> 0001
+== Continue at 4500 without a Song Position: from where it stopped; four clocks; Stop
+SEQSTART(null,0000,0000) -> 0001
+SEQGETNOW(0001) -> 000000b1
+SEQGETNOW(0001) -> 000000c0
+SEQIDLE() -> 0001
+SEQGETNOW(0001) -> 000000c0
+== Song Position 480 at 5100 while stopped; Continue at 6200
+SEQSTART(null,0000,0000) -> 0001
+SEQGETNOW(0001) -> 000001e0
+== Song Position 0 at 6500 while playing; Stop at 6800
+SEQGETNOW(0001) -> 000001e0
+SEQIDLE() -> 0001
+SEQGETNOW(0001) -> 000001e0
+== Continue at 7800: from the Song Position kept; Stop at 8100
+SEQSTART(null,0000,0000) -> 0001
+SEQGETNOW(0001) -> 00000000
+SEQIDLE() -> 0001
+SEQGETNOW(0001) -> 00000000
+== Start at 8600 while the start callback polls; four clocks; Stop
+SEQSTART(cb3,@0) -> 0001
+callback cb3(0002,0000,0000)
+callback cb3(0005,0000,0000), repeated
+SEQGETNOW(0001) -> 00000000
+SEQGETNOW(0001) -> 00000011
+SEQIDLE() -> 0001
+dump 0+0:
+  00 00 00 00
+== Stop at 9400 while waiting is kept: the Start at 9600 stops at once
+SEQSTART(null,0000,0000) -> 0001
+SEQGETNOW(0001) -> 00000000
+SEQIDLE() -> 0001
+SEQGETNOW(0001) -> 00000000
+SEQEXPIRED() -> 0001
+== MIDI Time Code from 00:00:10:00 at 10300 (ENG_ORDR, which ends before 00:00:10:00):
+== the start returns 2 s after the code locks, at the time of the code
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_ORDR.WRK",0000) -> 0002
+SEQSETSRCCLOCK(0002,0003) -> 0001
+SEQGETSRCCLOCK(0002) -> 0003
+SEQSETPLAYINGSEQ(0002) -> 0001
+SEQSTART(null,@0) -> 0001
+SEQGETNOW(0002) -> 00000b7c
+dump 0+0:
+  7c 0b 00 00
+== the code stops at 13800; the engine runs on for 0.5 s, then stops
+SEQIDLE() -> 0001
+SEQEXPIRED() -> 0001
+== the callback gives up at once
+SEQSTART(cb3,@0) -> 0000
+callback cb3(0003,0000,0000)
+SEQEXPIRED() -> 0001
+SEQCLOSE() -> 0001

@@ -10,6 +10,7 @@ and compare.
 | `101/`, `210/`, `300/` | per suite: the script as run on that version (`.txt`), the probe's output (`.out`), the MIDI output in capture format (`.midi`), the files the suite saved (`SUITE/`) |
 | `input/IN3.TXT`, `input/SYSX.TXT` | the scripted MIDI input of the `record` and `sysexin` suites (milliseconds after the engine opens the input, then the bytes) |
 | `input/STEP.TXT` | the MIDI input of the `steprec` suite |
+| `input/SYNC.TXT` | the MIDI input of the `sync` suite: MIDI Clock, Start, Continue, Stop, Song Position and MIDI Time Code |
 | `input/PORTS.INI` | the `TTSSEQ.INI` of the `ports` suite: two output devices in reverse order, sync to port 2 |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
 | `coverage.txt` | the exports each version's suites call and do not call |
@@ -36,6 +37,10 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
   `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
   masked, as they differ from run to run.
+- The `sync` suite needs Wine's KRNL386 with `tools/ttsprobe/wine/krnl386-irq.patch`
+  (`#! irq`): 1.01 waits for MIDI Start in a loop that only an interrupt-time callback can end.
+  It repeats on all three versions; it plays no clocks after a Continue that follows a Song
+  Position, which under Wine sometimes leaves the engines deaf to the clock.
 - Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
   whether the meaning of every argument is known. For the 158 API exports of 1.01:
   - 157 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).

@@ -163,8 +163,10 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(seq)` | w | |
 | `SeqSetNow(seq, d tick)`, `SeqSetDur(seq, d ticks)` | d | return the value |
 | `SeqGetNow`, `SeqGetEnd`, `SeqGetDur`, `SeqRewind` (seq) | d | |
-| `SeqExpired()` | w | |
-| `SeqGetSrcClock([seq])`, `SeqSetSrcClock([seq,] source)` | w | the sequence from 2.10 on |
+| `SeqPlayStart(p callback)`, `SeqPlayStop()` | w | 1.01, 2.10. 0 when already playing, or when the callback gives up a wait for sync |
+| `SeqStart(p callback, p d start)`, `SeqStop()` | w | 3.00; writes the start tick to `start` (may be null) |
+| `SeqExpired()` | w | 1 while stopped, 0 while playing |
+| `SeqGetSrcClock([seq])`, `SeqSetSrcClock([seq,] source)` | w | the sequence from 2.10 on; 0 internal, 1 MIDI sync, 3 MIDI Time Code; another value returns 0 and changes nothing |
 | `SeqRecordStart(5 words, p callback)`, `SeqRecordStop()`, `SeqRecCount()`, `SeqRecordCleanup(seq, keep, 0, p stream)` | w / d | 1.01, 2.10; see API.md |
 | `SeqStepRecSetup(seq, hwnd)` | w | a new stream for the take; the engine posts 0x464 (wParam 0x100, lParam the event count) to `hwnd` after each step |
 | `SeqStepRecParams(d position, duration, velocity)` | | the next step's position, its notes' duration, a fixed velocity (0: as played) |
