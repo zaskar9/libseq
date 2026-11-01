@@ -244,8 +244,7 @@ Wine's timing is a little less exact than 86Box's.
   with flag 1); `SeqEmptySysxBank(bank)` 1 [probe].
 - `SeqGetMarkerName(seq, index32, buffer, size)` (6 words) returns the name's length ("Locked",
   6) [probe]; marker indexes are 32-bit, as in `SeqGetMarkerTime` [trace].
-- `SeqConfigMidi(hwnd)` (1 word) shows the "Select MIDI Devices" dialog and returns the button
-  (2 = Cancel) [probe].
+- `SeqConfigMidi(hwnd)` (1 word) shows the "Select MIDI Devices" dialog (Devices, above).
 - `SeqSysxAsc2Bin(bank, text, &position)` turns the text of the "Edit Bytes" dialog back into the
   bank's bytes; Cakewalk Professional 2.00 calls it on OK and says "Not a number!" when it returns
   4 [trace]. Through the probe [probe]:
@@ -276,11 +275,9 @@ Wine's timing is a little less exact than 86Box's.
 ## Files
 
 - `SeqLoadCakewalkFile(name, 0, callback, value32)` in 1.01/2.10, `(name, 0)` in 3.00; returns the
-  new sequence [trace, probe]. The callback is the program's `LoadProc`, called once per chunk
-  the engine does not keep itself, with the chunk type and the file handle; the program reads
-  the chunk with `SeqIORead(file, buffer, count)` [trace].
-- `SeqSaveCakewalkFile(seq, name, value32, callback, value32)` (9 words) in 1.01/2.10; the
-  program's `SaveProc` writes its chunks with `SeqIOWrite` (Cakewalk Apprentice 1.04: the comments) [trace].
+  new sequence [trace, probe]. The callback is the program's `LoadProc` (below).
+- `SeqSaveCakewalkFile(seq, name, value32, callback, value32)` (9 words) in 1.01/2.10, with the
+  program's `SaveProc` [trace].
 - `SeqSaveMidiFile(seq, name, value32)` (5 words) [trace].
 - The same song saved by each version through the probe (no callback) [probe]:
   - 1.01 and 2.10 write the same file except VARS byte 77 (transmit MIDI sync): 1.01 writes 0, it
@@ -294,6 +291,32 @@ Wine's timing is a little less exact than 86Box's.
   Cakewalk Professional 2.00 holds `06 00 01 00 00 00` [probe].
 - Chunk 16 holds the MIDI thru settings (parameters 7 to 11), chunk 17 the metronome note
   (parameters 17 to 21) [probe].
+
+### The file callbacks and `SeqIO` (1.01, 2.10)
+
+The program's `LoadProc` and `SaveProc` are called as `callback(code, word, value32)`, the value
+being the one passed to the load or save call [trace of Cakewalk Apprentice 1.04, probe; the
+`fileio` suite]:
+
+- Load: `0xFE` with the open file first (Apprentice seeks to the end and back to size its
+  progress bar), then once for every chunk, with the chunk's type and the file standing at the
+  chunk's 32-bit length. The callback returns 1 when it has read the chunk itself and 0 to leave
+  it to the engine; returning 1 without reading leaves the engine out of step with the file.
+  Apprentice takes only the comments (8): it reads the length (4 bytes), the text length (2)
+  and the text. `0xFF` with the file comes at the end.
+- Save: `0xFE` with a percentage (0, 14, 28, ... 100) for the progress bar, and `0xFF` with the
+  open file at the end, before the engine's end marker: the program appends its own chunks there
+  (Apprentice: the comments, as type byte, length, text length, text).
+- Code 3 comes once in both, with a word that is not the file; its meaning is not known.
+- `SeqIOSeek(file, offset32, origin)` (origin 0 start, 1 current, 2 end) returns the new position;
+  `SeqIORead(file, buffer, count)` and `SeqIOWrite(file, buffer, count)` return the bytes moved
+  (the count is 16 bits in 1.01 and 2.10, 32 bits in 3.00).
+- String events: during a load the event procedure of the kind is called with message 4 and the
+  event's 7 bytes; it reads the event's text from the file with `SeqIORead`, the 32-bit length
+  first, using the file from the load callback. If it does not, the load fails. This is why a
+  file with string events of a registered kind loaded only with the program's load callback.
+- 3.00's file functions have no callback, and no program was seen calling `SeqIOSeek/Read/Write`
+  in 3.00; how 3.00 reads string events is open.
 
 ### Baggage (3.00)
 
@@ -318,8 +341,34 @@ Sections `[MIDI Output Devices]` and `[MIDI Input Devices]` (`0=<device name>`, 
 `[Options]`. The option names in the files: `SyncOutputPort`, `ConfigMIDI`, `Timebase`,
 `FlywheelAmount`, `ChaseDelay`, `SysxSendPacketSize`, `SysxReceiveBuffers`,
 `SysxReceiveBuffersSize`, `SendLocalOff`, `TimerPeriod`, `TimerResolution`. `SendLocalOff`
-belongs with the Local Control Off that every engine sends when it opens a port. Only the names are
-known; their effects are not tried yet.
+belongs with the Local Control Off that every engine sends when it opens a port. `SyncOutputPort`,
+`TimerPeriod` and `TimerResolution` are written by `SeqConfigMidi` (below); the others are not
+tried yet.
+
+### Devices: `SeqConfigMidi` and the port assignment
+
+`SeqConfigMidi(hwnd)` shows the "Select MIDI Devices" dialog (`devices/dialog-*.png`): the input
+and output devices Windows offers, a button that moves the selected devices to the top of the
+list, and the port for sync output; 3.00 adds the timer precision. It returns 3 for OK and 2 for
+Cancel. Observed with two fake output ports and `tools/ttsprobe/sweep/configmidi.sh`, the same in
+all three versions except the timer (`devices/configmidi-*.txt`) [probe]:
+
+- OK writes `TTSSEQ.INI`: the selected output devices in list order as `[MIDI Output Devices]`
+  0, 1, ..., likewise the inputs, and `SyncOutputPort`. The order is that of the list, not of
+  selection; "Move selected devices to top" is how to change it. Cancel writes nothing and
+  changes nothing.
+- The new assignment takes effect at once, without a new `SeqOpen`: Cakewalk port n is device
+  n - 1 of the list, as `SeqGetPortName` and the MIDI from `SeqTxMidiMsg` show.
+- `SeqGetPortName(port, buffer)` writes "n: device"; for a port beyond the assigned ones it
+  repeats the first device's name with that number.
+- `SyncOutputPort` decides where MIDI sync goes: with 2, Start, Clock, Stop and the Song Position
+  Pointer go to port 2 (2.10, 3.00; the `ports` suite, which gives the engine such an INI file).
+- 3.00's timer precision: High writes `TimerPeriod=2`, `TimerResolution=1`; Medium 5 and 2; Low
+  10 and 5 (milliseconds); Custom takes both values from the dialog.
+
+libseq does not port the dialog. The state behind it (which devices are which ports, which port
+sends sync) belongs to libseq's platform interface; the application draws its own dialog and
+keeps the settings.
 
 ## Recording
 
@@ -469,6 +518,8 @@ function the oracle suites call, found by trying layouts through the probe. Note
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
   `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - The `[Options]` settings of `TTSSEQ.INI`.
+- The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
+  callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
   in a buffer that has gone out of scope, so the fake port logs them as zeros (`sysex 00 00 00`);
   Wine's `+midi` trace has the real bytes.

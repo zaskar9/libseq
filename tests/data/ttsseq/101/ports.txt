@@ -1,0 +1,43 @@
+mode oracle
+#! outputs 2
+#! ini PORTS.INI
+#! secs 40
+load TTSSEQ.DLL
+call.w SEQOPEN 0000 0000
+buf 0 32
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETPORTNAME 0000 @0
+dump 0 0 24
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETPORTNAME 0001 @0
+dump 0 0 24
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETPORTNAME 0002 @0
+dump 0 0 24
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETPORTNAME 0003 @0
+dump 0 0 24
+echo == a note to port 1, port 2, port 3 (none) and every port
+sleep 300
+call.w SEQTXMIDIMSG 0000 0000 0090 003c 0064
+call.w SEQTXMIDIMSG 0000 0000 0080 003c 0000
+sleep 100
+call.w SEQTXMIDIMSG 0001 0000 0090 003d 0064
+call.w SEQTXMIDIMSG 0001 0000 0080 003d 0000
+sleep 100
+call.w SEQTXMIDIMSG 0002 0000 0090 003e 0064
+call.w SEQTXMIDIMSG 0002 0000 0080 003e 0000
+sleep 100
+call.w SEQTXMIDIMSG ffff 0000 0090 003f 0064
+call.w SEQTXMIDIMSG ffff 0000 0080 003f 0000
+sleep 100
+echo == play ENG_SYNC (MIDI sync on in 2.10 and 3.00) for 0.6 s
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYNC.WRK" 0000 null 0000 0000
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+sleep 500
+call.w SEQPLAYSTART null
+idle 600
+call.w SEQPLAYSTOP
+idle 300
+call.w SEQCLOSE

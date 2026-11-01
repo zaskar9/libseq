@@ -1,0 +1,298 @@
+##### 300 both
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=2
+TimerResolution=1
+[MIDI Output Devices]
+0=Fake - MIDI Out
+1=Fake - MIDI Out 2
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@2 90 3d 64
+short@0 90 3e 64
+short@2 90 3f 64
+##### 300 only2
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out 2'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out 2'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out 2'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out 2'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=2
+TimerResolution=1
+[MIDI Output Devices]
+0=Fake - MIDI Out 2
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@2 90 3c 64
+short@2 90 3d 64
+short@2 90 3e 64
+short@2 90 3f 64
+##### 300 order
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out 2'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out 2'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out 2'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out 2'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=2
+TimerResolution=1
+[MIDI Output Devices]
+0=Fake - MIDI Out 2
+1=Fake - MIDI Out
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@2 90 3c 64
+short@0 90 3d 64
+short@2 90 3e 64
+short@0 90 3f 64
+##### 300 selorder
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=2
+TimerResolution=1
+[MIDI Output Devices]
+0=Fake - MIDI Out
+1=Fake - MIDI Out 2
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@2 90 3d 64
+short@0 90 3e 64
+short@2 90 3f 64
+##### 300 cancel
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0002
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+[MIDI Output Devices]
+0=Fake - MIDI Out
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@0 90 3d 64
+short@0 90 3e 64
+short@0 90 3f 64
+##### 300 sync
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out 2'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=2
+TimerPeriod=2
+TimerResolution=1
+[MIDI Output Devices]
+0=Fake - MIDI Out
+1=Fake - MIDI Out 2
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@2 90 3d 64
+short@0 90 3e 64
+short@2 90 3f 64
+##### 300 low
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=10
+TimerResolution=5
+[MIDI Output Devices]
+0=Fake - MIDI Out
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@0 90 3d 64
+short@0 90 3e 64
+short@0 90 3f 64
+##### 300 medium
+load TTSSEQ30.DLL -> 035f
+SEQWIRE(0001) -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQCONFIGMIDI(0000) -> 0003
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+== a note to port 1, then to port 2
+SEQTXMIDIMSG(0000,0000,0090,003c,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003d,0064) -> 0001
+== close and open again
+SEQCLOSE() -> 0001
+SEQOPEN(0000,0000) -> 0000
+SEQGETPORTNAME(0000,@0) -> '1: Fake - MIDI Out'
+SEQGETPORTNAME(0001,@0) -> '2: Fake - MIDI Out'
+SEQGETPORTNAME(0002,@0) -> '3: Fake - MIDI Out'
+SEQTXMIDIMSG(0000,0000,0090,003e,0064) -> 0001
+SEQTXMIDIMSG(0001,0000,0090,003f,0064) -> 0001
+SEQCLOSE() -> 0001
+--- TTSSEQ.INI
+[Options]
+SyncOutputPort=1
+TimerPeriod=5
+TimerResolution=2
+[MIDI Output Devices]
+0=Fake - MIDI Out
+[MIDI Input Devices]
+0=Fake - MIDI In
+--- MIDI
+short@0 90 3c 64
+short@0 90 3d 64
+short@0 90 3e 64
+short@0 90 3f 64

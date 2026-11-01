@@ -1,6 +1,7 @@
 ok   copypaste: midi: 51 messages in the same order
 ok   eventedit: midi: 51 messages in the same order
 ok   events: midi: 55 messages in the same order
+ok   fileio: midi: 53 messages in the same order; files: 1 identical
 ok   files: midi: 150 messages in the same order; files: 136 identical
 ok   lifecycle: midi: 48 messages in the same order
 ok   markers: midi: 51 messages in the same order
@@ -33,6 +34,7 @@ ok   play_ENG_SYNC: midi: 71 messages, times within 7.5 ms
 ok   play_ENG_SYSX: midi: 71 messages, times within 13.6 ms
 ok   play_ENG_TMPO: midi: 97 messages, times within 13.7 ms
 ok   play_FURELISE: midi: 175 messages, times within 24.7 ms
+ok   ports: midi: 139 messages, times within 12.6 ms
 ok   ranges: midi: 81 messages in the same order
 ok   record: out: 2 lines differ, first at 46: '  18 00 00 c0 05 00 00 00' / '  1a 00 00 c0 05 00 00 00'; midi: 98 messages in the same order
 ok   seqparams: midi: 55 messages in the same order
@@ -44,4 +46,4 @@ ok   sysextext: midi: 48 messages in the same order
 ok   tempo: midi: 56 messages in the same order
 ok   timecode: midi: 52 messages in the same order
 ok   transport: midi: 142 messages, times within 5.5 ms
-46 of 46 suites agree
+48 of 48 suites agree

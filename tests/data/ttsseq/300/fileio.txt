@@ -1,0 +1,10 @@
+mode oracle
+load TTSSEQ30.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+buf 1 128
+buf 2 16
+buf 3 4
+cbmask 6
+cbret 0
+call.w SEQCLOSE

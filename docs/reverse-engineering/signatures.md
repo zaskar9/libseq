@@ -168,7 +168,9 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqRecordStart(5 words, p callback)`, `SeqRecordStop()`, `SeqRecCount()`, `SeqRecordCleanup(seq, keep, 0, p stream)` | w / d | 1.01, 2.10; see API.md |
 | `SeqStepRecSetup(seq, stream)`, `SeqStepRecParams(w, w, w, w)`, `SeqRecordEvent(p)`, `SeqSetRecCount(d)`, `SeqStepRecTerm()` | | ? step record takes its events from MIDI input |
 | `SeqTxMidiMsg(port, channel, status, data1, data2)` | w | sends one channel message at once: the channel replaces the status's low nibble; port 0xffff is every port, channel 0xff every channel. Note-offs (0x8n, or 0x9n with velocity 0) go out only for notes that are on; a note-on for a note that is on sends its note-off first. Returns 1, or 0 for pitch wheel (0xEn), system messages, channel 16 and above or data above 0x7f, which are not sent |
-| `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out" |
+| `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out"; past the assigned ports, the first device's name with that number |
 | `SeqHugeMemCpy(p dst, p src, d count)` | d | |
-| `SeqIOSeek/Read/Write` | | only valid inside the load and save callbacks |
-| `SeqConfigMidi(hwnd)` | | a dialog; not in the oracles |
+| `SeqIOSeek(file, d offset, origin)` | d | the new position; origin 0 start, 1 current, 2 end. Only while a file is open: in the load and save callbacks and the event procedures |
+| `SeqIORead(file, p buffer, count)`, `SeqIOWrite(file, p buffer, count)` | w | the bytes moved; the count is a dword in 3.00 |
+| load and save callback | | callback(code, word, d value): 0xFE (file, or a percentage when saving), a chunk type with the file, 3 (?), 0xFF with the file; returns 1 for a chunk it read |
+| `SeqConfigMidi(hwnd)` | w | the device dialog: 3 OK, 2 Cancel; OK writes `TTSSEQ.INI` (ttsseq-api.md, Devices). Not ported, not in the suites |

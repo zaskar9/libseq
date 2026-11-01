@@ -611,6 +611,77 @@ def _():
     return L
 
 
+@suite('fileio')
+def _():
+    # SeqIOSeek(file, offset32, origin), SeqIORead(file, buffer, count) and SeqIOWrite(file, buffer,
+    # count) (1.01 and 2.10) work on the file the engine has open while it loads or saves. The
+    # program gets the file in its load or save callback, callback(code, file, value32): 0xFE at the
+    # start of a load, then once per chunk with the chunk's type (the file stands at the chunk's
+    # length; the callback returns 1 when it read the chunk itself, 0 to leave it to the engine), and
+    # 0xFF at the end of a save, for the program's own chunks. An event procedure reads the text of a
+    # string event with SeqIORead. 3.00's file functions have no callback, so this suite is 1.01 and
+    # 2.10 only. Callback words 1 and 2 (file handle, pointers) differ from run to run: masked.
+    text = 'Comments written by the probe, through SeqIOWrite in the save callback.'
+    n = len(text)
+    V = '?101,210 '
+    L = ['@open', 'buf 1 128', 'buf 2 16', 'buf 3 4', 'cbmask 6', 'cbret 0']
+    body = [
+        'echo == load SYN_MAPS: seek at the start, read the comments chunk (8) and take it',
+        'cbdo cb4 fe call.d SEQIOSEEK %w1 d:00000000 0001', 'cbdo cb4 fe call.d SEQIOSEEK %w1 d:00000000 0002',
+        'cbdo cb4 fe call.d SEQIOSEEK %w1 d:0000000b 0000',
+        'cbdo cb4 08 call.d SEQIOSEEK %w1 d:00000000 0001', 'cbdo cb4 08 fill 1 0 ' + 'ee ' * 96,
+        'cbdo cb4 08 call.w SEQIOREAD %w1 @1 0004', 'cbdo cb4 08 call.w SEQIOREAD %w1 @1+4 0002',
+        'cbdo cb4 08 call.w SEQIOREAD %w1 @1+6 %b1+4', 'cbdo cb4 08 dump 1 0 96', 'cbdo cb4 08 ret 1',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\SYN_MAPS.WRK" 0000 cb4 d:00001234', 'cbdo -',
+        'call.w SEQGETMETERMAPLEN 0001',
+        f'echo == save it with a comments chunk of its own, written at the end (0xFF)',
+        'fill 2 0 08', f'fill 2 1 {n + 2:02x} 00 00 00', f'fill 3 0 {n:02x} 00', f'put 1 0 "{text}"',
+        'cbret 1', 'cbdo cb4 ff call.d SEQIOSEEK %w1 d:00000000 0001',
+        'cbdo cb4 ff call.w SEQIOWRITE %w1 @2 0001', 'cbdo cb4 ff call.w SEQIOWRITE %w1 @2+1 0004',
+        'cbdo cb4 ff call.w SEQIOWRITE %w1 @3 0002', f'cbdo cb4 ff call.w SEQIOWRITE %w1 @1 {n:04x}',
+        'cbdo cb4 ff call.d SEQIOSEEK %w1 d:00000000 0001',
+        'call.w SEQSAVECAKEWALKFILE 0001 "C:\\PROBE\\ORC\\OUT\\IOSAVE.WRK" d:00000000 cb4 d:00005678', 'cbdo -',
+        'cbret 0', 'call.w SEQDESTROYSEQ 0001',
+        'echo == load the saved file and read its comments',
+        'cbdo cb4 08 fill 1 0 ' + 'ee ' * 96, 'cbdo cb4 08 call.w SEQIOREAD %w1 @1 0004',
+        'cbdo cb4 08 call.w SEQIOREAD %w1 @1+4 0002', 'cbdo cb4 08 call.w SEQIOREAD %w1 @1+6 %b1+4',
+        'cbdo cb4 08 dump 1 0 96', 'cbdo cb4 08 ret 1',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\OUT\\IOSAVE.WRK" 0000 cb4 d:00001234', 'cbdo -',
+        'call.w SEQDESTROYSEQ 0001',
+        'echo == load SYN_MAPS leaving every chunk to the engine',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\SYN_MAPS.WRK" 0000 cb4 d:00001234',
+        'call.w SEQGETMETERMAPLEN 0001', 'call.w SEQDESTROYSEQ 0001',
+        'echo == string events: the event procedure reads each text with the file of the load callback',
+        'call.w SEQREGISTEREVENTKIND "MCICmd" cb4 d:00000011', 'call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000022',
+        'cbdo cb4 fe letw 1 1',
+        'cbdo cb4 04 fill 1 0 ' + 'ee ' * 32, 'cbdo cb4 04 call.w SEQIOREAD %1 @1 0004',
+        'cbdo cb4 04 call.w SEQIOREAD %1 @1+4 %b1+0', 'cbdo cb4 04 dump 1 0 32', 'cbdo cb4 04 ret 1',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\SYN_KIND.WRK" 0000 cb4 d:00001234', 'cbdo -',
+        'call.w SEQENUMSTREAMS 0001 cb4 d:00000000', 'call.d SEQSTREAMLEN 0100', 'call.d SEQSTREAMLEN 0101',
+        'call.w SEQDESTROYSEQ 0001',
+        'call.w SEQUNREGISTEREVENTKIND "MCICmd"', 'call.w SEQUNREGISTEREVENTKIND "Text"',
+    ]
+    L += [V + c for c in body]
+    L += ['@close']
+    return L
+
+
+@suite('ports')
+def _():
+    # The port assignment that SeqConfigMidi's dialog writes to TTSSEQ.INI, given here directly:
+    # two output devices in reverse order (port 1 is the fake's second port, port 2 its first) and
+    # sync output to port 2. The MIDI lines name the fake port that got each message (@0, @2).
+    L = ['#! outputs 2', '#! ini PORTS.INI', '#! secs 40', '@open', 'buf 0 32']
+    for p in range(4):
+        L += ['fill 0 0 ' + 'ee ' * 24, f'call.w SEQGETPORTNAME {p:04x} @0', 'dump 0 0 24']
+    L += ['echo == a note to port 1, port 2, port 3 (none) and every port', 'sleep 300']
+    for i, p in enumerate(('0000', '0001', '0002', 'ffff')):
+        L += [f'call.w SEQTXMIDIMSG {p} 0000 0090 {0x3c + i:04x} 0064', f'call.w SEQTXMIDIMSG {p} 0000 0080 {0x3c + i:04x} 0000', 'sleep 100']
+    L += ['echo == play ENG_SYNC (MIDI sync on in 2.10 and 3.00) for 0.6 s', '@load ENG_SYNC.WRK', 'call.w SEQSETPLAYINGSEQ 0001',
+          'call.w SEQSETSTANDBYSEQ 0000', 'sleep 500', '@play', 'idle 600', '@stop', 'idle 300', '@close']
+    return L
+
+
 def main():
     os.makedirs(os.path.join(HERE, 'suites'), exist_ok=True)
     for name, fn in SUITES.items():

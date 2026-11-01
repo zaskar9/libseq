@@ -9,6 +9,7 @@ and compare.
 |---|---|
 | `101/`, `210/`, `300/` | per suite: the script as run on that version (`.txt`), the probe's output (`.out`), the MIDI output in capture format (`.midi`), the files the suite saved (`SUITE/`) |
 | `input/IN3.TXT`, `input/SYSX.TXT` | the scripted MIDI input of the `record` and `sysexin` suites (milliseconds after the engine opens the input, then the bytes) |
+| `input/PORTS.INI` | the `TTSSEQ.INI` of the `ports` suite: two output devices in reverse order, sync to port 2 |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
 | `coverage.txt` | the exports each version's suites call and do not call |
 | `diff-101-210.txt`, `diff-210-300.txt` | where two versions answer the same calls differently |
@@ -29,14 +30,18 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
   playback only say how long the calls took and are not compared.
 - The `record` suite records live input, so its event times may differ by a few ticks between
   runs.
+- The `ports` suite runs with two fake output ports; its MIDI lines name the fake port (`@0`,
+  `@2`). The `fileio` suite masks the file handle and the pointers in its callbacks.
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with
   `tools/ttsprobe/wine/mmsystem16-midiin.patch`. Its callback words with the free memory are
   masked, as they differ from run to run.
 - Coverage (`coverage.txt`) counts the exports that at least one suite calls. It does not say
   whether the meaning of every argument is known. For the 158 API exports of 1.01:
-  - 154 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).
-  - 4 have known layouts but are not called on their own: `SeqIOSeek/Read/Write` work only
-    inside the callbacks of loading and saving a file, and `SeqConfigMidi` opens a dialog.
+  - 157 are called, and their layouts are known (`docs/reverse-engineering/signatures.md`).
+    `SeqIOSeek/Read/Write` are called inside the load and save callbacks (`fileio`).
+  - 1 is not called by any suite: `SeqConfigMidi`, which opens a dialog. It was observed with the
+    dialog worked by `xdotool` (`docs/reverse-engineering/devices/`), and it is not ported; the
+    `ports` suite covers its effect, the port assignment in `TTSSEQ.INI`.
 
-  So `coverage.txt` reports 154 of 158 as covered.
+  So `coverage.txt` reports 157 of 158 as covered.
 - Of the functions new in 2.10 and 3.00 only `SeqReceiveSysxBankEx` has a suite so far.

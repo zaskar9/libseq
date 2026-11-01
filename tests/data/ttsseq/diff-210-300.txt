@@ -2,6 +2,10 @@
   SEQGETMETERATIX (39x), e.g. after SEQGETMETERATIX(0001,0000,@0) -> 00000204
     ttsseq/210: SEQGETMETERATIX(0001,0001,@0) -> ffffffff
     ttsseq/300: SEQGETMETERATIX(0001,0001,@0) -> 00000204
+== fileio: 1 differences
+   (1x), e.g. after (start)
+    ttsseq/210: == load SYN_MAPS: seek at the start, read the comments chunk (8) and take it | SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_MAPS.WRK",0000,cb4,d:00001234) ... | callback cb4(00fe,----,----,1234) {
+    ttsseq/300: 
 == files: 45 differences
   SEQGETFILEERROR (45x), e.g. after SEQGETFILEERROR() -> 0000
     ttsseq/210: SEQSAVECAKEWALKFILE(%1,"C:\PROBE\ORC\OUT\AMAZIN_M.WRK",d:00000000,null,d:00000000) -> 0001
@@ -34,10 +38,6 @@
   SEQSTEPRECPARAMS (1x), e.g. after SEQSTEPRECPARAMS(0001,0002,0003,0004) -> 0004
     ttsseq/210: SEQRECORDEVENT(@0) -> 0000 | SEQRECCOUNT() -> 00000000 | SEQSETRECCOUNT(d:00000005) -> 0000
     ttsseq/300: SEQRECORDEVENT(@0) -> 0001 | SEQRECCOUNT() -> 00000001 | SEQSETRECCOUNT(d:00000005) -> 0001
-== ranges: 1 differences
-  SEQDESTROYSEQ (1x), e.g. after SEQDESTROYSEQ(0001) -> 0001
-    ttsseq/210: SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_ORDR.WRK") -> 0001 | SEQSEEK(0100,0000,d:00000002) -> 00000002 | SEQINSERTRANGE(0100,0000,0000,0000) -> 00000000
-    ttsseq/300: 
 == record: 5 differences
   SEQSETSTANDBYSEQ (1x), e.g. after SEQSETSTANDBYSEQ(0000) -> 0001
     ttsseq/210: SEQRECORDSTART(0000,0000,0000,0000,0000,cb3) -> 0001

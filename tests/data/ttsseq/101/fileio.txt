@@ -1,0 +1,70 @@
+mode oracle
+load TTSSEQ.DLL
+call.w SEQOPEN 0000 0000
+buf 1 128
+buf 2 16
+buf 3 4
+cbmask 6
+cbret 0
+echo == load SYN_MAPS: seek at the start, read the comments chunk (8) and take it
+cbdo cb4 fe call.d SEQIOSEEK %w1 d:00000000 0001
+cbdo cb4 fe call.d SEQIOSEEK %w1 d:00000000 0002
+cbdo cb4 fe call.d SEQIOSEEK %w1 d:0000000b 0000
+cbdo cb4 08 call.d SEQIOSEEK %w1 d:00000000 0001
+cbdo cb4 08 fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+cbdo cb4 08 call.w SEQIOREAD %w1 @1 0004
+cbdo cb4 08 call.w SEQIOREAD %w1 @1+4 0002
+cbdo cb4 08 call.w SEQIOREAD %w1 @1+6 %b1+4
+cbdo cb4 08 dump 1 0 96
+cbdo cb4 08 ret 1
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_MAPS.WRK" 0000 cb4 d:00001234
+cbdo -
+call.w SEQGETMETERMAPLEN 0001
+echo == save it with a comments chunk of its own, written at the end (0xFF)
+fill 2 0 08
+fill 2 1 49 00 00 00
+fill 3 0 47 00
+put 1 0 "Comments written by the probe, through SeqIOWrite in the save callback."
+cbret 1
+cbdo cb4 ff call.d SEQIOSEEK %w1 d:00000000 0001
+cbdo cb4 ff call.w SEQIOWRITE %w1 @2 0001
+cbdo cb4 ff call.w SEQIOWRITE %w1 @2+1 0004
+cbdo cb4 ff call.w SEQIOWRITE %w1 @3 0002
+cbdo cb4 ff call.w SEQIOWRITE %w1 @1 0047
+cbdo cb4 ff call.d SEQIOSEEK %w1 d:00000000 0001
+call.w SEQSAVECAKEWALKFILE 0001 "C:\PROBE\ORC\OUT\IOSAVE.WRK" d:00000000 cb4 d:00005678
+cbdo -
+cbret 0
+call.w SEQDESTROYSEQ 0001
+echo == load the saved file and read its comments
+cbdo cb4 08 fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+cbdo cb4 08 call.w SEQIOREAD %w1 @1 0004
+cbdo cb4 08 call.w SEQIOREAD %w1 @1+4 0002
+cbdo cb4 08 call.w SEQIOREAD %w1 @1+6 %b1+4
+cbdo cb4 08 dump 1 0 96
+cbdo cb4 08 ret 1
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\OUT\IOSAVE.WRK" 0000 cb4 d:00001234
+cbdo -
+call.w SEQDESTROYSEQ 0001
+echo == load SYN_MAPS leaving every chunk to the engine
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_MAPS.WRK" 0000 cb4 d:00001234
+call.w SEQGETMETERMAPLEN 0001
+call.w SEQDESTROYSEQ 0001
+echo == string events: the event procedure reads each text with the file of the load callback
+call.w SEQREGISTEREVENTKIND "MCICmd" cb4 d:00000011
+call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000022
+cbdo cb4 fe letw 1 1
+cbdo cb4 04 fill 1 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+cbdo cb4 04 call.w SEQIOREAD %1 @1 0004
+cbdo cb4 04 call.w SEQIOREAD %1 @1+4 %b1+0
+cbdo cb4 04 dump 1 0 32
+cbdo cb4 04 ret 1
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\SYN_KIND.WRK" 0000 cb4 d:00001234
+cbdo -
+call.w SEQENUMSTREAMS 0001 cb4 d:00000000
+call.d SEQSTREAMLEN 0100
+call.d SEQSTREAMLEN 0101
+call.w SEQDESTROYSEQ 0001
+call.w SEQUNREGISTEREVENTKIND "MCICmd"
+call.w SEQUNREGISTEREVENTKIND "Text"
+call.w SEQCLOSE

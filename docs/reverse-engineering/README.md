@@ -99,6 +99,14 @@ rejected the engine's `midiInPrepareHeader`, because it does not pass input buff
 and 32 bits. With that added to Wine (`tools/ttsprobe/wine/`), sysex input works, and the suites
 `merge`, `midiout`, `sysextext` and `sysexin` were added (2026-10-29).
 
+The rest followed on 2026-10-30 and 11-01. The meter calls and `SeqInsertRange` came from a
+trace of Apprentice's Meter/Key view and from Wine's relay trace of what the engine itself asks
+Windows for. `SeqIOSeek`, `SeqIORead` and `SeqIOWrite` only work while the engine has a file
+open, so the probe learned to run commands inside its callbacks (suite `fileio`).
+`SeqConfigMidi` is a dialog: the probe called it while `xdotool` worked the dialog, with a second
+fake output port, and the results are in `devices/`. Its effect, the port assignment in
+`TTSSEQ.INI`, has a suite of its own (`ports`). The dialog itself is not ported.
+
 ## In this folder
 
 | File | Content |
@@ -112,4 +120,5 @@ and 32 bits. With that added to Wine (`tools/ttsprobe/wine/`), sysex input works
 | `traces/` | Summaries of the program traces (which functions, how often, sample arguments) |
 | `params/` | Parameter read-backs per version: which file byte sets which engine parameter |
 | `static/` | Step 1: the NE headers and the resolved imports of the files on the disk |
+| `devices/` | `SeqConfigMidi`'s dialog per version, and what each way of working it changed |
 | `first-calls/` | The first probe script and its output on each version |
