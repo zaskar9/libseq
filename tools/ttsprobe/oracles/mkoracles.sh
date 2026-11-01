@@ -6,7 +6,9 @@
 #   SUITE/      files the suite saved (C:\PROBE\ORC\OUT)
 # The raw logs (Wine trace, fake port log) go to $TTSPROBE_WORK/oracles/VER/.
 # Suite header lines: "#! input FILE" feeds $INPUTS/FILE (tests/data/ttsseq/input) to the fake MIDI input;
-# "#! secs N" sets the time limit (default 90). OUTDIR=name writes to $TTSSEQ_DATA/name instead.
+# "#! secs N" sets the time limit (default 90); "#! outputs 2" gives the fake a second output port;
+# "#! ini FILE" runs the suite with $INPUTS/FILE as TTSSEQ.INI (the usual one is put back after).
+# OUTDIR=name writes to $TTSSEQ_DATA/name instead.
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/../env.sh"
 ver=$1; shift
@@ -18,12 +20,16 @@ for s in "${suites[@]}"; do
   tpl=$here/suites/$s.tpl
   secs=$(sed -n 's/^#! secs //p' "$tpl"); secs=${secs:-90}
   input=$(sed -n 's/^#! input //p' "$tpl")
+  outputs=$(sed -n 's/^#! outputs //p' "$tpl")
+  ini=$(sed -n 's/^#! ini //p' "$tpl")
+  [ -n "$ini" ] && { cp "$V/TTSSEQ.INI" "$raw/TTSSEQ.INI.saved"; cp "$INPUTS/$ini" "$V/TTSSEQ.INI"; }
   rm -rf "$ORC/OUT"; mkdir -p "$ORC/OUT"
   python3 "$here/render.py" $ver "$tpl" > "$out/$s.txt"
   cp "$out/$s.txt" "$V/orc.txt"; rm -f "$V/orc.out"
   : > "$raw/$s.fake"
-  FAKESEQ_LOG="$raw/$s.fake" FAKESEQ_INPUT=${input:+$INPUTS/$input} TRACE=-all \
+  FAKESEQ_LOG="$raw/$s.fake" FAKESEQ_INPUT=${input:+$INPUTS/$input} FAKESEQ_OUTPUTS=$outputs TRACE=-all \
       "$RUNCW" "$V" ttsprobe.exe "$raw/$s.log" $secs orc.txt orc.out || true
+  [ -n "$ini" ] && cp "$raw/TTSSEQ.INI.saved" "$V/TTSSEQ.INI"
   tr -d '\r' < "$V/orc.out" > "$out/$s.out" 2>/dev/null || echo "(no output)" > "$out/$s.out"
   if grep -q "short\|sysex" "$raw/$s.fake"; then python3 "$TTSPROBE/analysis/fake2cap.py" "$raw/$s.fake" "$out/$s.midi"; else rm -f "$out/$s.midi"; fi
   rm -rf "${out:?}/$s"; if [ -n "$(ls -A "$ORC/OUT")" ]; then mkdir -p "$out/$s"; cp "$ORC"/OUT/* "$out/$s/"; fi

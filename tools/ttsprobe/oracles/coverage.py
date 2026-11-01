@@ -14,7 +14,8 @@ for l in open(os.path.join(repo, 'docs', 'reverse-engineering', 'exports', f'exp
 used = set()
 for f in glob.glob(os.path.join(data, ver, '*.txt')):
     for l in open(f):
-        m = re.match(r'call(?:\.\w)?\s+(\w+)', l)
+        # a call, also one a callback makes ("cbdo cb4 08 call.w SEQIOREAD ...")
+        m = re.match(r'(?:cbdo\s+\S+\s+\S+\s+)?call(?:\.\w)?\s+(\w+)', l)
         if m:
             used.add(m[1])
 used |= {'SEQIDLE'}  # called by "idle"

@@ -13,7 +13,7 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
 |---|---|
 | `probe/` | `ttsprobe.c`, a 16-bit Windows program that loads a DLL and calls its functions from a script; `first.txt`, the first script |
 | `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` and `build-mmsystem16.sh` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
-| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test |
+| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`) |
 | `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants |
 | `record/` | recording with Cakewalk Professional 2.00 itself, from scripted MIDI input |
 | `oracles/` | the oracle suites and their tools (below) |
@@ -76,6 +76,17 @@ the ALSA driver patch, it changes Wine, not Cakewalk's files.
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
 probe's `cbretafter MS HEX` switches the callbacks' result after MS milliseconds, and `cbmask HEX`
 hides callback words that differ from run to run (the free memory the engine reports).
+
+Some functions only work inside a callback (`SeqIORead` while the engine loads a file). `cbdo cbN
+W0 LINE` makes callback cbN run LINE when its first word is W0 (`*` for any); in LINE, `%wN` is
+the callback's word N, `letw N K` keeps word K in variable N, `%bN+OFF` passes a word read from a
+buffer, and `ret HEX` sets what that call of the callback returns.
+
+`FAKESEQ_OUTPUTS=2` gives the fake a second output port, "MIDI Out 2"; the log then names the
+port of every message (`short@2 ...`). A suite asks for it with `#! outputs 2`, and with
+`#! ini FILE` for its own `TTSSEQ.INI` (from `tests/data/ttsseq/input`, put back afterwards).
+`sweep/configmidi.sh VER` works `SeqConfigMidi`'s dialog with `xdotool` and reports what each way
+of working it changed.
 
 ## Oracle suites (`oracles/`)
 

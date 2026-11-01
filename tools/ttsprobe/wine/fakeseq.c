@@ -9,6 +9,8 @@
  * delivers each message <ms> after the connection and logs it as "in <bytes>" on the same clock.
  * With $FAKESEQ_INPUT_GO set to a file name, the times count from when that file appears instead
  * (touch it to start the script; logged as "go").
+ * With $FAKESEQ_OUTPUTS=2 there is a second output port, "MIDI Out 2", and every output line
+ * names the port it went to ("short@2 ...", "short@0 ..."); without it the log is as before.
  */
 #define _GNU_SOURCE
 #include <errno.h>
@@ -61,6 +63,8 @@ typedef struct { unsigned char buf[8]; int len; int expected; } fake_midi_event_
 #define FAKE_CLIENT 20
 #define FAKE_PORT 0
 #define FAKE_IN_PORT 1
+#define FAKE_PORT2 2
+static int two_outputs(void) { const char* v = getenv("FAKESEQ_OUTPUTS"); return v && atoi(v) >= 2; }
 
 static FILE* g_log;
 static struct timespec g_t0;
@@ -98,8 +102,11 @@ int snd_seq_create_simple_port(fake_seq_t* s, const char* name, unsigned int cap
     (void)name; (void)caps; (void)type; return s->next_port++;
 }
 int snd_seq_delete_simple_port(fake_seq_t* s, int port) { (void)s; (void)port; return 0; }
+static int g_route[256];   /* Wine's port -> the fake output port it is connected to, plus 1 */
 int snd_seq_connect_to(fake_seq_t* s, int my_port, int dest_client, int dest_port) {
-    (void)s; (void)my_port; (void)dest_client; (void)dest_port; logline("connect", NULL, 0); return 0;
+    (void)s; (void)dest_client;
+    if (my_port >= 0 && my_port < 256) g_route[my_port] = dest_port + 1;
+    logline("connect", NULL, 0); return 0;
 }
 static void start_input(fake_seq_t* s);
 int snd_seq_connect_from(fake_seq_t* s, int my_port, int src_client, int src_port) {
@@ -153,13 +160,28 @@ int snd_seq_query_next_port(fake_seq_t* s, fake_port_info_t* p) {
         p->type = SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_HARDWARE;
         return 0;
     }
+    if (p->port < FAKE_PORT2 && two_outputs()) {
+        p->port = FAKE_PORT2;
+        strcpy(p->name, "MIDI Out 2");
+        p->capability = SND_SEQ_PORT_CAP_WRITE | SND_SEQ_PORT_CAP_SUBS_WRITE;
+        p->type = SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_HARDWARE;
+        return 0;
+    }
     return -1;
 }
 
 /* output */
+static int g_outport = -1;   /* the destination port, logged with two outputs */
+static void logout(const char* kind, const unsigned char* bytes, const unsigned int n) {
+    if (g_outport < 0) { logline(kind, bytes, n); return; }
+    char k[32]; snprintf(k, sizeof k, "%s@%d", kind, g_outport); logline(k, bytes, n);
+}
+#define logline(k, b, n) logout(k, b, n)
 int snd_seq_event_output_direct(fake_seq_t* s, snd_seq_event_t* ev) {
     (void)s;
     unsigned char b[3];
+    /* Wine sends to its port's subscribers; the connection made in connect_to says which port */
+    g_outport = two_outputs() ? (g_route[ev->source.port] ? g_route[ev->source.port] - 1 : ev->dest.port) : -1;
     switch (ev->type) {
     case SND_SEQ_EVENT_NOTEON: b[0] = (unsigned char)(0x90 | (ev->data.note.channel & 15)); b[1] = ev->data.note.note; b[2] = ev->data.note.velocity; logline("short", b, 3); break;
     case SND_SEQ_EVENT_NOTEOFF: b[0] = (unsigned char)(0x80 | (ev->data.note.channel & 15)); b[1] = ev->data.note.note; b[2] = ev->data.note.velocity; logline("short", b, 3); break;
@@ -177,6 +199,7 @@ int snd_seq_event_output_direct(fake_seq_t* s, snd_seq_event_t* ev) {
     }
     return 0;
 }
+#undef logline
 int snd_seq_event_output(fake_seq_t* s, snd_seq_event_t* ev) { return snd_seq_event_output_direct(s, ev); }
 int snd_seq_drain_output(fake_seq_t* s) { (void)s; return 0; }
 int snd_seq_free_event(snd_seq_event_t* ev) { (void)ev; return 0; }

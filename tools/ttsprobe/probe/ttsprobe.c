@@ -32,6 +32,13 @@
  *   cbret HEX                 what the callbacks cb0..cb8 return (default 1)
  *   cbretafter MS HEX         from MS ms after this command on, the callbacks return HEX instead (for
  *                             an engine loop that runs until its callback says stop)
+ *   cbdo cbN|ccN W0|* LINE   when that callback is called with first word W0 (hex; * for any), it
+ *                             runs LINE inside the callback, before returning; several cbdo add up,
+ *                             "cbdo -" removes them all. In LINE, %wN is word N of the callback's
+ *                             arguments, and "ret HEX" sets what this call of the callback returns.
+ *                             The callback's call is printed when it happens, the lines it runs
+ *                             follow, indented, and the call that caused it says "..." first
+ *   letw N K                  keep word K of the callback running its commands in variable N
  *   cbmask HEX                callback words whose bit is set print as "----" (values that differ
  *                             from run to run, such as free memory)
  *   cbyield 0|1               whether the callbacks yield (PeekMessage) before returning (default 0);
@@ -39,7 +46,8 @@
  * Argument cbN (N = 0..8) is a far pointer to a callback taking N words (Pascal: it removes them);
  * ccN is the same with the C convention (the caller removes them). Each call is printed after the
  * command during which it happened ("callback cbN(words) at ms").
- * Arguments of call, in declaration order (as Wine's +snoop prints them):
+ * Arguments of call, in declaration order (as Wine's +snoop prints them), also:
+ *   %wN      word N of the callback running its commands; %bN+OFF the word at OFF in buffer N
  *   1a2b     one word (hex)
  *   d:HEX    a dword, pushed as high word then low word (like a far pointer or a LONG)
  *   @N       far pointer to buffer N (two words: segment, offset); @N+OFF adds an offset
@@ -76,6 +84,17 @@ static DWORD g_cbret = 1;
 static DWORD g_cbret2 = 0, g_cbswitch = 0; /* "cbretafter": from tick g_cbswitch on, return g_cbret2 */
 static int g_cbyield = 0;
 static unsigned g_cbmask = 0; /* "cbmask": callback words not printed */
+/* "cbdo": commands run inside a callback */
+#define MAXDO 32
+typedef struct { int id; long match; char line[400]; } CbDo;
+static CbDo g_do[MAXDO];
+static int g_ndo = 0;
+static WORD g_cw[8];           /* the words of the callback running its commands (%wN) */
+static DWORD g_doret;          /* "ret" inside a callback */
+static int g_dodepth = 0;
+static void run(char* line);
+static void printcbhead(int id, int n, WORD far* w);
+static void flushcb(void);
 static int g_cbptr = -1, g_cblen = -1; /* "cbptr K L": words K,K+1 are a far pointer, word L its length */
 
 static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4, WORD w5, WORD w6, WORD w7) {
@@ -83,6 +102,44 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
     int last = (g_cbhead + MAXCB - 1) % MAXCB;
     if (g_cbyield) { MSG m; PeekMessage(&m, NULL, 0, 0, PM_NOREMOVE); } /* lets other tasks and timers run */
     if (g_cbswitch && GetCurrentTime() >= g_cbswitch) { g_cbret = g_cbret2; g_cbswitch = 0; }
+    if (g_ndo && g_dodepth < 4) {
+        int i, any = 0;
+        WORD wv[8];
+        wv[0] = w0; wv[1] = w1; wv[2] = w2; wv[3] = w3; wv[4] = w4; wv[5] = w5; wv[6] = w6; wv[7] = w7;
+        for (i = 0; i < g_ndo; ++i)
+            if (g_do[i].id == id && (g_do[i].match < 0 || (WORD)g_do[i].match == w0)) any = 1;
+        if (any) {
+            WORD save[8];
+            DWORD ret = g_cbret, saver = g_doret;
+            char line[400];
+            int k;
+            for (k = 0; k < 8; ++k) { save[k] = g_cw[k]; g_cw[k] = wv[k]; }
+            g_doret = g_cbret;
+            flushcb();   /* earlier callbacks first, so the output stays in order */
+            printcbhead(id, n, (WORD far*)wv);
+            fprintf(g_out, " {\n");
+            fflush(g_out);
+            ++g_dodepth;
+            for (i = 0; i < g_ndo; ++i)
+                if (g_do[i].id == id && (g_do[i].match < 0 || (WORD)g_do[i].match == w0)) {
+                    static const char* quiet[] = { "letw", "ret", "fill", "put", "buf", "let", "cbret", "cbyield",
+                                                   "cbmask", "cbptr", "dxs", "cbretafter", "sleep", NULL };
+                    int q, loud = 1;
+                    strcpy(line, g_do[i].line);
+                    for (q = 0; quiet[q]; ++q)
+                        if (strncmp(line, quiet[q], strlen(quiet[q])) == 0 && (line[strlen(quiet[q])] == ' ' || !line[strlen(quiet[q])])) loud = 0;
+                    if (loud) fprintf(g_out, "  ");
+                    run(line);
+                }
+            --g_dodepth;
+            fprintf(g_out, "} -> %lx\n", g_doret);
+            fflush(g_out);
+            ret = g_doret;
+            g_doret = saver;
+            for (k = 0; k < 8; ++k) g_cw[k] = save[k];
+            return ret;
+        }
+    }
     /* repeated identical calls (a polling loop) are counted, not stored again */
     if (g_cbhead != g_cbtail && g_cb[last].id == id && g_cb[last].w[0] == w0 && g_cb[last].w[1] == w1 &&
         g_cb[last].w[2] == w2 && g_cb[last].w[3] == w3 && g_cb[last].w[4] == w4 && g_cb[last].w[5] == w5 &&
@@ -172,6 +229,16 @@ static void flushcb(void) {
         g_cbtail = (g_cbtail + 1) % MAXCB;
     }
     if (g_cblost) { fprintf(g_out, "callback records lost: %d\n", g_cblost); g_cblost = 0; }
+}
+
+static void printcbhead(int id, int n, WORD far* w) {
+    int i;
+    if (id >= 10) fprintf(g_out, "callback cc%d(", id - 10); else fprintf(g_out, "callback cb%d(", id);
+    for (i = 0; i < n; ++i) {
+        if (g_cbmask & (1u << i)) fprintf(g_out, "%s----", i ? "," : "");
+        else fprintf(g_out, "%s%04x", i ? "," : "", w[i]);
+    }
+    fprintf(g_out, ")");
 }
 
 static DWORD callfar(FARPROC fn, int n, WORD far* w) {
@@ -286,6 +353,25 @@ static void run(char* line) {
     } else if (strcmp(cmd, "cbyield") == 0) {
         /* cbyield 0|1: whether the callbacks call PeekMessage (yield) before returning */
         g_cbyield = atoi(nexttok(&p));
+    } else if (strcmp(cmd, "cbdo") == 0) {
+        /* cbdo cbN|ccN W0|* LINE, or cbdo - */
+        char* t = nexttok(&p);
+        if (strcmp(t, "-") == 0) g_ndo = 0;
+        else if (g_ndo < MAXDO) {
+            char* m = nexttok(&p);
+            g_do[g_ndo].id = t[2] - '0' + (t[1] == 'c' ? 10 : 0);
+            g_do[g_ndo].match = strcmp(m, "*") == 0 ? -1L : (long)strtoul(m, NULL, 16);
+            while (*p == ' ' || *p == '\t') ++p;
+            strncpy(g_do[g_ndo].line, p, sizeof g_do[g_ndo].line - 1);
+            g_do[g_ndo].line[sizeof g_do[g_ndo].line - 1] = 0;
+            ++g_ndo;
+        }
+    } else if (strcmp(cmd, "letw") == 0) {
+        int v = atoi(nexttok(&p)) % 10;
+        g_var[v] = g_cw[atoi(nexttok(&p)) & 7];
+    } else if (strcmp(cmd, "ret") == 0) {
+        /* ret HEX: inside a callback's commands, what this call of the callback returns */
+        g_doret = strtoul(nexttok(&p), NULL, 16);
     } else if (strcmp(cmd, "cbmask") == 0) {
         /* cbmask HEX: the callback words whose bit is set print as "----" */
         g_cbmask = (unsigned)strtoul(nexttok(&p), NULL, 16);
@@ -364,6 +450,13 @@ static void run(char* line) {
             } else if (t[0] == 'c' && (t[1] == 'b' || t[1] == 'c') && t[2] >= '0' && t[2] <= '8' && t[3] == 0) {
                 DWORD q = (DWORD)g_cbfn[t[2] - '0' + (t[1] == 'c' ? 10 : 0)];
                 w[n++] = HIWORD(q); w[n++] = LOWORD(q);
+            } else if (t[0] == '%' && t[1] == 'b') {
+                /* %bN+OFF: the word at offset OFF of buffer N (a length just read, say) */
+                int b = atoi(t + 2);
+                char* plus = strchr(t, '+');
+                w[n++] = *(WORD far*)(g_buf[b] + (plus ? (unsigned)strtoul(plus + 1, NULL, 0) : 0));
+            } else if (t[0] == '%' && t[1] == 'w') {
+                w[n++] = g_cw[atoi(t + 2) & 7];
             } else if (t[0] == '%' && t[1] == 'd') {
                 DWORD v = g_var[atoi(t + 2) % 10];
                 w[n++] = HIWORD(v); w[n++] = LOWORD(v);
@@ -385,7 +478,9 @@ static void run(char* line) {
             fprintf(g_out, ") -> not found\n");
             return;
         }
+        if (g_ndo && !g_dodepth) fprintf(g_out, ") ...\n");   /* callbacks with commands print in between */
         g_r = callfar(fn, n, (WORD far*)w);
+        if (g_ndo && !g_dodepth) fprintf(g_out, "%s(...", name);
         if (type == 'w') fprintf(g_out, ") -> %04x\n", LOWORD(g_r));
         else if (type == 'd') fprintf(g_out, ") -> %08lx\n", g_r);
         else if (type == 'v') fprintf(g_out, ")\n");
