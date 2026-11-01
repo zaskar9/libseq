@@ -38,6 +38,10 @@
  *                             arguments, and "ret HEX" sets what this call of the callback returns.
  *                             The callback's call is printed when it happens, the lines it runs
  *                             follow, indented, and the call that caused it says "..." first
+ *   win                       create a hidden window; argument hwnd passes it. The messages it gets
+ *                             (WM_USER and above) are printed like callbacks, "message(msg,wparam,
+ *                             lparam high,lparam low)", and "cbdo msg MSG LINE" answers them
+ *   add N HEX                 add HEX to variable N (set N HEX sets it)
  *   letw N K                  keep word K of the callback running its commands in variable N
  *   cbmask HEX                callback words whose bit is set print as "----" (values that differ
  *                             from run to run, such as free memory)
@@ -122,7 +126,7 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
             ++g_dodepth;
             for (i = 0; i < g_ndo; ++i)
                 if (g_do[i].id == id && (g_do[i].match < 0 || (WORD)g_do[i].match == w0)) {
-                    static const char* quiet[] = { "letw", "ret", "fill", "put", "buf", "let", "cbret", "cbyield",
+                    static const char* quiet[] = { "letw", "ret", "fill", "put", "buf", "let", "add", "set", "cbret", "cbyield",
                                                    "cbmask", "cbptr", "dxs", "cbretafter", "sleep", NULL };
                     int q, loud = 1;
                     strcpy(line, g_do[i].line);
@@ -188,6 +192,15 @@ DWORD CCATTR cc6(WORD a, WORD b, WORD c, WORD d, WORD e, WORD f) { return cbreco
 DWORD CCATTR cc7(WORD a, WORD b, WORD c, WORD d, WORD e, WORD f, WORD g) { return cbrecord(17, 7, a, b, c, d, e, f, g, 0); }
 DWORD CCATTR cc8(WORD a, WORD b, WORD c, WORD d, WORD e, WORD f, WORD g, WORD h) { return cbrecord(18, 8, a, b, c, d, e, f, g, h); }
 static FARPROC g_cbfn[19];
+static HWND g_hwnd = 0;
+LRESULT CALLBACK __export probewndproc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    if (m >= WM_USER) {
+        cbrecord(9, 4, (WORD)m, (WORD)w, HIWORD(l), LOWORD(l), 0, 0, 0, 0);
+        return 0;
+    }
+    return DefWindowProc(h, m, w, l);
+}
+static HINSTANCE g_inst;
 
 /* Instance thunks, as Windows 3.1 programs make for callbacks: they load the program's DS. */
 static void makecallbacks(HINSTANCE inst) {
@@ -207,7 +220,8 @@ static void flushcb(void) {
     while (g_cbtail != g_cbhead) {
         CbRec* r = &g_cb[g_cbtail];
         int i;
-        if (r->id >= 10) fprintf(g_out, "callback cc%d(", r->id - 10); else fprintf(g_out, "callback cb%d(", r->id);
+        if (r->id == 9) fprintf(g_out, "message(");
+        else if (r->id >= 10) fprintf(g_out, "callback cc%d(", r->id - 10); else fprintf(g_out, "callback cb%d(", r->id);
         for (i = 0; i < r->n; ++i) {
             if (r->dlen != -1 && i == g_cbptr) {
                 int k;
@@ -233,7 +247,8 @@ static void flushcb(void) {
 
 static void printcbhead(int id, int n, WORD far* w) {
     int i;
-    if (id >= 10) fprintf(g_out, "callback cc%d(", id - 10); else fprintf(g_out, "callback cb%d(", id);
+    if (id == 9) fprintf(g_out, "message(");
+    else if (id >= 10) fprintf(g_out, "callback cc%d(", id - 10); else fprintf(g_out, "callback cb%d(", id);
     for (i = 0; i < n; ++i) {
         if (g_cbmask & (1u << i)) fprintf(g_out, "%s----", i ? "," : "");
         else fprintf(g_out, "%s%04x", i ? "," : "", w[i]);
@@ -359,13 +374,26 @@ static void run(char* line) {
         if (strcmp(t, "-") == 0) g_ndo = 0;
         else if (g_ndo < MAXDO) {
             char* m = nexttok(&p);
-            g_do[g_ndo].id = t[2] - '0' + (t[1] == 'c' ? 10 : 0);
+            g_do[g_ndo].id = strcmp(t, "msg") == 0 ? 9 : t[2] - '0' + (t[1] == 'c' ? 10 : 0);
             g_do[g_ndo].match = strcmp(m, "*") == 0 ? -1L : (long)strtoul(m, NULL, 16);
             while (*p == ' ' || *p == '\t') ++p;
             strncpy(g_do[g_ndo].line, p, sizeof g_do[g_ndo].line - 1);
             g_do[g_ndo].line[sizeof g_do[g_ndo].line - 1] = 0;
             ++g_ndo;
         }
+    } else if (strcmp(cmd, "win") == 0) {
+        WNDCLASS wc;
+        memset(&wc, 0, sizeof wc);
+        wc.lpfnWndProc = probewndproc;
+        wc.hInstance = g_inst;
+        wc.lpszClassName = "TTSPROBE";
+        RegisterClass(&wc);
+        g_hwnd = CreateWindow("TTSPROBE", "ttsprobe", WS_OVERLAPPED, 0, 0, 10, 10, NULL, NULL, g_inst, NULL);
+        if (!g_oracle) fprintf(g_out, "win %04x\n", (unsigned)g_hwnd);
+    } else if (strcmp(cmd, "add") == 0 || strcmp(cmd, "set") == 0) {
+        int v = atoi(nexttok(&p)) % 10;
+        DWORD x = strtoul(nexttok(&p), NULL, 16);
+        g_var[v] = cmd[0] == 'a' ? g_var[v] + x : x;
     } else if (strcmp(cmd, "letw") == 0) {
         int v = atoi(nexttok(&p)) % 10;
         g_var[v] = g_cw[atoi(nexttok(&p)) & 7];
@@ -462,6 +490,8 @@ static void run(char* line) {
                 w[n++] = HIWORD(v); w[n++] = LOWORD(v);
             } else if (t[0] == '%') {
                 w[n++] = LOWORD(g_var[atoi(t + 1) % 10]);
+            } else if (strcmp(t, "hwnd") == 0) {
+                w[n++] = (WORD)g_hwnd;
             } else if (strcmp(t, "null") == 0) {
                 w[n++] = 0; w[n++] = 0;
             } else if (strcmp(t, "$r") == 0) {
@@ -508,6 +538,7 @@ int PASCAL WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show) {
     char args[256], line[512];
     char *script, *output, *p;
     FILE* in;
+    g_inst = inst;
     makecallbacks(inst);
     _fstrcpy(args, cmdline);
     p = args;
