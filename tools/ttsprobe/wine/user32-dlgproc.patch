@@ -1,0 +1,14 @@
+diff --git a/dlls/user32/win.c b/dlls/user32/win.c
+index b8c0404..9ff33db 100644
+--- a/dlls/user32/win.c
++++ b/dlls/user32/win.c
+@@ -644,7 +644,8 @@ static LONG_PTR set_dialog_proc( HWND hwnd, LONG_PTR newval, BOOL ansi )
+     newval = NtUserCallTwoParam( newval, ansi, NtUserAllocWinProc );
+     ret = NtUserSetWindowLongPtr( hwnd, DWLP_DLGPROC, newval, ansi );
+     proc = NtUserGetDialogProc( (DLGPROC)ret, ansi );
+-    if (proc) ret = (UINT_PTR)proc;
++    /* a 16-bit procedure stays a handle, as in get_window_long_ptr: WINPROC_PROC16 is only a marker */
++    if (proc && proc != WINPROC_PROC16) ret = (UINT_PTR)proc;
+     return ret;
+ }
+ 

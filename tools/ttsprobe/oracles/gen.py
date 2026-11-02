@@ -715,37 +715,44 @@ def _():
     return L
 
 
-PUNCH_STARTS = [920, 4830, 8730, 12630, 16530, 20430, 24330, 28130, 32480]  # count-in starts, measured on 2.10
+PUNCH_STARTS = [920, 4830, 8740, 12640, 16540, 20440, 24340, 28140, 32140, 36040, 39940, 44210]  # count-in starts, measured on 2.10
 PUNCH_EVENTS = [0, 1, 98, 99, 100, 101, 102, 103, 400]  # the target stream: one note per tick listed
-PUNCH_TAKES = [  # (title, Now, target stream?, punch in, punch out)
-    ('no target stream: the range is ignored', 100, False, 100, 102),
-    ('punch 100..102', 100, True, 100, 102),
-    ('punch 100..101', 100, True, 100, 101),
-    ('punch 101..103', 100, True, 101, 103),
-    ('punch 104..110: no event of the stream in the range', 100, True, 104, 110),
-    ('punch 100..100: an empty range', 100, True, 100, 100),
-    ('punch 98..ffffffff: also before the start', 100, True, 98, 0xffffffff),
-    ('punch 0..0 from Now 0: punch out 0 counts as 1', 0, True, 0, 0),
+PUNCH_TAKES = [  # (title, Now, target stream?, punch in, punch out, keep, cleanup pointer holds the target?)
+    ('no target stream: the range is ignored', 100, False, 100, 102, 1, False),
+    ('punch 100..102', 100, True, 100, 102, 1, False),
+    ('punch 100..101', 100, True, 100, 101, 1, False),
+    ('punch 101..103', 100, True, 101, 103, 1, False),
+    ('punch 104..110: no event of the stream in the range', 100, True, 104, 110, 1, False),
+    ('punch 100..100: an empty range', 100, True, 100, 100, 1, False),
+    ('punch 98..ffffffff: also before the start', 100, True, 98, 0xffffffff, 1, False),
+    ('punch 0..0 from Now 0: punch out 0 counts as 1', 0, True, 0, 0, 1, False),
+    ('punch 100..102, kept into the target: one merged stream', 100, True, 100, 102, 1, True),
+    ('punch 100..102, discarded with the target: the cut events come back', 100, True, 100, 102, 0, True),
+    ('no punch, kept into the target: sound on sound', 100, False, 0, 0, 1, True),
+    ('Song Position on: the start rounds down to a MIDI beat', 45, False, 0, 0, 1, False),
 ]
 
 
 @suite('punch')
 def _():
     # SeqRecordStart(stream, punch in, punch out, callback) (1.01, 2.10). With a stream, the start
-    # call moves the stream's events with in <= time < out out of it (they do not play and are gone
-    # after the take), and SeqRecordCleanup keeps only the take's events with in <= time and
-    # time + 1 < out, in a new stream as always. When the stream has no event in the range,
-    # nothing is cut and the take is kept whole. Stream 0 means no punch. Each take below gets one
-    # pair of controllers during its count-in, which the take records at the start tick. Parameter
-    # 4 (send Song Position) is off, so the start is not rounded down to a MIDI beat; the last
-    # take turns it on to show that rounding.
-    L = ['#! input PUNCH.TXT', '#! secs 90', '#! irq', '@open', 'buf 0 16', 'buf 1 16', 'buf 3 8',
+    # call moves the stream's events with in <= time < out out of it (they do not play), and
+    # SeqRecordCleanup keeps only the take's events with in <= time and time + 1 < out. When the
+    # stream has no event in the range, nothing is cut and the take is kept whole. Stream 0 means
+    # no punch. SeqRecordCleanup(seq, keep, 0, &stream): the word at the pointer is read as well as
+    # written. 0 there: the take goes into a new stream. A stream there: keeping merges the take
+    # and that stream into a new stream (the old one is gone); discarding puts the cut events back
+    # into it (with 0 there, discarding a punch take crashes). Each take gets one pair of
+    # controllers during its count-in, recorded at the start tick. Parameter 4 (send Song
+    # Position) is off, so starts are exact; the last take turns it on to show the rounding.
+    L = ['#! input PUNCH.TXT', '#! secs 120', '#! irq', '@open', 'buf 0 16', 'buf 1 16', 'buf 3 8',
          'call.w SEQCREATESEQ 0000 0000', 'call.w SEQSETSEQPARAM 0001 0010 d:00000001',
          'call.w SEQSETSEQPARAM 0001 0004 d:00000000', 'sleep 800',
          'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'cbret 0', 'cbyield 1',
          'cbmask 2 merge']  # the count-in's beats: one line per count-in (the record suite shows them)
     n = len(PUNCH_EVENTS)
-    for title, now, target, a, b in PUNCH_TAKES + [('Song Position on: the start rounds down to a MIDI beat', 45, False, 0, 0)]:
+    R = '?101,210 '
+    for title, now, target, a, b, keep, into in PUNCH_TAKES:
         L += [f'echo == {title}', 'call.w SEQCREATESTREAM 0001 0000 0000', 'let 1',
               'call.w SEQSETSTREAMPARAM %1 0007 d:00000000']
         for i, t in enumerate(PUNCH_EVENTS):
@@ -753,14 +760,24 @@ def _():
                   f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @3']
         if 'Song Position' in title:
             L += ['call.w SEQSETSEQPARAM 0001 0004 d:00000001']
-        L += [f'call.d SEQSETNOW 0001 d:{now:08x}', 'fill 1 0 00 00',
-              f'?101,210 call.w SEQRECORDSTART {"%1" if target else "0000"} d:{a:08x} d:{b:08x} cb3',
-              '?101,210 call.d SEQGETNOW 0001', '?101,210 call.d SEQSTREAMLEN %1',
-              '?101,210 call.w SEQRECORDSTOP', '?101,210 call.d SEQRECCOUNT',
-              '?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1', 'dump 1 0 2',
-              'echo stream', 'call.d SEQSTREAMLEN %1'] + walk('%1', n)
-        L += ['?101,210 echo take', '?101,210 call.d SEQSTREAMLEN %b1'] + [f'?101,210 {x}' for x in walk('%b1', 4)]
-        L += ['?101,210 call.w SEQDESTROYSTREAM %b1', 'call.w SEQDESTROYSTREAM %1', 'sleep 1500']
+        L += [f'call.d SEQSETNOW 0001 d:{now:08x}', 'putw 1 0 %1' if into else 'fill 1 0 00 00',
+              R + f'call.w SEQRECORDSTART {"%1" if target else "0000"} d:{a:08x} d:{b:08x} cb3',
+              R + 'call.d SEQGETNOW 0001', R + 'call.d SEQSTREAMLEN %1',
+              R + 'call.w SEQRECORDSTOP', R + 'call.d SEQRECCOUNT',
+              R + f'call.w SEQRECORDCLEANUP 0001 {keep:04x} 0000 @1', 'dump 1 0 2',
+              R + 'call.w SEQENUMSTREAMS 0001 cb4 d:00000000']
+        if into and keep:  # the target is gone: only the result is listed
+            L += ['?300 echo stream', '?300 call.d SEQSTREAMLEN %1'] + ['?300 ' + x for x in walk('%1', n)]
+            L += [R + 'echo result', R + 'call.d SEQSTREAMLEN %b1'] + [R + x for x in walk('%b1', n + 4)]
+            L += [R + 'call.w SEQDESTROYSTREAM %b1', '?300 call.w SEQDESTROYSTREAM %1']
+        elif into:  # discarded: the result is the target
+            L += ['echo stream', 'call.d SEQSTREAMLEN %1'] + walk('%1', n)
+            L += ['call.w SEQDESTROYSTREAM %1']
+        else:
+            L += ['echo stream', 'call.d SEQSTREAMLEN %1'] + walk('%1', n)
+            L += [R + 'echo take', R + 'call.d SEQSTREAMLEN %b1'] + [R + x for x in walk('%b1', 4)]
+            L += [R + 'call.w SEQDESTROYSTREAM %b1', 'call.w SEQDESTROYSTREAM %1']
+        L += ['sleep 1500']
     L += ['@close']
     return L
 

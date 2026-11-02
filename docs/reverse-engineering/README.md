@@ -151,17 +151,37 @@ could be seen, and the programs never read it. It is kept as a flag with those r
 
 ### 10. The leading words of SeqRecordStart (2026-11-02)
 
-Cakewalk Apprentice 1.04 passes five zero words, and the Professional demo never records, so
-the words were found by the probe alone (`tools/ttsprobe/sweep/recstart.py`). Setting each word
-to 1 in turn changed nothing, except the first, which crashed the engine, as an invalid handle
-does. A stream's handle there worked, and a stream with notes in it showed what the words are: a
-target stream and a punch range of two 32-bit ticks. The engine cuts the range out of the stream
-when the take starts and keeps only the part of the take inside it. Narrow ranges over one note
-per tick then gave the edges, and moving events before the start showed that what decides
-whether a punch happens is the stream's content, not playback. On the way, start positions that
-were not multiples of 30 ticks came back rounded down to a sixteenth note, but only while the
-sequence sends Song Position. That also explains why Apprentice resumed 5 to 25 ticks early in
-the 86Box captures. The suite `punch` records the results.
+Cakewalk Apprentice 1.04 passes five zero words, so the words were first found by the probe alone
+(`tools/ttsprobe/sweep/recstart.py`). Setting each word to 1 in turn changed nothing, except the
+first, which crashed the engine, as an invalid handle does. A stream's handle there worked, and a
+stream with notes in it showed what the words are: a target stream and a punch range of two
+32-bit ticks. The engine cuts the range out of the stream when the take starts and keeps only the
+part of the take inside it. Narrow ranges over one note per tick then gave the edges, and moving
+events before the start showed that what decides whether a punch happens is the stream's content,
+not playback. On the way, start positions that were not multiples of 30 ticks came back rounded
+down to a sixteenth note, but only while the sequence sends Song Position. That also explains why
+Apprentice resumed 5 to 25 ticks early in the 86Box captures. The suite `punch` records the
+results. One case still crashed: discarding a punch take.
+
+### 11. The Professional demo records (2026-11-02)
+
+Step 10 had assumed that the Professional demo cannot record, because the first trace of it never
+called `SeqRecordStart`. Its strings say otherwise: only saving is disabled, and its menus have
+Record, Punch-in values, Auto-shuttle, multi-take mode and SMPTE/MTC settings. So the demo is a
+second program on 1.01 to trace, and the first that uses these features
+(`tools/ttsprobe/record/demo.sh`, `traces/trace-101-demo-record.txt`).
+
+Its Punch-in dialog crashed under Wine. Wine's own trace showed why: the program swaps its dialog
+procedure out and back while handling `WM_SETFONT`, and Wine 9.0 handed it back a marker instead
+of the procedure. A one-line change to Wine's user32 (`user32-dlgproc.patch`) fixed it, and the
+dialogs work. The demo then made the same punch calls the probe had found, with the current
+track's stream as the target. It also discarded a punch take without a crash, and its kept punch
+take came back as one stream holding the whole track. The difference was the last argument of
+`SeqRecordCleanup`: the demo passes a pointer to a word that already holds the track's stream,
+and the engine reads it. With the stream there the engine merges the take into it, or puts the
+cut events back; the probe had passed 0. The suite `punch` now covers both. The demo also showed
+how it records loops (the auto-shuttle parameters and an ordinary take) and that multi-take mode
+is its own logic, and it never reads sequence parameter 3 either.
 
 ## In this folder
 

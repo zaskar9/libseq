@@ -10,7 +10,9 @@
  * When Wine connects to the input port, a thread delivers each message <ms> after the connection
  * and logs it as "in <bytes>" on the same clock.
  * With $FAKESEQ_INPUT_GO set to a file name, the times count from when that file appears instead
- * (touch it to start the script; logged as "go").
+ * (touch it to start the script; logged as "go"). A line "go" in the script waits for that file
+ * again: the fake deletes the file each time it has seen it, and the times after the line count
+ * from when it next appears. So one script can feed several takes of a program.
  * With $FAKESEQ_OUTPUTS=2 there is a second output port, "MIDI Out 2", and every output line
  * names the port it went to ("short@2 ...", "short@0 ..."); without it the log is as before.
  */
@@ -249,9 +251,10 @@ static void* input_thread(void* arg) {
     FILE* f = path ? fopen(path, "r") : NULL;
     if (!f) return NULL;
     const char* go = getenv("FAKESEQ_INPUT_GO");
+    const struct timespec tick = { 0, 2000000 };
     if (go) {
-        const struct timespec tick = { 0, 2000000 };
         while (access(go, F_OK) != 0) nanosleep(&tick, NULL);
+        unlink(go);
         logline("go", NULL, 0);
     }
     struct timespec base; clock_gettime(CLOCK_MONOTONIC, &base);
@@ -259,6 +262,14 @@ static void* input_thread(void* arg) {
     while (fgets(line, sizeof line, f)) {
         char* hash = strchr(line, '#'); if (hash) *hash = 0;
         char* p = line; char* end;
+        while (*p == ' ' || *p == '\t') p++;
+        if (go && strncmp(p, "go", 2) == 0) {
+            while (access(go, F_OK) != 0) nanosleep(&tick, NULL);
+            unlink(go);
+            logline("go", NULL, 0);
+            clock_gettime(CLOCK_MONOTONIC, &base);
+            continue;
+        }
         const double ms = strtod(p, &end);
         if (end == p) continue;
         p = end;

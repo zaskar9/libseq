@@ -12,10 +12,10 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
 | Folder | Content |
 |---|---|
 | `probe/` | `ttsprobe.c`, a 16-bit Windows program that loads a DLL and calls its functions from a script; `first.txt`, the first script |
-| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync) and `build-wine16.sh` (builds both), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
+| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync), `user32-dlgproc.patch` (Wine's user32: 16-bit dialog procedures, for Cakewalk Professional's dialogs) and `build-wine16.sh` (builds all three), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
 | `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`), single external-sync experiments (`syncexp.py`), what one `TTSSEQ.INI` option changes (`options.py`), one recording with chosen `SeqRecordStart` arguments (`recstart.py`) |
-| `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants |
-| `record/` | recording with Cakewalk Professional 2.00 itself, from scripted MIDI input |
+| `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants; `snoopcalls.py` lists a program's engine calls with their arguments |
+| `record/` | recording with the programs themselves, from scripted MIDI input: Cakewalk Professional 2.00 (`prorec.sh`) and the Professional demo on 1.01 (`demo.sh`) |
 | `oracles/` | the oracle suites and their tools (below) |
 
 `env.sh` holds the settings all scripts share: the work folder `$TTSPROBE_WORK` (default
@@ -59,7 +59,9 @@ millisecond timestamp; `analysis/fake2cap.py` turns that into the capture format
 `tests/data/cakewalk/engine/`. `$FAKESEQ_INPUT` names a script of `<ms> <hex bytes>` lines that the
 input port delivers after Wine connects to it (or after the file `$FAKESEQ_INPUT_GO` appears):
 channel messages, sysex, MIDI sync (`f8` Clock, `fa` Start, `fb` Continue, `fc` Stop, `f2 lsb msb`
-Song Position Pointer) and MIDI Time Code quarter frames (`f1 nn`).
+Song Position Pointer) and MIDI Time Code quarter frames (`f1 nn`). With `$FAKESEQ_INPUT_GO`, the script
+starts when that file appears, and a line `go` waits for it again, so one script can feed
+several takes of a program.
 
 Two things to know: Wine 9.0 passes Song Position Pointer and other system common messages to ALSA
 in a buffer that has gone out of scope, so the fake logs them as `sysex 00 00 00` (Wine's `+midi`
@@ -114,6 +116,10 @@ engine's timer, MIDI buffer and memory calls.
 `sweep/recstart.py VER WORDS...` records once like the `record` suite with the given leading
 arguments of `SeqRecordStart` and prints the take, the streams asked for and the MIDI; options
 add probe lines before the start, during the take and after it.
+`record/demo.sh` drives Cakewalk Professional for Windows, the demo on 1.01, which records like
+the full program but cannot save (copy it from disk `CWDEMO1` into `C:\CWDEMO` of the prefix with
+the `TTSSEQ.INI` of setup.sh): takes, punch-in, auto-shuttle, with the snoop trace limited to the
+engine's calls. `analysis/snoopcalls.py LOG` lists those calls with their arguments.
 `sweep/configmidi.sh VER` works `SeqConfigMidi`'s dialog with `xdotool` and reports what each way
 of working it changed.
 

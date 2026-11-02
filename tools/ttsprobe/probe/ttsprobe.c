@@ -10,6 +10,7 @@
  *   buf N SIZE                allocate buffer N (0..15) of SIZE bytes, zeroed
  *   fill N OFFSET HEX...      write bytes into buffer N
  *   put N OFFSET "text"       write a zero-terminated string into buffer N
+ *   putw N OFFSET %V|HEX      write a word into buffer N: variable V's low word, or a number
  *   call NAME ARG...          call NAME; the result (DX:AX) is printed and kept as $r
  *   call.w / call.d / call.p / call.v NAME ARG...
  *                             the same, printing the result as the function's type: a word (AX),
@@ -128,7 +129,7 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
             ++g_dodepth;
             for (i = 0; i < g_ndo; ++i)
                 if (g_do[i].id == id && (g_do[i].match < 0 || (WORD)g_do[i].match == w0)) {
-                    static const char* quiet[] = { "letw", "ret", "fill", "put", "buf", "let", "add", "set", "cbret", "cbyield",
+                    static const char* quiet[] = { "letw", "ret", "fill", "put", "putw", "buf", "let", "add", "set", "cbret", "cbyield",
                                                    "cbmask", "cbptr", "dxs", "cbretafter", "sleep", NULL };
                     int q, loud = 1;
                     strcpy(line, g_do[i].line);
@@ -438,6 +439,14 @@ static void run(char* line) {
         unsigned off = (unsigned)strtoul(nexttok(&p), NULL, 0);
         char* t;
         while ((t = nexttok(&p)) != NULL) g_buf[n][off++] = (BYTE)strtoul(t, NULL, 16);
+    } else if (strcmp(cmd, "putw") == 0) {
+        /* putw N OFFSET %V|HEX: write a word into buffer N, the low word of variable V or a number
+         * (to pass a handle the engine handed out in a structure, or in a word read and written) */
+        int n = atoi(nexttok(&p));
+        unsigned off = (unsigned)strtoul(nexttok(&p), NULL, 0);
+        char* t = nexttok(&p);
+        WORD v = t[0] == '%' ? LOWORD(g_var[atoi(t + 1) % 10]) : (WORD)strtoul(t, NULL, 16);
+        *(WORD far*)(g_buf[n] + off) = v;
     } else if (strcmp(cmd, "put") == 0) {
         int n = atoi(nexttok(&p));
         unsigned off = (unsigned)strtoul(nexttok(&p), NULL, 0);

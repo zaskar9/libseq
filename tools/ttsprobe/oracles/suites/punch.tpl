@@ -1,5 +1,5 @@
 #! input PUNCH.TXT
-#! secs 90
+#! secs 120
 #! irq
 @open
 buf 0 16
@@ -54,6 +54,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -193,6 +194,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -332,6 +334,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -471,6 +474,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -610,6 +614,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -749,6 +754,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -888,6 +894,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -1027,6 +1034,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
@@ -1126,6 +1134,500 @@ call.w SEQNXTEVT %1
 ?101,210 call.w SEQDESTROYSTREAM %b1
 call.w SEQDESTROYSTREAM %1
 sleep 1500
+echo == punch 100..102, kept into the target: one merged stream
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+call.w SEQSETSTREAMPARAM %1 0007 d:00000000
+fill 3 0 00 00 00 92 50 40 01 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @3
+fill 3 0 01 00 00 92 51 40 01 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @3
+fill 3 0 62 00 00 92 52 40 01 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @3
+fill 3 0 63 00 00 92 53 40 01 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @3
+fill 3 0 64 00 00 92 54 40 01 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @3
+fill 3 0 65 00 00 92 55 40 01 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @3
+fill 3 0 66 00 00 92 56 40 01 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @3
+fill 3 0 67 00 00 92 57 40 01 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @3
+fill 3 0 90 01 00 92 58 40 01 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @3
+call.d SEQSETNOW 0001 d:00000064
+putw 1 0 %1
+?101,210 call.w SEQRECORDSTART %1 d:00000064 d:00000066 cb3
+?101,210 call.d SEQGETNOW 0001
+?101,210 call.d SEQSTREAMLEN %1
+?101,210 call.w SEQRECORDSTOP
+?101,210 call.d SEQRECCOUNT
+?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
+dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
+?300 echo stream
+?300 call.d SEQSTREAMLEN %1
+?300 call.d SEQSEEK %1 0000 d:00000000
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?101,210 echo result
+?101,210 call.d SEQSTREAMLEN %b1
+?101,210 call.d SEQSEEK %b1 0000 d:00000000
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 call.w SEQDESTROYSTREAM %b1
+?300 call.w SEQDESTROYSTREAM %1
+sleep 1500
+echo == punch 100..102, discarded with the target: the cut events come back
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+call.w SEQSETSTREAMPARAM %1 0007 d:00000000
+fill 3 0 00 00 00 92 50 40 01 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @3
+fill 3 0 01 00 00 92 51 40 01 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @3
+fill 3 0 62 00 00 92 52 40 01 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @3
+fill 3 0 63 00 00 92 53 40 01 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @3
+fill 3 0 64 00 00 92 54 40 01 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @3
+fill 3 0 65 00 00 92 55 40 01 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @3
+fill 3 0 66 00 00 92 56 40 01 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @3
+fill 3 0 67 00 00 92 57 40 01 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @3
+fill 3 0 90 01 00 92 58 40 01 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @3
+call.d SEQSETNOW 0001 d:00000064
+putw 1 0 %1
+?101,210 call.w SEQRECORDSTART %1 d:00000064 d:00000066 cb3
+?101,210 call.d SEQGETNOW 0001
+?101,210 call.d SEQSTREAMLEN %1
+?101,210 call.w SEQRECORDSTOP
+?101,210 call.d SEQRECCOUNT
+?101,210 call.w SEQRECORDCLEANUP 0001 0000 0000 @1
+dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
+echo stream
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+sleep 1500
+echo == no punch, kept into the target: sound on sound
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+call.w SEQSETSTREAMPARAM %1 0007 d:00000000
+fill 3 0 00 00 00 92 50 40 01 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @3
+fill 3 0 01 00 00 92 51 40 01 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @3
+fill 3 0 62 00 00 92 52 40 01 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @3
+fill 3 0 63 00 00 92 53 40 01 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @3
+fill 3 0 64 00 00 92 54 40 01 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @3
+fill 3 0 65 00 00 92 55 40 01 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @3
+fill 3 0 66 00 00 92 56 40 01 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @3
+fill 3 0 67 00 00 92 57 40 01 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @3
+fill 3 0 90 01 00 92 58 40 01 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @3
+call.d SEQSETNOW 0001 d:00000064
+putw 1 0 %1
+?101,210 call.w SEQRECORDSTART 0000 d:00000000 d:00000000 cb3
+?101,210 call.d SEQGETNOW 0001
+?101,210 call.d SEQSTREAMLEN %1
+?101,210 call.w SEQRECORDSTOP
+?101,210 call.d SEQRECCOUNT
+?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
+dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
+?300 echo stream
+?300 call.d SEQSTREAMLEN %1
+?300 call.d SEQSEEK %1 0000 d:00000000
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?300 fill 0 0 ee ee ee ee ee ee ee ee
+?300 call.w SEQGETEVT %1 @0
+?300 dump 0 0 8
+?300 call.d SEQTELL %1
+?300 call.w SEQEOS %1
+?300 call.w SEQNXTEVT %1
+?101,210 echo result
+?101,210 call.d SEQSTREAMLEN %b1
+?101,210 call.d SEQSEEK %b1 0000 d:00000000
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 fill 0 0 ee ee ee ee ee ee ee ee
+?101,210 call.w SEQGETEVT %b1 @0
+?101,210 dump 0 0 8
+?101,210 call.d SEQTELL %b1
+?101,210 call.w SEQEOS %b1
+?101,210 call.w SEQNXTEVT %b1
+?101,210 call.w SEQDESTROYSTREAM %b1
+?300 call.w SEQDESTROYSTREAM %1
+sleep 1500
 echo == Song Position on: the start rounds down to a MIDI beat
 call.w SEQCREATESTREAM 0001 0000 0000
 let 1
@@ -1167,6 +1669,7 @@ fill 1 0 00 00
 ?101,210 call.d SEQRECCOUNT
 ?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1
 dump 1 0 2
+?101,210 call.w SEQENUMSTREAMS 0001 cb4 d:00000000
 echo stream
 call.d SEQSTREAMLEN %1
 call.d SEQSEEK %1 0000 d:00000000
