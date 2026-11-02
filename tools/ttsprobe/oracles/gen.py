@@ -919,6 +919,91 @@ def _():
           'call.d SEQGETNOW 0002', 'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
          ['call.w SEQEXPIRED', '@close']
     return L
+def qframes(t0, dur, rate, h, m, s, f):
+    """MIDI Time Code quarter frames (F1) from t0 for dur ms: code h:m:s:f at rate 24, 25, 29 (30 drop
+    frame, running at 29.97 frames a second) or 30, as fake input lines"""
+    nominal = 30 if rate == 29 else rate
+    rcode = {24: 0, 25: 1, 29: 2, 30: 3}[rate]
+    start = ((h * 60 + m) * 60 + s) * nominal + f
+    if rate == 29:
+        mins = h * 60 + m
+        start -= 2 * (mins - mins // 10)
+
+    def hmsf(n):
+        if rate == 29:
+            d, mm = divmod(n, 17982)
+            n += 18 * d + (2 * ((mm - 2) // 1798) if mm >= 2 else 0)
+        t = n // nominal
+        return t // 3600, t // 60 % 60, t % 60, n % nominal
+    qf = 1000.0 / (nominal * (1000 / 1001 if rate == 29 else 1) * 4)
+    L, k = [], 0
+    while k * qf <= dur:
+        hh, mi, ss, ff = hmsf(start + (k // 8) * 2)
+        piece = k % 8
+        vals = [ff & 15, ff >> 4, ss & 15, ss >> 4, mi & 15, mi >> 4, hh & 15, (hh >> 4) | (rcode << 1)]
+        L.append(f'{t0 + k * qf:.1f} f1 {(piece << 4) | vals[piece]:02x}'); k += 1
+    return L
+
+
+MTC_CASES = [  # (title, song, code start ms, code ms, code rate, code h:m:s:f, SeqSetFPS, offset h:m:s:f, give up after ms, sleep after ms)
+    ('25 fps code, the sequence at 25 fps', 'ENG_ORDR', 2000, 2600, 25, (0, 0, 10, 0), 25, None, 0, 600),
+    ('offset 01:00:00:00, code 01:02:03:04: the callback\'s third word is hours * 256 + minutes', 'ENG_ORDR',
+     6000, 2600, 30, (1, 2, 3, 4), 30, (1, 0, 0, 0), 0, 600),
+    ('30 fps drop frame, code 00:10:00:00: the code counts as its label, 600 s', 'ENG_ORDR',
+     10000, 2600, 29, (0, 10, 0, 0), 29, None, 0, 600),
+    ('a tempo map (ENG_TMPO), code 00:00:10:00: Now as SeqFrame2TickRndOpt gives it', 'ENG_TMPO',
+     14000, 2600, 30, (0, 0, 10, 0), 30, None, 0, 600),
+    ('offset 00:00:20:00, code from 00:00:17:00: the chase goes on until the code reaches the offset; Now 0',
+     'ENG_ORDR', 18000, 5500, 30, (0, 0, 17, 0), 30, (0, 0, 20, 0), 0, 2700),
+    ('25 fps code, the sequence at 30 fps: ignored; the callback gives up', 'ENG_ORDR',
+     25000, 3000, 25, (0, 0, 10, 0), 30, None, 5500, 300),
+    ('code 00:34:06:00, no offset: too far after the offset; ignored; the callback gives up', 'ENG_ORDR',
+     31000, 3000, 30, (0, 34, 6, 0), 30, None, 5500, 300),
+]
+
+
+@suite('mtc')
+def _():
+    # MIDI Time Code (clock source 3) with frame rates, SMPTE offsets and a tempo map; input MTC.TXT.
+    # The engine locks only to code of the sequence's own frame rate (SeqSetFPS; 29 is 30 drop frame).
+    # The code's time counts as its label (h:m:s plus frames at the nominal rate), minus the
+    # sequence's SMPTE offset (SeqSetFrameOfs, in frames of the sequence's rate). The chase lasts
+    # ChaseDelay and goes on while the code lies before the offset. Code of another rate, and code
+    # about 2046 s (34:06) or more after the offset, is ignored: no chase at all. While chasing,
+    # the callback gets (4, seconds * 256 + frames, hours * 256 + minutes) of the incoming code.
+    # Now at the lock is the code's time, through the tempo map.
+    def src(v):
+        return [f'?101 call.w SEQSETSRCCLOCK {v}', f'?!101 call.w SEQSETSRCCLOCK 0001 {v}']
+    L = ['#! input MTC.TXT', '#! secs 60', '#! irq', '@open', 'buf 0 16', 'cbyield 1', 'cbret 0',
+         'cbmask 2 merge']  # the callback's code seconds and frames: one line per lock
+    for title, song, t0, dur, rate, code, fps, ofs, giveup, after in MTC_CASES:
+        L += [f'echo == {title}', f'@load {song}.WRK'] + src('0003')
+        L += [f'call.w SEQSETFPS 0001 {fps:04x}', 'call.w SEQGETFPS 0001']
+        if ofs:
+            L += ['call.d SEQHMSF2FRAME 0001 ' + ' '.join(f'{x:04x}' for x in ofs) + ' 0000', 'let 3',
+                  'call.w SEQSETFRAMEOFS 0001 %d3', 'call.d SEQGETFRAMEOFS 0001']
+        L += ['call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000']
+        if giveup:
+            L += [f'cbretafter {giveup} 1']
+        L += ['fill 0 0 ee ee ee ee', '?!300 call.w SEQPLAYSTART cb3', '?300 call.w SEQSTART cb3 @0',
+              'call.d SEQGETNOW 0001', '?300 dump 0 0 4']
+        if 'ENG_TMPO' in song:
+            L += ['call.d SEQFRAME2TICKRNDOPT 0001 d:0000016f 0000', 'call.d SEQFRAME2TICKRNDOPT 0001 d:00000170 0000']
+        L += ['cbret 0'] if giveup else ['idle 200', '@stop']
+        L += [f'sleep {after}', 'call.w SEQDESTROYSEQ 0001']
+    L += ['@close']
+    return L
+
+
+def mtc_input():
+    L = ['# MIDI Time Code for the mtc suite (written by tools/ttsprobe/oracles/gen.py): quarter frames',
+         '# (F1), times in ms from the moment the engine connects to the input (SeqOpen)']
+    for title, song, t0, dur, rate, code, fps, ofs, giveup, after in MTC_CASES:
+        L.append(f'# {title}')
+        L += qframes(t0, dur, rate, *code)
+    return L
+
+
 OPTS_USUAL = {'SyncOutputPort': 1}
 OPTS = {  # the [Options] of the two options suites (tests/data/ttsseq/input/OPTS1.INI, OPTS2.INI)
     1: {'SendLocalOff': 0, 'SendLocalOn': 1, 'ForceNoteOff': 1, 'Timebase': 96, 'SysxSendPacketSize': 100,
@@ -1030,7 +1115,7 @@ def main():
     for name, lines, nl in [('SYNC.TXT', sync_input(), '\n'), ('OPTS1.TXT', opts_input(), '\n'),
                             ('OPTS2.TXT', ['# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)',
                                           '2000 f0 7d 01 02 03 f7'], '\n'),
-                            ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'),
+                            ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'), ('MTC.TXT', mtc_input(), '\n'),
                             ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
         with open(os.path.join(inputs, name), 'w', newline='') as f:
             f.write(nl.join(lines) + nl)

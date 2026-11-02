@@ -183,6 +183,17 @@ cut events back; the probe had passed 0. The suite `punch` now covers both. The 
 how it records loops (the auto-shuttle parameters and an ordinary take) and that multi-take mode
 is its own logic, and it never reads sequence parameter 3 either.
 
+### 12. MIDI Time Code with offsets and other frame rates (2026-11-02)
+
+The demo's Time format dialog showed which calls set the frame rate and the SMPTE offset.
+`tools/ttsprobe/sweep/mtcexp.py` then sent quarter frames at each rate, with hours and minutes,
+against sequences set up with and without an offset. Code of the wrong rate was simply ignored,
+which first looked like a hang. The offset moved Now as expected; code before it was chased until
+it reached it. Searching for a limit on large times found that code from about 34 minutes after
+the offset is ignored too, at any rate and with any offset, close to 2048 s. Drop frame code
+turned out to count by its label, and a song with tempo changes gave the tick the frame
+conversion gives. All three versions agree; the suite `mtc` keeps seven cases.
+
 ## In this folder
 
 | File | Content |

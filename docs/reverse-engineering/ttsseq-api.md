@@ -300,8 +300,33 @@ constant 120 bpm and no SMPTE offset:
 - The playback follows the code. When the code stops, the engine runs on for about 0.5 s
   (`FlywheelAmount`, in tenths of a second), then stops (All Notes Off, `SeqIdle` returns 1). Code that starts after the song's end runs on past
   it.
-- Open: the SMPTE offset (the file's TIMEFMT), other frame rates, tempo changes, hours and minutes
-  in the callback's third word.
+
+Frame rates, SMPTE offsets and tempo maps, the same in all three versions [probe, suite `mtc`, and
+single runs of `tools/ttsprobe/sweep/mtcexp.py`]:
+
+- The engine follows only code of the sequence's own frame rate (`SeqSetFPS`: 24, 25, 29 for 30
+  drop frame, or 30; 30 after loading the test songs). Code that says another rate in its
+  quarter frames is ignored: no chase, no (4, ...) callbacks, the start call keeps waiting.
+- The code's time is its label: hours, minutes, seconds, and frames at the nominal rate. Drop
+  frame code 00:10:00:00 is 600 s, as at 30 fps, although `SeqFrame2TickRndOpt` counts drop frame
+  frames at 29.97 a second.
+- The SMPTE offset (`SeqSetFrameOfs`, in frames of the sequence's rate) is the code time of tick
+  0: with offset 00:00:05:00, code from 00:00:10:00 gives Now 1740 after the chase (7.25 s at 120
+  bpm), and with offset 01:00:00:00, code from 01:00:10:00 gives 2940, as 00:00:10:00 without one.
+  Rate and offset may be set before or after `SeqSetPlayingSeq`.
+- Code before the offset is chased until it reaches the offset, and the start call returns with
+  Now 0 (code from 00:00:17:00 with offset 00:00:20:00: three seconds of (4, ...) callbacks).
+- Code far after the offset is ignored like code of another rate: from 00:34:05:00 the engine
+  locks, from 00:34:06:00 it does not (with or without a 30 s offset, at 25 and 30 fps alike).
+  That is where the time after the 2 s chase reaches 2048 s. Once locked, the playback runs on
+  past that time.
+- The callback's third word is hours * 256 + minutes of the incoming code: (4, 0x0304, 0x0102)
+  for 01:02:03:04.
+- Now at the lock is the code's time in ticks through the tempo map: with ENG_TMPO, 2430, between
+  `SeqFrame2TickRndOpt` of frames 367 and 368.
+- Cakewalk Professional for Windows (the demo, 1.01) sets these from its Time format dialog:
+  `SeqSetFPS(seq, rate)`, then `SeqHMSF2Frame(seq, h, m, s, f, 0)` and `SeqSetFrameOfs(seq,
+  frames)` for the offset [trace].
 
 ### Under Wine
 
@@ -755,7 +780,8 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - The parameters of `SeqSetRecordBufferParams` (3.00); punch-in and loop recording in 3.00
   ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
-- External sync: MIDI Time Code with an offset, other frame rates and tempo changes.
+- MIDI Time Code: the exact limit after the offset (between 34:05 and 34:06 of code), and code
+  that jumps or runs at the wrong speed while the engine follows it.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
   callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA

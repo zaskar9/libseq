@@ -12,6 +12,7 @@ and compare.
 | `input/STEP.TXT` | the MIDI input of the `steprec` suite |
 | `input/SYNC.TXT` | the MIDI input of the `sync` suite: MIDI Clock, Start, Continue, Stop, Song Position and MIDI Time Code |
 | `input/OPTS1.INI`, `input/OPTS2.INI`, `input/OPTS1.TXT`, `input/OPTS2.TXT` | the `TTSSEQ.INI` and the MIDI input of the `options1` and `options2` suites: `[Options]` other than the usual ones (written by `gen.py`) |
+| `input/MTC.TXT` | the MIDI Time Code of the `mtc` suite: quarter frames at 24 to 30 fps, one block per case (written by `gen.py`) |
 | `input/PUNCH.TXT` | the MIDI input of the `punch` suite: a pair of controllers during each take's count-in (written by `gen.py`) |
 | `input/PORTS.INI` | the `TTSSEQ.INI` of the `ports` suite: two output devices in reverse order, sync to port 2 |
 | `repeat-101.txt` | 1.01 run a second time and compared: whether the results repeat |
