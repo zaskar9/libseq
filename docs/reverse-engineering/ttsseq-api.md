@@ -69,7 +69,7 @@ three versions:
 |---|---|---|---|---|---|
 | 1 | patch/wheel/controller search-back | VARS 20 | yes | yes | yes |
 | 2 | zero continuous controllers on stop | VARS 17 | yes | yes | yes |
-| 3 | unknown: 1 after loading or creating; both programs set it to 1 after a take; no effect on playback | | yes | yes | yes |
+| 3 | "Now jumped": a flag the engine sets when Now is set or jumps (below); no effect found | | yes | yes | yes |
 | 4 | send MIDI Song Position Pointer | VARS 18 | yes | yes | yes |
 | 5 | use Continue (0 = "Start, never Continue") | VARS 19 | yes | yes | yes |
 | 6 | transmit MIDI sync (1 only when the byte is 255) | VARS 77 | no | yes | yes |
@@ -91,6 +91,16 @@ three versions:
 Sources: the VARS column from loading 178 copies of one song, each with one VARS byte changed; the
 chunk columns from setting each parameter through the probe and saving (3.00); the meanings from
 Cakewalk Professional 2.00's Settings dialogs, whose OK button calls `SeqSetSeqParam` [probe, trace].
+
+Parameter 3 is a flag: any value other than 0 reads back as 1. The engine sets it whenever Now is
+set or jumps: creating or loading a sequence, `SeqSetNow` (also to the value it has), `SeqRewind`,
+every start (playback or recording) and the auto-shuttle's wrap. It leaves it as it is for
+edits, tempo changes, saves, stopping, the end of a song and Now moving during playback; only the
+program clears it. Cakewalk Apprentice 1.04 never reads it, and both programs set it to 1 after
+a take. With it cleared, nothing tried came out different: the search-back at the start, Start or
+Continue and the SPP of the sync output, saved `.WRK` and `.MID` files, thru, `SeqRecordEvent`,
+step recording, position calls, switching sequences, and playing on after events were inserted
+in front of the position, stopped or playing [probe, suite `param3`].
 
 Parameter 28 has one bit per channel message type, bit (status >> 4) - 8: 0x01 Note Off, 0x02
 Note On (the dialog's "Note" sets both), 0x04 Key Aftertouch, 0x08 Controller, 0x10 Patch, 0x20
@@ -684,7 +694,8 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - Sizes: all exports that are API are measured.
 - The third word of `SeqMergeStreams` and the zero words of the sysex receive calls: no visible
   effect yet.
-- Parameters 3, 30 and 31: not from any dialog, no effect on playback; probably recording.
+- Parameter 3 (a "Now jumped" flag): what reads it, if anything. Parameters 30 and 31 (3.00):
+  not from any dialog, no effect on playback; probably recording.
 - The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
   `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
   `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).

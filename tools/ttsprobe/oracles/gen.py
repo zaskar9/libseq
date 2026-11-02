@@ -715,6 +715,47 @@ def _():
     return L
 
 
+@suite('param3')
+def _():
+    # Sequence parameter 3: a flag (any value other than 0 reads back as 1) that the engine sets
+    # whenever Now is set or jumps: creating, loading, SeqSetNow (even to the same value),
+    # SeqRewind, every start (playback or recording) and the auto-shuttle's wrap. Edits, saves,
+    # stopping, the end of a song and Now moving during playback leave it as it is; only the
+    # program clears it. No effect of it was found. Each step below clears it first.
+    P = 'call.d SEQGETSEQPARAM 0001 0003'
+    Z = 'call.w SEQSETSEQPARAM 0001 0003 d:00000000'
+    L = ['#! secs 40', '@open', 'buf 1 16', 'call.w SEQCREATESEQ 0000 0000', 'echo == created', P,
+         'call.w SEQDESTROYSEQ 0001', '@load ENG_ORDR.WRK', 'echo == loaded', P]
+    steps = [
+        ('cleared', []),
+        ('set to 5', ['call.w SEQSETSEQPARAM 0001 0003 d:00000005']),
+        ('another parameter', ['call.w SEQSETSEQPARAM 0001 0002 d:00000001']),
+        ('insert, put, delete and move events', ['call.d SEQSEEK 0100 0000 d:00000000', 'fill 1 0 78 00 00 b0 07 64 00 00',
+                                                 'call.w SEQINSEVT 0100 @1', 'call.d SEQSEEK 0100 0000 d:00000002',
+                                                 'call.w SEQPUTEVT 0100 @1', 'call.w SEQDELEVT 0100',
+                                                 'call.d SEQSEEK 0100 0000 d:00000001', 'call.d SEQMOVEEVT 0100 d:00000300']),
+        ('insert a tempo', ['call.w SEQINSTEMPO 0001 d:000001e0 2ee0']),
+        ('clone and destroy a stream', ['call.w SEQCLONESTREAM 0001 0100 0000', 'let 2', 'call.w SEQDESTROYSTREAM %2']),
+        ('save', ['@save 0001 P3.WRK']),
+        ('set Now', ['call.d SEQSETNOW 0001 d:000000f0']),
+        ('set Now to the same value', ['call.d SEQSETNOW 0001 d:000000f0']),
+        ('rewind', ['call.d SEQREWIND 0001']),
+        ('make it the playing sequence', ['call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000']),
+        ('start', ['@play']),
+        ('play on, then stop', ['idle 600', P, '@stop', 'idle 200']),
+        ('record start (no count-in)', ['call.w SEQSETSEQPARAM 0001 0010 d:00000000', 'cbret 0',
+                                        '?101,210 call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3',
+                                        '?300 call.w SEQRECORD 0001', '?300 call.w SEQSTART cb3 0000 0000']),
+        ('record stop', ['idle 300', '?101,210 call.w SEQRECORDSTOP', '?300 call.w SEQRECORD 0000', '?300 call.w SEQSTOP']),
+    ]
+    for t, c in steps:
+        L += [Z, f'echo == {t}'] + c + [P]
+    L += ['echo == E3_SHTL: play, clear after the start, read before and after the wrap (960 to 480)',
+          'call.w SEQDESTROYSEQ 0001', '@load E3_SHTL.WRK', 'call.w SEQSETPLAYINGSEQ 0001', '@play', 'idle 200', Z,
+          'idle 3000', P, 'idle 1500', P, '@stop', '@close']
+    return L
+
+
 def sync_input():
     """The scripted MIDI input of the sync suite (tests/data/ttsseq/input/SYNC.TXT)."""
     L = ['# MIDI sync for the sync suite (written by tools/ttsprobe/oracles/gen.py): times in ms from the',

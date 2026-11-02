@@ -142,6 +142,13 @@ buffer rather than every message, which drops part of a long message. An invalid
 a message and the device dialog from `SeqOpen`. One key, `SyncAllowRateTweak`, showed no effect.
 The suites `options1` and `options2` keep the results.
 
+### 9. Sequence parameter 3 (2026-11-02)
+
+Reading the parameter after one call at a time showed what sets it: every call that sets Now or
+makes it jump, and nothing else. Setting it to 0 before a wide range of calls changed nothing that
+could be seen, and the programs never read it. It is kept as a flag with those rules (suite
+`param3`).
+
 ## In this folder
 
 | File | Content |

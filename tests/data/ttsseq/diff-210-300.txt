@@ -54,6 +54,10 @@
   SEQGETNOW (1x), e.g. after SEQGETNOW(0002) -> 00000a14
     ttsseq/210: 
     ttsseq/300: dump 0+0: |   14 0a 00 00
+== param3: 2 differences
+  SEQSETSEQPARAM (2x), e.g. after SEQSETSEQPARAM(0001,0010,d:00000000) -> 0001
+    ttsseq/210: SEQRECORDSTART(0000,0000,0000,0000,0000,cb3) -> 0001
+    ttsseq/300: SEQRECORD(0001) -> 0367 | SEQSTART(cb3,0000,0000) -> 0001
 == record: 5 differences
   SEQSETSTANDBYSEQ (1x), e.g. after SEQSETSTANDBYSEQ(0000) -> 0001
     ttsseq/210: SEQRECORDSTART(0000,0000,0000,0000,0000,cb3) -> 0001
