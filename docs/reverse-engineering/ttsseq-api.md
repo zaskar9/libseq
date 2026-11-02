@@ -210,7 +210,13 @@ unless noted [probe]:
   in MIDI beats (tick / (ppq / 4)), before Start or Continue, also when MIDI sync is off; 1.01,
   which has no sync output, sends only the SPP [probe, Wine's MIDI trace of `midiOutShortMsg`].
   It follows the file's "Send MIDI SPP" setting (VARS 18): with that byte cleared no version
-  sends it [probe]. The 86Box captures never showed an SPP because 86Box's MIDI output does not
+  sends it [probe].
+- With Song Position on (parameter 4), every start, playback or recording, first rounds the start
+  position down to a MIDI beat, ppq / 4 ticks: from Now 45, playback starts at 30, `SeqGetNow`
+  reads 30 as soon as the start call returns, and a take counts from 30 (at 96 ppq, 45 becomes
+  24). With it off the start is exact. All three versions [probe, suite `punch`]. This explains
+  why Cakewalk Apprentice 1.04 resumed 5 to 25 ticks before where it had stopped in the 86Box
+  captures (`tests/data/cakewalk/engine/`): those songs send Song Position. The 86Box captures never showed an SPP because 86Box's MIDI output does not
   pass it on; midicap itself parses `F2`.
 - MIDI sync (2.10 and 3.00, parameter 6): Start or Continue, Clock also while stopped, Stop [probe].
 - A start call while playing returns 0 [probe].
@@ -523,10 +529,12 @@ manufacturer 255 as well and needed the same patch as the output (`patch-wineals
 
 The calls, as Cakewalk Apprentice 1.04 and Cakewalk Professional 2.00 make them [trace] and the probe repeats them:
 
-- 1.01 and 2.10: `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(0)`, `SeqRecordStart(w, w, w, w, w,
-  callback)` (7 words; Cakewalk Apprentice 1.04 passes five zero words and its `StartProc`); recording runs;
+- 1.01 and 2.10: `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(0)`, `SeqRecordStart(stream,
+  in32, out32, callback)` (7 words; Cakewalk Apprentice 1.04 passes 0, 0, 0 and its `StartProc`;
+  the first three are the punch, below); recording runs;
   `SeqRecordStop()`; `SeqRecCount()` = events taken; `SeqRecordCleanup(seq, keep, 0, &stream)`
-  (5 words) puts the take into a new stream and writes its handle (0x0100) to the far pointer.
+  (5 words) puts the take into a new stream and writes its handle (0x0100) to the far pointer;
+  with keep 0 it writes 0 and the take is gone [probe].
   Cakewalk Apprentice 1.04 asks "Keep take?" between the last two.
 - 3.00: `SeqRecord(1)`, `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(0)`, `SeqStart(callback,
   value32)`; `SeqGetRecordBuffer()` returns the stream that collects the take (0x0100);
@@ -547,8 +555,8 @@ called it [probe].
 The take, the same in all three versions for the same input (one count-in measure, 100 bpm,
 120 ppq, so 5 ms per tick) [probe]:
 
-- Messages received during the count-in are recorded at tick 0; a note whose note-off also came
-  during the count-in gets duration 0.
+- Messages received during the count-in are recorded at the start tick (tick 0 from the
+  beginning); a note whose note-off also came during the count-in gets duration 0.
 - After the count-in, times are the arrival time in ticks; a note's duration is note-off minus
   note-on; Note On with velocity 0 ends a note like Note Off. A drum note held 10 ms got duration 2.
 - A note still held when recording stops keeps duration 0; the engine sends its note-off then.
@@ -558,6 +566,31 @@ The take, the same in all three versions for the same input (one count-in measur
 - A sysex message from the input is neither recorded nor echoed. While recording, the engine
   gives the MIDI input driver no buffers for system exclusive data (`midiInAddBuffer`), so the
   driver has nowhere to put them; only `SeqReceiveSysxBank` does [probe, relay].
+
+Punch-in (1.01 and 2.10; suite `punch`) [probe]. The first three arguments of `SeqRecordStart`
+are a target stream and a punch range, two 32-bit ticks `in` and `out`:
+
+- Stream 0 means no punch; the range is then ignored. Any other value must be a stream: 1, or a
+  pointer in those words, crashes the engine, as an invalid handle does elsewhere.
+- The start call moves the target stream's events with `in` <= time < `out` out of the stream.
+  They are gone at once (`SeqStreamLen` right after the start call shows it), so they do not
+  play during the take, and they do not come back. Events before the start position are cut too.
+  The range `0` to `ffffffff` empties the stream.
+- `SeqRecordCleanup` then keeps only the take's events with `in` <= time and time + 1 < `out`,
+  in a new stream as without a punch. The take is not merged into the target; that is the
+  program's work.
+- When the stream has no event in the range, nothing is cut and the take is kept whole, outside
+  the range too. An empty range (`in` = `out`, or `out` < `in`) therefore does nothing, with one
+  exception: a punch-out of 0 counts as 1, so 0 to 0 cuts the events at tick 0, and the take comes out empty.
+- The engine makes a stream of its own for the cut events, so the take gets the handle after the
+  next one (0x0102 instead of 0x0101). Discarding a punch take (`SeqRecordCleanup` with keep 0)
+  crashed both versions under Wine; without a punch it works.
+- The take's stream gets the default stream parameters, not those of the target. Thru is not
+  affected: input is echoed during the punch range as before.
+
+Cakewalk Apprentice 1.04 has no punch-in (its help lists it among the Professional features), and
+the Professional demo does not record, so no program was seen using it. 3.00 has no
+`SeqRecordStart`; its punch is still open (`SeqSetRecordBufferParams`).
 
 Cakewalk Professional 2.00 under Wine stalls for 2 s after the count-in: it hides its count-in window
 and Wine waits for a window manager that the virtual display does not run
@@ -696,9 +729,9 @@ function the oracle suites call, found by trying layouts through the probe. Note
   effect yet.
 - Parameter 3 (a "Now jumped" flag): what reads it, if anything. Parameters 30 and 31 (3.00):
   not from any dialog, no effect on playback; probably recording.
-- The five leading words of `SeqRecordStart` (1.01, 2.10) and the parameters of
-  `SeqSetRecordBufferParams` (3.00); punch-in and loop recording ("Reject Loop Take",
-  `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
+- The parameters of `SeqSetRecordBufferParams` (3.00); punch-in and loop recording in 3.00
+  ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`). Why a punch take
+  cannot be discarded in 1.01 and 2.10 (a Wine effect, or the engines).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - External sync: MIDI Time Code with an offset, other frame rates and tempo changes.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load

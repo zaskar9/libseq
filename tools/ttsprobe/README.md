@@ -13,7 +13,7 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
 |---|---|
 | `probe/` | `ttsprobe.c`, a 16-bit Windows program that loads a DLL and calls its functions from a script; `first.txt`, the first script |
 | `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync) and `build-wine16.sh` (builds both), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
-| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`), single external-sync experiments (`syncexp.py`), what one `TTSSEQ.INI` option changes (`options.py`) |
+| `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`), single external-sync experiments (`syncexp.py`), what one `TTSSEQ.INI` option changes (`options.py`), one recording with chosen `SeqRecordStart` arguments (`recstart.py`) |
 | `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants |
 | `record/` | recording with Cakewalk Professional 2.00 itself, from scripted MIDI input |
 | `oracles/` | the oracle suites and their tools (below) |
@@ -111,6 +111,9 @@ port of every message (`short@2 ...`). A suite asks for it with `#! outputs 2`, 
 `sweep/options.py VER TEMPLATE KEY=VALUE...` runs a template once with the usual `TTSSEQ.INI` and
 once per setting, and prints what changed: the probe's output, the MIDI, and with `--relay` the
 engine's timer, MIDI buffer and memory calls.
+`sweep/recstart.py VER WORDS...` records once like the `record` suite with the given leading
+arguments of `SeqRecordStart` and prints the take, the streams asked for and the MIDI; options
+add probe lines before the start, during the take and after it.
 `sweep/configmidi.sh VER` works `SeqConfigMidi`'s dialog with `xdotool` and reports what each way
 of working it changed.
 

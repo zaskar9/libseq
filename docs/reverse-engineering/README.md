@@ -149,6 +149,20 @@ makes it jump, and nothing else. Setting it to 0 before a wide range of calls ch
 could be seen, and the programs never read it. It is kept as a flag with those rules (suite
 `param3`).
 
+### 10. The leading words of SeqRecordStart (2026-11-02)
+
+Cakewalk Apprentice 1.04 passes five zero words, and the Professional demo never records, so
+the words were found by the probe alone (`tools/ttsprobe/sweep/recstart.py`). Setting each word
+to 1 in turn changed nothing, except the first, which crashed the engine, as an invalid handle
+does. A stream's handle there worked, and a stream with notes in it showed what the words are: a
+target stream and a punch range of two 32-bit ticks. The engine cuts the range out of the stream
+when the take starts and keeps only the part of the take inside it. Narrow ranges over one note
+per tick then gave the edges, and moving events before the start showed that what decides
+whether a punch happens is the stream's content, not playback. On the way, start positions that
+were not multiples of 30 ticks came back rounded down to a sixteenth note, but only while the
+sequence sends Song Position. That also explains why Apprentice resumed 5 to 25 ticks early in
+the 86Box captures. The suite `punch` records the results.
+
 ## In this folder
 
 | File | Content |

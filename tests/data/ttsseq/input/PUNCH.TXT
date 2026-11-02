@@ -1,0 +1,20 @@
+# MIDI input for the punch suite (written by tools/ttsprobe/oracles/gen.py): times in ms from
+# the moment the engine connects to the input (SeqOpen), between two clicks of each count-in.
+1820 b0 07 40
+1830 c0 00
+5730 b0 07 41
+5740 c0 01
+9630 b0 07 42
+9640 c0 02
+13530 b0 07 43
+13540 c0 03
+17430 b0 07 44
+17440 c0 04
+21330 b0 07 45
+21340 c0 05
+25230 b0 07 46
+25240 c0 06
+29030 b0 07 47
+29040 c0 07
+33380 b0 07 48
+33390 c0 08

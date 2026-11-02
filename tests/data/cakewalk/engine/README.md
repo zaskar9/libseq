@@ -96,8 +96,9 @@ timer runs at about 10 ms, so times scatter by up to about 12 ms around the exac
   set through the file) ends right before it. On stop the click's note-off goes first.
 - Resuming after a stop does not start exactly where it stopped: it restarted 5 to 25 ticks
   earlier in the takes (`ENG_ORDR-resume`, `ENG_SYNC-play`, `E3_DENS-resume1..3`, where the last
-  note before the stop plays again). The amount varies from take to take and looks like the lag of
-  the position the program reads back on stop.
+  note before the stop plays again). The amount varies from take to take. The probe later showed
+  why: with Song Position on, which these songs have, the engine rounds every start down to a
+  sixteenth note (30 ticks at 120 ppq; `docs/reverse-engineering/ttsseq-api.md`, Transport).
 - The auto-stop, auto-rewind and auto-restart bytes of VARS, which Cakewalk Apprentice 1.04 has no dialog for,
   change nothing when a file sets them (`E3_SHTL-play` plays straight through). Cakewalk Apprentice 1.04
   has no play loop (its help lists auto-shuttle as a Cakewalk Professional feature). Cakewalk

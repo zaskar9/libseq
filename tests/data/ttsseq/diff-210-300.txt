@@ -58,6 +58,22 @@
   SEQSETSEQPARAM (2x), e.g. after SEQSETSEQPARAM(0001,0010,d:00000000) -> 0001
     ttsseq/210: SEQRECORDSTART(0000,0000,0000,0000,0000,cb3) -> 0001
     ttsseq/300: SEQRECORD(0001) -> 0367 | SEQSTART(cb3,0000,0000) -> 0001
+== punch: 19 differences
+  SEQSETNOW (4x), e.g. after SEQSETNOW(0001,d:00000064) -> 00000064
+    ttsseq/210: SEQRECORDSTART(0000,d:00000064,d:00000066,cb3) -> 0001 | callback cb3(0001,----,0000), repeated | SEQGETNOW(0001) -> 00000064
+    ttsseq/300: 
+  SEQRECORDCLEANUP (4x), e.g. after SEQRECORDCLEANUP(0001,0001,0000,@1) -> 0001
+    ttsseq/210:   01 01
+    ttsseq/300:   00 00
+  SEQNXTEVT (4x), e.g. after SEQNXTEVT(%1) -> 0000
+    ttsseq/210: take | SEQSTREAMLEN(%b1) -> 00000002 | SEQSEEK(%b1,0000,d:00000000) -> 00000000
+    ttsseq/300: 
+  SEQDESTROYSTREAM (2x), e.g. after SEQDESTROYSTREAM(%1) -> 0001
+    ttsseq/210: == punch 100..100: an empty range
+    ttsseq/300: == punch 100..101
+  SEQGETEVT (5x), e.g. after SEQGETEVT(%b1,@0) -> 0001
+    ttsseq/210:   1e 00 00 b0 07 48 00 00 | SEQTELL(%b1) -> 00000000 | SEQEOS(%b1) -> 0000
+    ttsseq/300:   00 00 00 92 50 40 01 00 | SEQTELL(%1) -> 00000000 | SEQEOS(%1) -> 0000
 == record: 5 differences
   SEQSETSTANDBYSEQ (1x), e.g. after SEQSETSTANDBYSEQ(0000) -> 0001
     ttsseq/210: SEQRECORDSTART(0000,0000,0000,0000,0000,cb3) -> 0001

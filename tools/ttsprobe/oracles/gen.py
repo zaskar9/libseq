@@ -715,6 +715,66 @@ def _():
     return L
 
 
+PUNCH_STARTS = [920, 4830, 8730, 12630, 16530, 20430, 24330, 28130, 32480]  # count-in starts, measured on 2.10
+PUNCH_EVENTS = [0, 1, 98, 99, 100, 101, 102, 103, 400]  # the target stream: one note per tick listed
+PUNCH_TAKES = [  # (title, Now, target stream?, punch in, punch out)
+    ('no target stream: the range is ignored', 100, False, 100, 102),
+    ('punch 100..102', 100, True, 100, 102),
+    ('punch 100..101', 100, True, 100, 101),
+    ('punch 101..103', 100, True, 101, 103),
+    ('punch 104..110: no event of the stream in the range', 100, True, 104, 110),
+    ('punch 100..100: an empty range', 100, True, 100, 100),
+    ('punch 98..ffffffff: also before the start', 100, True, 98, 0xffffffff),
+    ('punch 0..0 from Now 0: punch out 0 counts as 1', 0, True, 0, 0),
+]
+
+
+@suite('punch')
+def _():
+    # SeqRecordStart(stream, punch in, punch out, callback) (1.01, 2.10). With a stream, the start
+    # call moves the stream's events with in <= time < out out of it (they do not play and are gone
+    # after the take), and SeqRecordCleanup keeps only the take's events with in <= time and
+    # time + 1 < out, in a new stream as always. When the stream has no event in the range,
+    # nothing is cut and the take is kept whole. Stream 0 means no punch. Each take below gets one
+    # pair of controllers during its count-in, which the take records at the start tick. Parameter
+    # 4 (send Song Position) is off, so the start is not rounded down to a MIDI beat; the last
+    # take turns it on to show that rounding.
+    L = ['#! input PUNCH.TXT', '#! secs 90', '#! irq', '@open', 'buf 0 16', 'buf 1 16', 'buf 3 8',
+         'call.w SEQCREATESEQ 0000 0000', 'call.w SEQSETSEQPARAM 0001 0010 d:00000001',
+         'call.w SEQSETSEQPARAM 0001 0004 d:00000000', 'sleep 800',
+         'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'cbret 0', 'cbyield 1',
+         'cbmask 2 merge']  # the count-in's beats: one line per count-in (the record suite shows them)
+    n = len(PUNCH_EVENTS)
+    for title, now, target, a, b in PUNCH_TAKES + [('Song Position on: the start rounds down to a MIDI beat', 45, False, 0, 0)]:
+        L += [f'echo == {title}', 'call.w SEQCREATESTREAM 0001 0000 0000', 'let 1',
+              'call.w SEQSETSTREAMPARAM %1 0007 d:00000000']
+        for i, t in enumerate(PUNCH_EVENTS):
+            L += [f'fill 3 0 {t & 255:02x} {t >> 8 & 255:02x} 00 92 {0x50 + i:02x} 40 01 00',
+                  f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @3']
+        if 'Song Position' in title:
+            L += ['call.w SEQSETSEQPARAM 0001 0004 d:00000001']
+        L += [f'call.d SEQSETNOW 0001 d:{now:08x}', 'fill 1 0 00 00',
+              f'?101,210 call.w SEQRECORDSTART {"%1" if target else "0000"} d:{a:08x} d:{b:08x} cb3',
+              '?101,210 call.d SEQGETNOW 0001', '?101,210 call.d SEQSTREAMLEN %1',
+              '?101,210 call.w SEQRECORDSTOP', '?101,210 call.d SEQRECCOUNT',
+              '?101,210 call.w SEQRECORDCLEANUP 0001 0001 0000 @1', 'dump 1 0 2',
+              'echo stream', 'call.d SEQSTREAMLEN %1'] + walk('%1', n)
+        L += ['?101,210 echo take', '?101,210 call.d SEQSTREAMLEN %b1'] + [f'?101,210 {x}' for x in walk('%b1', 4)]
+        L += ['?101,210 call.w SEQDESTROYSTREAM %b1', 'call.w SEQDESTROYSTREAM %1', 'sleep 1500']
+    L += ['@close']
+    return L
+
+
+def punch_input(starts):
+    """The MIDI input of the punch suite: a pair of controllers between two clicks of each take's count-in.
+    starts: when each take's count-in begins, in ms from the input connection."""
+    L = ['# MIDI input for the punch suite (written by tools/ttsprobe/oracles/gen.py): times in ms from',
+         '# the moment the engine connects to the input (SeqOpen), between two clicks of each count-in.']
+    for k, t in enumerate(starts):
+        L += [f'{t + 900} b0 07 {0x40 + k:02x}', f'{t + 910} c0 {k:02x}']
+    return L
+
+
 @suite('param3')
 def _():
     # Sequence parameter 3: a flag (any value other than 0 reads back as 1) that the engine sets
@@ -953,6 +1013,7 @@ def main():
     for name, lines, nl in [('SYNC.TXT', sync_input(), '\n'), ('OPTS1.TXT', opts_input(), '\n'),
                             ('OPTS2.TXT', ['# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)',
                                           '2000 f0 7d 01 02 03 f7'], '\n'),
+                            ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'),
                             ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
         with open(os.path.join(inputs, name), 'w', newline='') as f:
             f.write(nl.join(lines) + nl)
