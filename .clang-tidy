@@ -1,0 +1,27 @@
+---
+# bugprone-signed-char-misuse: the file formats store signed bytes (Key+, Vel+, pan) on purpose.
+# performance-enum-size: FrameRate mirrors a 16-bit file field.
+# cppcoreguidelines-non-private-member-variables-in-classes: the model's plain data (a sequence's ppq,
+# maps and markers, a stream's cursor) is public next to the members that keep invariants.
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-vararg,
+  -readability-identifier-length,
+  -readability-function-cognitive-complexity,
+  -modernize-use-trailing-return-type,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-do-while,
+  -bugprone-signed-char-misuse,
+  -performance-enum-size,
+  -cppcoreguidelines-non-private-member-variables-in-classes
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*/(include|src)/.*'
+FormatStyle: file
