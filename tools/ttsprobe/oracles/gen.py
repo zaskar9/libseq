@@ -919,9 +919,10 @@ def _():
           'call.d SEQGETNOW 0002', 'call.w SEQEXPIRED', 'echo == the callback gives up at once', 'cbret 1'] + play_cb + \
          ['call.w SEQEXPIRED', '@close']
     return L
-def qframes(t0, dur, rate, h, m, s, f):
+def qframes(t0, dur, rate, h, m, s, f, speed=1.0):
     """MIDI Time Code quarter frames (F1) from t0 for dur ms: code h:m:s:f at rate 24, 25, 29 (30 drop
-    frame, running at 29.97 frames a second) or 30, as fake input lines"""
+    frame, running at 29.97 frames a second) or 30, as fake input lines; speed > 1 sends it faster
+    than real time"""
     nominal = 30 if rate == 29 else rate
     rcode = {24: 0, 25: 1, 29: 2, 30: 3}[rate]
     start = ((h * 60 + m) * 60 + s) * nominal + f
@@ -935,7 +936,7 @@ def qframes(t0, dur, rate, h, m, s, f):
             n += 18 * d + (2 * ((mm - 2) // 1798) if mm >= 2 else 0)
         t = n // nominal
         return t // 3600, t // 60 % 60, t % 60, n % nominal
-    qf = 1000.0 / (nominal * (1000 / 1001 if rate == 29 else 1) * 4)
+    qf = 1000.0 / (nominal * (1000 / 1001 if rate == 29 else 1) * 4) / speed
     L, k = [], 0
     while k * qf <= dur:
         hh, mi, ss, ff = hmsf(start + (k // 8) * 2)
@@ -959,6 +960,16 @@ MTC_CASES = [  # (title, song, code start ms, code ms, code rate, code h:m:s:f, 
      25000, 3000, 25, (0, 0, 10, 0), 30, None, 5500, 300),
     ('code 00:34:06:00, no offset: too far after the offset; ignored; the callback gives up', 'ENG_ORDR',
      31000, 3000, 30, (0, 34, 6, 0), 30, None, 5500, 300),
+    ('the limit is 4096 quarter notes: at 60 bpm, code 00:34:09:00 locks', 'ENG_ORDR',
+     37000, 2600, 30, (0, 34, 9, 0), 30, None, 0, 600, {'pre': ['call.w SEQSETTEMPO 0001 d:00000000 1770']}),
+    ('at 240 bpm, code 00:17:30:00 is ignored; the callback gives up', 'ENG_ORDR',
+     41000, 3000, 30, (0, 17, 30, 0), 30, None, 5500, 300, {'pre': ['call.w SEQSETTEMPO 0001 d:00000000 5dc0']}),
+    ('code 1.5 times too fast: the chase counts code time; Now follows the code', 'ENG_ORDR',
+     47000, 3500, 30, (0, 0, 10, 0), 30, None, 0, 1300, {'speed': 1.5}),
+    ('a jump of 2 frames while following: 1.01 and 2.10 stop within about 0.3 s; 3.00 follows it', 'ENG_ORDR',
+     52000, 3000, 30, (0, 0, 10, 0), 30, None, 0, 2700, {'then': (55000, 2500, (0, 0, 13, 2)), 'hold': 1500, 'now': False}),
+    ('a jump of 1 s: all three stop', 'ENG_ORDR',
+     59000, 3000, 30, (0, 0, 10, 0), 30, None, 0, 2700, {'then': (62000, 2500, (0, 0, 14, 0)), 'hold': 1500}),
 ]
 
 
@@ -969,15 +980,19 @@ def _():
     # The code's time counts as its label (h:m:s plus frames at the nominal rate), minus the
     # sequence's SMPTE offset (SeqSetFrameOfs, in frames of the sequence's rate). The chase lasts
     # ChaseDelay and goes on while the code lies before the offset. Code of another rate, and code
-    # about 2046 s (34:06) or more after the offset, is ignored: no chase at all. While chasing,
-    # the callback gets (4, seconds * 256 + frames, hours * 256 + minutes) of the incoming code.
-    # Now at the lock is the code's time, through the tempo map.
+    # whose time after the chase would lie 4096 quarter notes or more after the offset (34:08 at
+    # 120 bpm, whatever the PPQ), is ignored: no chase at all. While chasing, the callback gets
+    # (4, seconds * 256 + frames, hours * 256 + minutes) of the incoming code. Now at the lock is
+    # the code's time, through the tempo map; the chase lasts ChaseDelay of code time, and the
+    # playback follows the code's speed. A jump in the code stops the playback within about 0.3 s,
+    # whatever FlywheelAmount says: in 1.01 and 2.10 any jump, in 3.00 one of more than 2 frames.
     def src(v):
         return [f'?101 call.w SEQSETSRCCLOCK {v}', f'?!101 call.w SEQSETSRCCLOCK 0001 {v}']
-    L = ['#! input MTC.TXT', '#! secs 60', '#! irq', '@open', 'buf 0 16', 'cbyield 1', 'cbret 0',
+    L = ['#! input MTC.TXT', '#! secs 100', '#! irq', '@open', 'buf 0 16', 'cbyield 1', 'cbret 0',
          'cbmask 2 merge']  # the callback's code seconds and frames: one line per lock
-    for title, song, t0, dur, rate, code, fps, ofs, giveup, after in MTC_CASES:
-        L += [f'echo == {title}', f'@load {song}.WRK'] + src('0003')
+    for title, song, t0, dur, rate, code, fps, ofs, giveup, after, *more in MTC_CASES:
+        x = more[0] if more else {}
+        L += [f'echo == {title}', f'@load {song}.WRK'] + src('0003') + x.get('pre', [])
         L += [f'call.w SEQSETFPS 0001 {fps:04x}', 'call.w SEQGETFPS 0001']
         if ofs:
             L += ['call.d SEQHMSF2FRAME 0001 ' + ' '.join(f'{x:04x}' for x in ofs) + ' 0000', 'let 3',
@@ -989,6 +1004,8 @@ def _():
               'call.d SEQGETNOW 0001', '?300 dump 0 0 4']
         if 'ENG_TMPO' in song:
             L += ['call.d SEQFRAME2TICKRNDOPT 0001 d:0000016f 0000', 'call.d SEQFRAME2TICKRNDOPT 0001 d:00000170 0000']
+        if 'hold' in x:
+            L += [f'idle {x["hold"]}'] + (['call.d SEQGETNOW 0001'] if x.get('now', True) else []) + ['call.w SEQEXPIRED']
         L += ['cbret 0'] if giveup else ['idle 200', '@stop']
         L += [f'sleep {after}', 'call.w SEQDESTROYSEQ 0001']
     L += ['@close']
@@ -998,9 +1015,12 @@ def _():
 def mtc_input():
     L = ['# MIDI Time Code for the mtc suite (written by tools/ttsprobe/oracles/gen.py): quarter frames',
          '# (F1), times in ms from the moment the engine connects to the input (SeqOpen)']
-    for title, song, t0, dur, rate, code, fps, ofs, giveup, after in MTC_CASES:
+    for title, song, t0, dur, rate, code, fps, ofs, giveup, after, *more in MTC_CASES:
+        x = more[0] if more else {}
         L.append(f'# {title}')
-        L += qframes(t0, dur, rate, *code)
+        L += qframes(t0, dur, rate, *code, speed=x.get('speed', 1.0))
+        if 'then' in x:
+            L += qframes(x['then'][0], x['then'][1], rate, *x['then'][2])
     return L
 
 

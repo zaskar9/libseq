@@ -194,6 +194,13 @@ the offset is ignored too, at any rate and with any offset, close to 2048 s. Dro
 turned out to count by its label, and a song with tempo changes gave the tick the frame
 conversion gives. All three versions agree; the suite `mtc` keeps seven cases.
 
+The limit did not stay put. A shorter chase moved it to later code, so it applies to the time at
+the end of the chase. A slower tempo moved it later and a faster one earlier, while a finer PPQ
+left it where it was: it is about 4096 quarter notes. The tool then learned to send code in
+stretches, to jump or to run fast. A jump stops the playback at once, run-on or not, in 1.01 and
+2.10 even a jump of two frames; 3.00 tolerates exactly that one. The suite now has thirteen
+cases.
+
 ## In this folder
 
 | File | Content |

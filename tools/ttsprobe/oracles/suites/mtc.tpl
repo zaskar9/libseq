@@ -1,5 +1,5 @@
 #! input MTC.TXT
-#! secs 60
+#! secs 100
 #! irq
 @open
 buf 0 16
@@ -134,5 +134,97 @@ call.d SEQGETNOW 0001
 ?300 dump 0 0 4
 cbret 0
 sleep 300
+call.w SEQDESTROYSEQ 0001
+echo == the limit is 4096 quarter notes: at 60 bpm, code 00:34:09:00 locks
+@load ENG_ORDR.WRK
+?101 call.w SEQSETSRCCLOCK 0003
+?!101 call.w SEQSETSRCCLOCK 0001 0003
+call.w SEQSETTEMPO 0001 d:00000000 1770
+call.w SEQSETFPS 0001 001e
+call.w SEQGETFPS 0001
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+fill 0 0 ee ee ee ee
+?!300 call.w SEQPLAYSTART cb3
+?300 call.w SEQSTART cb3 @0
+call.d SEQGETNOW 0001
+?300 dump 0 0 4
+idle 200
+@stop
+sleep 600
+call.w SEQDESTROYSEQ 0001
+echo == at 240 bpm, code 00:17:30:00 is ignored; the callback gives up
+@load ENG_ORDR.WRK
+?101 call.w SEQSETSRCCLOCK 0003
+?!101 call.w SEQSETSRCCLOCK 0001 0003
+call.w SEQSETTEMPO 0001 d:00000000 5dc0
+call.w SEQSETFPS 0001 001e
+call.w SEQGETFPS 0001
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+cbretafter 5500 1
+fill 0 0 ee ee ee ee
+?!300 call.w SEQPLAYSTART cb3
+?300 call.w SEQSTART cb3 @0
+call.d SEQGETNOW 0001
+?300 dump 0 0 4
+cbret 0
+sleep 300
+call.w SEQDESTROYSEQ 0001
+echo == code 1.5 times too fast: the chase counts code time; Now follows the code
+@load ENG_ORDR.WRK
+?101 call.w SEQSETSRCCLOCK 0003
+?!101 call.w SEQSETSRCCLOCK 0001 0003
+call.w SEQSETFPS 0001 001e
+call.w SEQGETFPS 0001
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+fill 0 0 ee ee ee ee
+?!300 call.w SEQPLAYSTART cb3
+?300 call.w SEQSTART cb3 @0
+call.d SEQGETNOW 0001
+?300 dump 0 0 4
+idle 200
+@stop
+sleep 1300
+call.w SEQDESTROYSEQ 0001
+echo == a jump of 2 frames while following: 1.01 and 2.10 stop within about 0.3 s; 3.00 follows it
+@load ENG_ORDR.WRK
+?101 call.w SEQSETSRCCLOCK 0003
+?!101 call.w SEQSETSRCCLOCK 0001 0003
+call.w SEQSETFPS 0001 001e
+call.w SEQGETFPS 0001
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+fill 0 0 ee ee ee ee
+?!300 call.w SEQPLAYSTART cb3
+?300 call.w SEQSTART cb3 @0
+call.d SEQGETNOW 0001
+?300 dump 0 0 4
+idle 1500
+call.w SEQEXPIRED
+idle 200
+@stop
+sleep 2700
+call.w SEQDESTROYSEQ 0001
+echo == a jump of 1 s: all three stop
+@load ENG_ORDR.WRK
+?101 call.w SEQSETSRCCLOCK 0003
+?!101 call.w SEQSETSRCCLOCK 0001 0003
+call.w SEQSETFPS 0001 001e
+call.w SEQGETFPS 0001
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+fill 0 0 ee ee ee ee
+?!300 call.w SEQPLAYSTART cb3
+?300 call.w SEQSTART cb3 @0
+call.d SEQGETNOW 0001
+?300 dump 0 0 4
+idle 1500
+call.d SEQGETNOW 0001
+call.w SEQEXPIRED
+idle 200
+@stop
+sleep 2700
 call.w SEQDESTROYSEQ 0001
 @close

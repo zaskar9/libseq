@@ -316,14 +316,25 @@ single runs of `tools/ttsprobe/sweep/mtcexp.py`]:
   Rate and offset may be set before or after `SeqSetPlayingSeq`.
 - Code before the offset is chased until it reaches the offset, and the start call returns with
   Now 0 (code from 00:00:17:00 with offset 00:00:20:00: three seconds of (4, ...) callbacks).
-- Code far after the offset is ignored like code of another rate: from 00:34:05:00 the engine
-  locks, from 00:34:06:00 it does not (with or without a 30 s offset, at 25 and 30 fps alike).
-  That is where the time after the 2 s chase reaches 2048 s. Once locked, the playback runs on
-  past that time.
+- Code far after the offset is ignored like code of another rate: code whose time at the end of
+  the chase would lie 4096 quarter notes or more after the offset. At 120 bpm that is 2048 s:
+  code from 00:34:05:00 locks with the usual 2 s chase, from 00:34:06:00 it does not, and with
+  `ChaseDelay=5` (0.5 s) code from 00:34:07:00 still locks. At 60 bpm code from 00:34:09:00
+  locks; at 240 bpm the limit falls between 00:17:00:00 and 00:17:30:00; at 480 PPQ and 120 bpm
+  it stays at 34 minutes. So it counts quarter notes, not seconds, frames or ticks. Once locked,
+  the playback runs on past it.
 - The callback's third word is hours * 256 + minutes of the incoming code: (4, 0x0304, 0x0102)
   for 01:02:03:04.
 - Now at the lock is the code's time in ticks through the tempo map: with ENG_TMPO, 2430, between
   `SeqFrame2TickRndOpt` of frames 367 and 368.
+- The chase lasts `ChaseDelay` of code time: with code running 1.5 times too fast the start call
+  returns after 1.4 s, with Now 2940 as usual. Then the playback follows the code's speed (1.5,
+  1.1 and 0.9 times tried). `SyncAllowRateTweak=0` changed nothing here either.
+- A jump in the code while the engine follows it stops the playback within about 0.3 s (All
+  Notes Off, `SeqExpired` 1, Now where it stopped), whatever `FlywheelAmount` says; the engine
+  does not chase the new time. 1.01 and 2.10 stop at any jump, even of 2 frames forward or back.
+  3.00 follows a jump of 2 frames (one code word skipped or repeated) and stops at 4 frames or
+  more, a little later than the others (Now 3215 against 3180 for a jump at 13 s).
 - Cakewalk Professional for Windows (the demo, 1.01) sets these from its Time format dialog:
   `SeqSetFPS(seq, rate)`, then `SeqHMSF2Frame(seq, h, m, s, f, 0)` and `SeqSetFrameOfs(seq,
   frames)` for the offset [trace].
@@ -780,8 +791,7 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - The parameters of `SeqSetRecordBufferParams` (3.00); punch-in and loop recording in 3.00
   ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
-- MIDI Time Code: the exact limit after the offset (between 34:05 and 34:06 of code), and code
-  that jumps or runs at the wrong speed while the engine follows it.
+- MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
 - The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
   callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
