@@ -62,19 +62,19 @@ established.
 | `SeqGetTempoMapLen(seq)` | w | |
 | `SeqGetTempoAtIx(seq, index, p d tick)` | d | returns the tempo, writes its tick |
 | `SeqTempoIxByTick(seq, d tick)` | d | |
-| `SeqGetTempo(seq, d tick)` | d | bpm × 100 |
+| `SeqGetTempo(seq, d tick)` | d | bpm × 100 in AX; DX keeps the high word of the tick |
 | `SeqSetTempo(seq, d tick, tempo)` | w | changes the entry in effect at the tick |
 | `SeqInsTempo(seq, d tick, tempo)` | w | |
 | `SeqDelTempo(seq, d tick)` | w | deletes the entry in effect at the tick |
 | `SeqClearTempoMap(seq, tempo)` | w | one entry |
 | `SeqRecalcTempoMap(seq)` | w | |
-| `SeqEnumTempos(seq, d from, d thru, p callback, d value)` | d | callback with 4 words; meaning not settled |
-| `SeqSwapTempoMaps(seq, seq)` | w | |
+| `SeqEnumTempos(seq, d from, d thru, p callback, d value)` | d | callback(d elapsed time, d value) per entry, then (0, 0, d value); see `ttsseq-api.md` |
+| `SeqSwapTempoMaps(seq, seq)` | w | returns 0 |
 | `SeqTempoCopy(dst, src, d from, d thru, d 0, p ?)` | w | from the traces |
 | `SeqTempoPaste(dst, src, d at, d ?, 1, slide)` | w | from the traces |
 | `SeqGetTempoRatio(seq, i)`, `SeqSetTempoRatio(seq, i, ratio)` | w | ratio in 64ths |
 | `SeqSelectTempoRatio(seq, i)`, `SeqWhichTempoRatio(seq)` | w | |
-| `SeqTempoRatio2Str(ratio, p buffer)` | w | "1.25" for 0x50 |
+| `SeqTempoRatio2Str(ratio, p buffer)` | d | "1.25" for 0x50; returns the buffer |
 
 ## Meter and positions
 
@@ -113,8 +113,8 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqGetFps(seq)` / `SeqSetFps(seq, fps)` | w | |
 | `SeqGetFrameOfs(seq)` / `SeqSetFrameOfs(seq, d frames)` | d / w | |
 | `SeqTick2Frame(seq, d tick)` | d | |
-| `SeqFrame2TickRndOpt(seq, d frame, option)` | d | |
-| `SeqFrame2HMSF(seq, d frame, p h, p m, p s, p f)` | d | |
+| `SeqFrame2TickRndOpt(seq, d frame, option)` | d | option 0 rounds to the nearest tick, 1 rounds up |
+| `SeqFrame2HMSF(seq, d frame, p h, p m, p s, p f)` | d | returns the hours |
 | `SeqHMSF2Frame(seq, h, m, s, f, ?)` | d | |
 | `SeqTick2HMSFStr(seq, d tick, p buffer)` | w | "00:00:02:00" |
 | `SeqHMSFStr2HMSF(p string, p h, p m, p s, p f)` | d | |

@@ -284,17 +284,23 @@ def _():
     return L
 
 
+FRAME_OFFSETS = {'SYN_MAPS': 0x16b93}  # the frame offsets the songs' TIMEFMT chunks set
+
+
 @suite('timecode')
 def _():
     L = ['@open', 'buf 0 64', 'buf 1 64']
     for song in ['ENG_TMPO', 'ENG_ORDR', 'SYN_MAPS']:
         L += [f'echo -- {song}', f'@load {song}.WRK']
+        ofs = FRAME_OFFSETS.get(song, 0)
         for fps in (0x18, 0x19, 0x1d, 0x1e, 0x1f):
             L += [f'echo fps {fps:04x}', f'call.w SEQSETFPS 0001 {fps:04x}', 'call.w SEQGETFPS 0001', 'call.d SEQGETFRAMEOFS 0001']
             for t in TICKS:
                 L += [f'call.d SEQTICK2FRAME 0001 d:{t:08x}', 'fill 1 0 ' + 'ee ' * 16,
                       f'call.w SEQTICK2HMSFSTR 0001 d:{t:08x} @1', 'dump 1 0 16']
-            for f in (0, 1, 29, 30, 59, 60, 1799, 1800, 107892, 0x12345):
+            # Frames from the song's frame offset on: 1.01 answers frames before it with ticks that
+            # come from an overflow (docs/reverse-engineering/ttsseq-api.md, "Time, tempo, meter").
+            for f in (ofs + f for f in (0, 1, 29, 30, 59, 60, 1799, 1800, 107892, 0x12345)):
                 L += [f'call.d SEQFRAME2TICKRNDOPT 0001 d:{f:08x} 0000', f'call.d SEQFRAME2TICKRNDOPT 0001 d:{f:08x} 0001',
                       'fill 0 0 ' + 'ee ' * 8, f'call.d SEQFRAME2HMSF 0001 d:{f:08x} @0 @0+2 @0+4 @0+6', 'dump 0 0 8']
             for h, m, s_, fr in [(0, 0, 0, 0), (0, 0, 1, 0), (1, 2, 3, 4), (0, 59, 59, 29), (0, 0, 0, 29), (23, 0, 0, 0)]:

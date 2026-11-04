@@ -100,52 +100,40 @@ public:
             break;
         case wrk::TEMPO:
         case wrk::NTEMPO: {
-            if (!haveTempo_) {
-                s_->tempoMap.clear();
-                haveTempo_ = true;
-            }
             const int n = c.u16();
             for (int i = 0; i < n; ++i) {
                 TempoEntry e;
-                e.time = c.u32();
+                e.tick = c.u32();
                 c.skip(4);
                 const int raw = c.u16();
-                e.bpm100 = static_cast<std::uint16_t>(type == wrk::TEMPO ? raw * 100 : raw);
+                e.tempo = static_cast<std::uint16_t>(type == wrk::TEMPO ? raw * 100 : raw);
                 c.skip(8);
-                s_->tempoMap.push_back(e);
+                tempo_.push_back(e);
             }
             break;
         }
         case wrk::METER: {
-            if (!haveMeter_) {
-                s_->meterMap.clear();
-                haveMeter_ = true;
-            }
             const int n = c.u16();
             for (int i = 0; i < n; ++i) {
                 MeterEntry m;
                 c.skip(4);
-                m.measure = c.u16();
+                m.measure = static_cast<std::uint16_t>(c.u16() - 1); // 1-based in the file
                 m.numerator = c.u8();
                 m.denominatorLog2 = c.u8();
                 c.skip(4);
-                s_->meterMap.push_back(m);
+                meter_.push_back(m);
             }
             break;
         }
         case wrk::METERKEY: {
-            if (!haveMeter_) {
-                s_->meterMap.clear();
-                haveMeter_ = true;
-            }
             const int n = c.u16();
             for (int i = 0; i < n; ++i) {
                 MeterEntry m;
-                m.measure = c.u16();
+                m.measure = static_cast<std::uint16_t>(c.u16() - 1); // 1-based in the file
                 m.numerator = c.u8();
                 m.denominatorLog2 = c.u8();
                 m.key = c.s8();
-                s_->meterMap.push_back(m);
+                meterKey_.push_back(m);
             }
             break;
         }
@@ -271,11 +259,25 @@ public:
         }
     }
 
+    /// The maps, once all chunks are read: their cached times are computed from the time base.
+    void finish() {
+        if (!tempo_.empty()) {
+            s_->tempoMap.assign(std::move(tempo_));
+        }
+        // a file with both meter chunks: the one with the keys counts
+        if (!meterKey_.empty()) {
+            s_->meterMap.assign(std::move(meterKey_), s_->ppq);
+        } else if (!meter_.empty()) {
+            s_->meterMap.assign(std::move(meter_), s_->ppq);
+        }
+    }
+
 private:
     Sequence* s_;
     std::map<std::uint16_t, Stream*> byTrack_;
-    bool haveTempo_ = false;
-    bool haveMeter_ = false;
+    std::vector<TempoEntry> tempo_;
+    std::vector<MeterEntry> meter_;
+    std::vector<MeterEntry> meterKey_;
 };
 
 } // namespace
@@ -311,6 +313,7 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
             r.skip(len);
             loader.chunk(type, c);
         }
+        loader.finish();
     } catch (const Error&) {
         destroySequence(h);
         fileError_ = 3;

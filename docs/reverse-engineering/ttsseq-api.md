@@ -179,6 +179,59 @@ Track > Archive in Cakewalk Apprentice 1.04 calls `SeqSetStreamParam(stream, 8, 
 | `SeqGetTempoRatio(seq, i)` | 2 | 0x20, 0x40, 0x80 = 0.5, 1.0, 2.0 in 64ths [trace] |
 | `SeqWhichTempoRatio(seq)` | 1 | the selected one [trace] |
 
+How 1.01 computes times, from the `tempo`, `meter` and `timecode` suites and probe runs made to
+settle single points [probe]. libseq 1.1.0 follows all of it.
+
+- **Elapsed time.** Each tempo entry caches the time elapsed up to it in microseconds times the
+  ppq: the sum of ticks × microseconds per quarter note, where microseconds per quarter note is
+  6,000,000,000 / tempo rounded to the nearest whole number (the MIDI file unit). With 46.60 bpm
+  that is 1,287,554, not 1,287,553.6. `SeqEnumTempos` passes this time to its callback as a double
+  word: (time, value) per entry in the range, then (0, 0, value). The 0.x notes left this open.
+- **Stale entries.** `SeqSetTempo` and `SeqInsTempo` refresh the entries from the one they change
+  on, with a slip: the changed entry gets only the time from the entry before it, without that
+  entry's own elapsed time. After inserting at tick 0x200 behind an entry at 0x1E0 at 60 bpm the
+  new entry holds 32,000,000 whatever came before. `SeqDelTempo` refreshes nothing, also not
+  when it deletes the first entry; the next entry keeps its tick and its time.
+  `SeqRecalcTempoMap` moves the first entry to tick 0, recomputes every time and returns the
+  number of entries. The meter map is kinder: `SeqInsMeter` and `SeqSetMeter` recompute the ticks
+  the entries start at; `SeqDelMeter` does not, and `SeqRecalcMeterMap` also moves the first entry
+  to measure 1. The conversions use the cached values as they are.
+- **Frames.** `SeqTick2Frame` is the elapsed time in seconds times the frame rate, rounded to the
+  nearest frame (halves up), plus the frame offset. 29 fps runs at 29.97 (2997/100, not
+  30000/1001) and labels its frames drop frame: frames 0 and 1 of second 0 are skipped in every
+  minute but each tenth. `SeqHMSF2Frame` counts a skipped label as the one two frames on
+  (00:01:00:00 is frame 1800, like 00:01:00:02, and 00:01:00:01 is 1801). The frame offset is a
+  frame count at the current rate; changing the rate does not convert it. `SeqSetFPS` takes 24,
+  25, 29 and 30 and returns 0 (keeping the rate) for anything else. `SeqFrame2HMSF` returns the
+  hours.
+- **Frames to ticks.** `SeqFrame2TickRndOpt` subtracts the offset, converts to elapsed time and
+  walks the tempo map; option 0 rounds to the nearest tick, option 1 up. A frame before the offset
+  wraps: the answer is a large tick that comes from an overflow (with the default map, 25 fps and
+  offset 1, frame 0 gives 0x45FC07EB; at 30 fps 0xE4FCB144, and the step per frame drifts from the
+  tempo's). It does not follow from 32-bit or 64-bit wrapping of any intermediate value that was
+  tried, so libseq answers 0 there, and the suite asks only for frames from the offset on.
+  `SeqHMSFStr2MBT` treats a time before the offset as tick 0.
+- **Positions.** A measure is ppq × 4 / 2^denominator × numerator ticks. `SeqMBT2Tick` finds the
+  entry in effect at the measure with a signed comparison and counts measures from it in 16 bits:
+  measure 0 is 65,535 measures after the first entry (0x01DFFE20 in 4/4 at 120 ppq). Beats and
+  ticks are not checked against the meter (beat 7 of a 3/4 measure is two beats into the next).
+  `SeqTick2MBT` returns the tick within the beat and writes measure, beat and tick.
+  `SeqTickNextMeas`, `SeqTickPrevMeas`, `SeqTickNextBeat` and `SeqTickPrevBeat` go through the
+  position: the position of the tick, then the tick of the neighbouring position. The previous
+  measure or beat is the start of the current one, or of the one before when the tick is on a
+  start; at 1:1:000 it is 0. When the cached ticks are stale the two directions disagree, and the
+  engine's answers are the ones this rule gives.
+- **Strings.** `SeqTick2MBTStr` writes "%u:%u:%03u", or with flag 1 "%u:%02u:%03u", and returns the
+  buffer. `SeqMBTStr2MBT` and `SeqHMSFStr2HMSF` read up to three or four numbers with anything
+  between them (" 2 : 2 : 5", "1.2.3"); a missing or 0 measure or beat is 1, other missing numbers
+  are 0. `SeqTempoRatio2Str` takes the low byte of the ratio and cuts the hundredths off: 0x41 is
+  "1.01", 0x100 is "0.00".
+- **Odds and ends.** `SeqGetTempo` returns the tempo in AX and leaves the tick's high word in DX.
+  Results carry the key as a byte (0x00FD), not sign-extended. `SeqSetPPQ` scales event times,
+  note durations and tempo entry ticks, rounding down like `SeqRescaleTime`. A file with a meter
+  chunk and a meter/key chunk is read from the meter/key chunk; its measures count from 1.
+  `SeqSwapTempoMaps` and `SeqSwapMeterMaps` return 0.
+
 ## Sending MIDI directly
 
 `SeqTxMidiMsg(port, channel, status, data1, data2)` (5 words) sends one channel message at once,

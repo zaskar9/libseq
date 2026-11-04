@@ -8,6 +8,7 @@
 #pragma once
 
 #include "event.hpp"
+#include "timemap.hpp"
 #include "types.hpp"
 
 #include <array>
@@ -107,18 +108,6 @@ private:
     std::vector<Event> events_;
 };
 
-struct TempoEntry {
-    Tick time = 0;
-    std::uint16_t bpm100 = 10000; // beats per minute * 100
-};
-
-struct MeterEntry {
-    std::uint16_t measure = 0; // 0-based
-    std::uint8_t numerator = 4;
-    std::uint8_t denominatorLog2 = 2;
-    std::int8_t key = 0; // sharps (positive) or flats (negative)
-};
-
 struct Marker {
     std::string name;
     Tick time = 0;
@@ -154,16 +143,30 @@ public:
     /// parameters too when `copyParams`; otherwise a new stream's parameters.
     Stream& clone(const Stream& source, bool copyParams);
 
+    /// SeqSetPPQ: a new time base; the events and the tempo map move to it.
+    bool setPpq(std::uint16_t ppq);
+    /// SeqSetFPS: false (and no change) for a rate the engine does not take.
+    bool setFps(std::uint16_t fps);
+
+    /// SeqTick2Frame: the frame at a tick, rounded to the nearest, from the frame offset on.
+    [[nodiscard]] std::uint32_t tickToFrame(Tick tick) const noexcept;
+    /// SeqFrame2TickRndOpt: the tick at a frame, rounded to the nearest or up. A frame before the
+    /// frame offset gives 0 (TTSSEQ 1.01 answers it with the result of an overflow).
+    [[nodiscard]] Tick frameToTick(std::uint32_t frame, bool up) const noexcept;
+
     std::uint16_t ppq = 120;
     Tick now = 0;
     Tick from = 0;
     Tick thru = 0;
-    std::vector<TempoEntry> tempoMap{TempoEntry{}};
-    std::vector<MeterEntry> meterMap{MeterEntry{}};
+    TempoMap tempoMap;
+    MeterMap meterMap;
     std::vector<Marker> markers;
     std::vector<SysxBank> sysxBanks;
     std::uint16_t fps = 30;
     std::uint32_t frameOffset = 0;
+    /// The three tempo ratios (SeqGetTempoRatio) in 64ths, and the one selected.
+    std::array<std::uint16_t, 3> tempoRatios{0x20, 0x40, 0x80};
+    std::uint16_t tempoRatio = 1;
 
 private:
     friend class Engine;

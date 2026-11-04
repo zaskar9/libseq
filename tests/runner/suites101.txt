@@ -2,3 +2,6 @@ lifecycle
 seqparams
 streamparams
 streams
+tempo
+meter
+timecode

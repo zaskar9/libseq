@@ -10,6 +10,7 @@ option(LIBSEQ_BUILD_TESTS "Build the tests" ON)
 add_library(libseq
     src/bytes.cpp
     src/engine.cpp
+    src/timemap.cpp
     src/wrk_read.cpp
 )
 target_include_directories(libseq PUBLIC

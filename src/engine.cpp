@@ -228,6 +228,69 @@ Stream& Sequence::clone(const Stream& source, const bool copyParams) {
     return s;
 }
 
+bool Sequence::setPpq(const std::uint16_t newPpq) {
+    if (newPpq == 0 || newPpq > kMaxPpq) {
+        return false;
+    }
+    for (const auto& [id, s] : streams_) {
+        for (Event& e : s->events_) {
+            e.time = rescaleTime(e.time, ppq, newPpq);
+            e.duration = static_cast<std::uint16_t>(rescaleTime(e.duration, ppq, newPpq));
+        }
+    }
+    tempoMap.rescale(ppq, newPpq);
+    ppq = newPpq;
+    return true;
+}
+
+bool Sequence::setFps(const std::uint16_t newFps) {
+    if (!validFps(newFps)) {
+        return false;
+    }
+    fps = newFps;
+    return true;
+}
+
+namespace {
+
+/// Frames per second as a fraction: 29 is 29.97.
+struct Rate {
+    std::uint64_t num;
+    std::uint64_t den;
+};
+
+Rate rateOf(const std::uint16_t fps) noexcept {
+    return fps == 29 ? Rate{2997, 100} : Rate{fps, 1};
+}
+
+constexpr std::uint64_t kMicro = 1'000'000;
+
+} // namespace
+
+std::uint32_t Sequence::tickToFrame(const Tick tick) const noexcept {
+    // frames = elapsed * rate / (1e6 * ppq), rounded; split so that nothing overflows
+    const std::int64_t elapsed = std::max<std::int64_t>(tempoMap.elapsedAt(tick), 0);
+    const Rate r = rateOf(fps);
+    const std::uint64_t d = kMicro * ppq;
+    const auto e = static_cast<std::uint64_t>(elapsed);
+    const std::uint64_t a = (e / d) * r.num;
+    const std::uint64_t num = (a % r.den) * d + (e % d) * r.num;
+    const std::uint64_t frames = a / r.den + (2 * num + r.den * d) / (2 * r.den * d);
+    return static_cast<std::uint32_t>(frames + frameOffset);
+}
+
+Tick Sequence::frameToTick(const std::uint32_t frame, const bool up) const noexcept {
+    if (frame < frameOffset) {
+        return 0;
+    }
+    // elapsed = frames * 1e6 * ppq / rate, kept as a whole part and a fraction of rate.num
+    const Rate r = rateOf(fps);
+    const std::uint64_t d = kMicro * ppq;
+    const std::uint64_t b = std::uint64_t{frame - frameOffset} * r.den;
+    const std::uint64_t rest = (b % r.num) * d;
+    return tempoMap.tickAt((b / r.num) * d + rest / r.num, rest % r.num, r.num, up);
+}
+
 // ---------------------------------------------------------------- Engine
 
 Engine::Engine() = default;
