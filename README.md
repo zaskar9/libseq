@@ -7,6 +7,9 @@ and meter maps, markers, sysex banks), converts between ticks, measures and SMPT
 and records through an interface the application provides. MIT licensed, no dependencies beyond
 the C++ standard library.
 
+The name drops the company from the engine's: the DLL describes itself as "Twelve Tone Systems
+Seqencer Engine" (sic), so `TTSSEQ` is TTS plus SEQ.
+
 ## One engine version per release
 
 The library is rebuilt in the order Twelve Tone built the engine. Each release implements exactly

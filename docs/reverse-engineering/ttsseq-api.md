@@ -15,6 +15,13 @@ statement comes from one of five sources, named in brackets:
 words; a far pointer or a 32-bit value is two words, written high word first (as the tracer
 prints them). All functions are Pascal: the callee pops its arguments [sweep].
 
+## The name
+
+The module description in the NE header of all three DLLs (the first entry of the non-resident
+names table, next to the exports) reads "Twelve Tone Systems Seqencer Engine", with the typo
+[exp]. So `TTSSEQ` is Twelve Tone Systems plus SEQ for sequencer, and the library is named
+`libseq` after the part that is not the company.
+
 ## How the versions differ
 
 - Exports: 163 (1.01), 169 (2.10), 183 (3.00) [exp]; see `exports/exports-compared.txt`.
