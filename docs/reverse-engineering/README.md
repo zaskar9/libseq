@@ -201,6 +201,30 @@ stretches, to jump or to run fast. A jump stops the playback at once, run-on or 
 2.10 even a jump of two frames; 3.00 tolerates exactly that one. The suite now has thirteen
 cases.
 
+### 13. Files in and out (2026-11-05)
+
+The `files` suite loads every song of the corpus, saves it as a `.WRK` file and as a MIDI file,
+reads the MIDI file back and saves that as a `.WRK` file again. Comparing these 136 files with
+what libseq wrote, chunk by chunk and event by event, gave most of the rules. A few needed probes
+of their own, now the suite `midifiles`.
+
+- Keys moved past 127 by key+ landed in the top octave, but keys moved below 0 came out as small
+  numbers that changed with nothing in the note. Varying the velocities of the notes around
+  them showed the link: the key is the next event's second data byte modulo 12.
+- Some program changes read from a MIDI file had a second data byte and a duration, which a
+  program change does not have. Most matched the message read before them. One did not: it
+  matched the last event of the file the engine had written just before. A probe that wrote
+  different files before reading the same one confirmed it. The writer and the reader share one
+  event.
+- The metronome note of the read back files was that of the song loaded before, not the default.
+  Probes with several sequences showed that parameters 17 to 21 are one setting for all of
+  them, and that a `.WRK` file sets it only when its sequence becomes the current one.
+- SYN_MAPS's cue point came back at tick 2240 instead of 960. The tempo map read from the file
+  keeps the slip of `SeqInsTempo` (found in step 2 of the library), and the frame taken at 960
+  goes back to a tick through those cached times.
+
+With these, libseq writes and reads all of them byte for byte.
+
 ## In this folder
 
 | File | Content |

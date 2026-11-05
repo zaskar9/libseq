@@ -262,7 +262,8 @@ void Stream::insertRange(const std::size_t at, const std::vector<Event>& src) {
 
 // ---------------------------------------------------------------- Sequence
 
-Sequence::Sequence(const SeqHandle handle) : handle_(handle) {
+Sequence::Sequence(const SeqHandle handle, std::array<std::int32_t, qp::kCount>* shared)
+    : handle_(handle), shared_(shared) {
     // A new sequence (SeqCreateSeq), as TTSSEQ 1.01 sets it up.
     params_[qp::kNowJumped] = 1;
     params_[qp::kSendSpp] = 1;
@@ -282,14 +283,19 @@ Sequence::Sequence(const SeqHandle handle) : handle_(handle) {
 }
 
 std::int32_t Sequence::param(const int p) const noexcept {
-    return p >= 0 && p < qp::kCount ? params_[static_cast<std::size_t>(p)] : 0;
+    if (p < 0 || p >= qp::kCount) {
+        return 0;
+    }
+    const auto i = static_cast<std::size_t>(p);
+    return shared_ != nullptr && isShared(p) ? (*shared_)[i] : params_[i];
 }
 
 bool Sequence::setParam(const int p, const std::int32_t value) noexcept {
     if (p < 0 || p >= qp::kCount || kSeqKinds[static_cast<std::size_t>(p)] == Kind::None) {
         return false;
     }
-    params_[static_cast<std::size_t>(p)] = store(kSeqKinds[static_cast<std::size_t>(p)], value);
+    const auto i = static_cast<std::size_t>(p);
+    (shared_ != nullptr && isShared(p) ? *shared_ : params_)[i] = store(kSeqKinds[i], value);
     return true;
 }
 
@@ -559,7 +565,12 @@ SysxParse sysxFromText(const std::string& text) {
 
 // ---------------------------------------------------------------- Engine
 
-Engine::Engine() = default;
+Engine::Engine() {
+    const Sequence fresh(0);
+    for (int p = qp::kMetroPort; p <= qp::kMetroDuration; ++p) {
+        shared_[static_cast<std::size_t>(p)] = fresh.param(p);
+    }
+}
 Engine::~Engine() = default;
 
 // NOLINTNEXTLINE(readability-make-member-function-const): it changes the sequences the engine owns
@@ -605,12 +616,21 @@ SeqHandle Engine::freeHandle() const {
 
 SeqHandle Engine::createSequence() {
     const SeqHandle h = freeHandle();
-    sequences_.emplace(h, std::make_unique<Sequence>(h));
+    sequences_.emplace(h, std::make_unique<Sequence>(h, &shared_));
+    if (current_ == 0) {
+        current_ = h;
+    }
     return h;
 }
 
 bool Engine::destroySequence(const SeqHandle handle) {
-    return sequences_.erase(handle) == 1;
+    if (sequences_.erase(handle) != 1) {
+        return false;
+    }
+    if (handle == current_) {
+        current_ = 0;
+    }
+    return true;
 }
 
 Sequence* Engine::sequence(const SeqHandle handle) const noexcept {

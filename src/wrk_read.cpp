@@ -9,6 +9,8 @@
 
 #include "libseq/engine.hpp"
 
+#include <array>
+#include <optional>
 #include <string_view>
 
 namespace libseq {
@@ -25,9 +27,8 @@ std::int32_t u32At(const std::vector<std::uint8_t>& v, const std::size_t off) {
 
 /// The sequence parameters a VARS chunk (89 bytes) sets.
 void applyVars(Sequence& s, const std::vector<std::uint8_t>& v) {
+    // bytes 4 to 11 are the program's From and Thru; 1.01 does not keep them and writes 0
     s.now = static_cast<Tick>(u32At(v, 0));
-    s.from = static_cast<Tick>(u32At(v, 4));
-    s.thru = static_cast<Tick>(u32At(v, 8));
     s.setParam(qp::kZeroControllers, v[17]);
     s.setParam(qp::kSendSpp, v[18]);
     s.setParam(qp::kUseContinue, v[19]);
@@ -42,6 +43,10 @@ void applyVars(Sequence& s, const std::vector<std::uint8_t>& v) {
     s.setParam(qp::kCountIn, v[34]);
     s.setParam(qp::kFilter, v[38]);
     s.setParam(qp::kAutoRestart, v[57]);
+    s.tempoRatio = v[58];
+    for (std::size_t i = 0; i < 3; ++i) {
+        s.tempoRatios[i] = v[59 + i];
+    }
 }
 
 /// A MIDI event of a variable-length stream (chunk 18): only the bytes the message needs.
@@ -141,13 +146,14 @@ public:
             s_->fps = c.u16();
             s_->frameOffset = c.u32();
             break;
-        case wrk::METRONOME:
-            s_->setParam(qp::kMetroPort, c.u16());
-            s_->setParam(qp::kMetroChannel, c.u16());
-            s_->setParam(qp::kMetroKey, c.u16());
-            s_->setParam(qp::kMetroVelocity, c.u16());
-            s_->setParam(qp::kMetroDuration, c.u16());
+        case wrk::METRONOME: {
+            std::array<std::int32_t, 5> m{};
+            for (std::int32_t& v : m) {
+                v = c.u16();
+            }
+            metronome = m;
             break;
+        }
         case wrk::THRU:
             s_->setParam(qp::kThruMode, c.u8());
             c.skip(1);
@@ -155,6 +161,7 @@ public:
             s_->setParam(qp::kThruChannel, c.s8());
             s_->setParam(qp::kThruKeyPlus, c.s8());
             s_->setParam(qp::kThruVelPlus, c.s8());
+            s_->setParam(qp::kLocalOnPort, c.s16());
             break;
         case wrk::MARKERS: {
             const std::uint32_t n = c.u32();
@@ -277,6 +284,10 @@ public:
         }
     }
 
+    /// The metronome note (parameters 17 to 21), set on the engine only when the sequence becomes
+    /// the current one (Engine::current_).
+    std::optional<std::array<std::int32_t, 5>> metronome;
+
 private:
     Sequence* s_;
     std::map<std::uint16_t, Stream*> byTrack_;
@@ -292,7 +303,7 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
     try {
         data = bytes::readFileBytes(path.string());
     } catch (const Error&) {
-        fileError_ = 1;
+        fileError_ = 7; // what 1.01 reports for a file that is not there
         return 0;
     }
     Reader r(data);
@@ -319,6 +330,11 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
             loader.chunk(type, c);
         }
         loader.finish();
+        if (loader.metronome && current_ == h) {
+            for (int p = qp::kMetroPort; p <= qp::kMetroDuration; ++p) {
+                s.setParam(p, (*loader.metronome)[static_cast<std::size_t>(p - qp::kMetroPort)]);
+            }
+        }
     } catch (const Error&) {
         destroySequence(h);
         fileError_ = 3;

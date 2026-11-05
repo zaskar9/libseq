@@ -43,6 +43,22 @@ void defineApi101(Probe& p, Engine& e) {
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
         return e.loadCakewalkFile(path);
     });
+    p.define("SEQSAVECAKEWALKFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
+        const libseq::SeqHandle seq = a.word();
+        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
+        return e.saveCakewalkFile(seq, path) ? 1 : 0;
+    });
+    p.define("SEQLOADMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
+        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
+        a.word(); // always 0 in the corpus
+        return e.loadMidiFile(path);
+    });
+    p.define("SEQSAVEMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
+        const libseq::SeqHandle seq = a.word();
+        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
+        a.dword(); // the program callback, not called
+        return e.saveMidiFile(seq, path) ? 1 : 0;
+    });
     p.define("SEQGETFILEERROR",
              [&e](Args&, Probe&) -> std::uint32_t { return static_cast<std::uint32_t>(e.fileError()); });
 

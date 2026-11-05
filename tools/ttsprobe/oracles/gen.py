@@ -455,6 +455,52 @@ def _():
 
 
 
+# MIDI files beyond the corpus round trips of the files suite: what found the rules of
+# src/smf_write.cpp and src/smf_read.cpp, and the metronome note the sequences share.
+def midi_stream(keyplus, notes):
+    """a new stream of sequence 1 (%1) with key+ and the given (status, key, velocity) events 10 ticks apart"""
+    L = ['call.w SEQCREATESTREAM 0001 0000 0000', 'let 1', f'call.w SEQSETSTREAMPARAM %1 0000 d:{keyplus & 0xffffffff:08x}']
+    for i, (st, k, v) in enumerate(notes):
+        L += [f'fill 1 0 {i * 10 & 0xff:02x} {i * 10 >> 8:02x} 00 {st:02x} {k:02x} {v:02x} {5 if st >> 4 == 9 else 0:02x} 00',
+              f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @1']
+    return L
+
+
+@suite('midifiles')
+def _():
+    L = ['@open', 'buf 1 64']
+    L += ['echo == the metronome note (parameters 17 to 21) is one for all sequences',
+          'call.w SEQCREATESEQ 0000 0000'] + [f'call.d SEQGETSEQPARAM 0001 {p:04x}' for p in range(0x11, 0x16)]
+    L += ['@save 0001 MET0.WRK', '@load SYN_MAPS.WRK', 'call.d SEQGETSEQPARAM 0002 0013', '@save 0002 MET1.WRK',
+          'call.d SEQSETSEQPARAM 0001 0013 d:00000033', 'call.d SEQSETSEQPARAM 0001 0015 d:00000007',
+          'call.d SEQGETSEQPARAM 0002 0013', 'call.d SEQGETSEQPARAM 0002 0015', '@save 0002 MET2.WRK',
+          'call.w SEQCREATESEQ 0000 0000', 'call.d SEQGETSEQPARAM 0003 0013', '@save 0003 MET3.WRK']
+    L += ['echo == a .WRK file sets it when no other sequence is current (after any destroy, or none created)',
+          'call.w SEQDESTROYSEQ 0003', 'call.w SEQDESTROYSEQ 0001', '@load SYN_MAPS.WRK',
+          'call.d SEQGETSEQPARAM 0001 0013', 'call.d SEQGETSEQPARAM 0002 0013', 'call.w SEQDESTROYSEQ 0002',
+          '@load E3_MB.WRK', 'call.d SEQGETSEQPARAM 0001 0013', 'call.d SEQGETSEQPARAM 0001 0015',
+          'call.w SEQDESTROYSEQ 0001', 'call.w SEQDESTROYSEQ 0002', 'call.w SEQCREATESEQ 0000 0000',
+          '@load SYN_MAPS.WRK', 'call.d SEQGETSEQPARAM 0002 0013', 'call.d SEQGETSEQPARAM 0002 0015',
+          'call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    keys = [0, 1, 5, 7, 11, 12, 13, 20, 60, 100, 110, 115, 116, 117, 118, 120, 121, 125, 126, 127]
+    L += ['echo == key+ past the MIDI range: KEYFOLD.MID', 'call.w SEQCREATESEQ 0000 0000']
+    for kp in (12, -12, 30, -30, 100, -100):
+        L += midi_stream(kp, [(0x90, k, 0x40) for k in keys])
+    # below 0 the key is the next event's second data byte modulo 12, 0 after the last event
+    L += midi_stream(-12, [(0x90, 0, 0x64), (0x90, 5, 0x14), (0x90, 11, 0x64), (0x90, 2, 0x40), (0xb0, 7, 0x33),
+                           (0x90, 3, 0x40), (0xc0, 9, 0x2d), (0x90, 4, 0x40), (0x90, 2, 0x7f)])
+    L += ['@savemid 0001 KEYFOLD.MID', 'call.w SEQDESTROYSEQ 0001']
+    L += ['echo == the event the writer and the reader share: what a program change read keeps',
+          '@load SYN_KIND.WRK', '@savemid 0001 SCR0.MID', 'call.w SEQDESTROYSEQ 0001',
+          '# the last event the writer took: Forced ch6 from 9 (99 4c 61, duration 120)', '@load ENG_PARM.WRK', '@savemid 0001 SCR1.MID',
+          'call.w SEQLOADMIDIFILE "C:\\PROBE\\ORC\\OUT\\SCR0.MID" 0000', '@save 0002 SCRA.WRK', 'call.w SEQDESTROYSEQ 0002',
+          '# the last message the reader took: a note off', 'call.w SEQLOADMIDIFILE "C:\\PROBE\\ORC\\OUT\\SCR0.MID" 0000',
+          '@save 0002 SCRB.WRK', 'call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001',
+          '# Stream 6 none (bc 0a 32)', '@load ENG_MULT.WRK', '@savemid 0001 SCR2.MID',
+          'call.w SEQLOADMIDIFILE "C:\\PROBE\\ORC\\OUT\\SCR0.MID" 0000', '@save 0002 SCRC.WRK', '@close']
+    return L
+
+
 PLAY_SONGS = ['E2_CHAS', 'E2_KORD', 'E2_METR', 'E2_OVLP', 'E2_SPP', 'E2_STOP', 'E3_DENS', 'E3_MA', 'E3_MB', 'E3_MC',
               'E3_MD', 'E3_ME', 'E3_MF', 'E3_SHTL', 'E3_SPPD', 'ENG_CHAS', 'ENG_LOOP', 'ENG_METR', 'ENG_MULT', 'ENG_ORDR',
               'ENG_PARM', 'ENG_SYNC', 'ENG_SYSX', 'ENG_TMPO', 'FURELISE']

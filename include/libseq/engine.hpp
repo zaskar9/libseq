@@ -186,7 +186,15 @@ struct SysxParse {
 /// A sequence: streams, parameters, maps, markers and sysex banks.
 class Sequence {
 public:
-    explicit Sequence(SeqHandle handle);
+    /// `shared` holds the parameters the sequences of an engine share (Sequence::isShared); without
+    /// it the sequence keeps its own.
+    explicit Sequence(SeqHandle handle, std::array<std::int32_t, qp::kCount>* shared = nullptr);
+
+    /// The metronome note (parameters 17 to 21) is one for all sequences in 1.01: setting it on one
+    /// sequence shows on every other, and a new sequence finds it as it was.
+    [[nodiscard]] static constexpr bool isShared(const int p) noexcept {
+        return p >= qp::kMetroPort && p <= qp::kMetroDuration;
+    }
 
     [[nodiscard]] SeqHandle handle() const noexcept { return handle_; }
 
@@ -230,8 +238,6 @@ public:
 
     std::uint16_t ppq = 120;
     Tick now = 0;
-    Tick from = 0;
-    Tick thru = 0;
     TempoMap tempoMap;
     MeterMap meterMap;
     std::vector<Marker> markers;
@@ -251,6 +257,7 @@ private:
     [[nodiscard]] std::uint8_t freeId() const;
     SeqHandle handle_;
     std::array<std::int32_t, qp::kCount> params_{};
+    std::array<std::int32_t, qp::kCount>* shared_ = nullptr;
     std::map<std::uint8_t, std::unique_ptr<Stream>> streams_;
 };
 
@@ -283,6 +290,13 @@ public:
 
     /// SeqLoadCakewalkFile: a new sequence from a `.WRK` file; 0 when it fails (fileError() says why).
     SeqHandle loadCakewalkFile(const std::filesystem::path& path);
+    /// SeqSaveCakewalkFile without a program callback: the sequence as 1.01 writes it.
+    bool saveCakewalkFile(SeqHandle seq, const std::filesystem::path& path);
+    /// SeqSaveMidiFile: the sequence as a format 1 Standard MIDI File, as 1.01 writes it.
+    bool saveMidiFile(SeqHandle seq, const std::filesystem::path& path);
+    /// SeqLoadMidiFile: a new sequence from a Standard MIDI File; 0 when it fails.
+    SeqHandle loadMidiFile(const std::filesystem::path& path);
+
     /// SeqGetFileError: what the last file operation reported.
     [[nodiscard]] int fileError() const noexcept { return fileError_; }
 
@@ -290,6 +304,17 @@ private:
     [[nodiscard]] SeqHandle freeHandle() const;
     std::map<SeqHandle, std::unique_ptr<Sequence>> sequences_;
     int fileError_ = 0;
+    /// The event the MIDI file writer and reader work in. 1.01 keeps one for both and never clears
+    /// it, so what a message does not fill (the second data byte and the duration of a program
+    /// change or channel pressure that is read) is what the last message left there, from an
+    /// earlier file too.
+    Event midiScratch_;
+    /// The parameters all sequences share, as a new sequence starts them.
+    std::array<std::int32_t, qp::kCount> shared_{};
+    /// 1.01's current sequence, as far as the probes show it: the sequence created while there is
+    /// none, until it is destroyed. A `.WRK` file sets the shared metronome note only when its
+    /// sequence becomes the current one (the midifiles suite).
+    SeqHandle current_ = 0;
 };
 
 } // namespace libseq

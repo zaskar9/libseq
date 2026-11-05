@@ -85,7 +85,7 @@ three versions:
 | 12 | "Local On" port (-1 = none) | | yes | yes | yes |
 | 13, 14 | metronome during playback, during recording | VARS 31, 32 | yes | yes | yes |
 | 15, 16 | metronome accent, count-in measures | VARS 33, 34 | yes | yes | yes |
-| 17 to 21 | metronome port, channel, key, velocity, duration | chunk 17 | yes | yes | yes |
+| 17 to 21 | metronome port, channel, key, velocity, duration; one for all sequences (Files) | chunk 17 | yes | yes | yes |
 | 22 | metronome on the PC speaker | | yes | yes | yes |
 | 23, 24, 25 | auto-stop, auto-rewind, auto-restart | VARS 21, 26, 57 | yes | yes | yes |
 | 26 | rewind time (32-bit) | VARS 27 to 30 | yes | yes | yes |
@@ -579,6 +579,83 @@ without the patch is a little less exact than 86Box's.
   Cakewalk Professional 2.00 holds `06 00 01 00 00 00` [probe].
 - Chunk 16 holds the MIDI thru settings (parameters 7 to 11), chunk 17 the metronome note
   (parameters 17 to 21) [probe].
+- `SeqGetFileError()` gives 7 for a file that is not there, for `.WRK` and MIDI files alike [probe].
+
+### Writing `.WRK` files (1.01)
+
+Every song of the corpus was loaded and saved again without a callback (the `files` suite), and
+libseq writes the same bytes (`src/wrk_write.cpp`) [probe].
+
+- The header is `CAKEWALK 1A 00 02`. The chunks follow in a fixed order: TIMEBASE (10), VARS (3),
+  NTEMPO (15), METER (5), METERKEY (23), TIMEFMT (11), METRONOME (17), THRU (16), MARKERS (21)
+  when there are markers, then for each stream in id order TRACK (1), TRKNAME (24), STREAM (2),
+  TRKPATCH (14) when there is a patch, TRKREPS (12) when the loop count is neither 1 nor 9999,
+  TRKOFFS (9) when time+ is not 0, TRKVOL (19) when there is a volume or a pan; then one SYSEX
+  (6) per bank and END.
+- VARS (89 bytes): Now at 0; From and Thru (4 to 11) are 0, the engine does not keep them; 12 is
+  the tonic of the first key signature (7 semitones per sharp); then the transport, metronome and
+  filter parameters; 35 and 36 are FF, 37 is 1; 58 to 61 the selected tempo ratio and the three
+  ratios; 73 the end of the song (the longest stream).
+- TRACK: the stream's position, its name cut into two Pascal strings of 15 characters, channel,
+  key+, vel+, port and the flags (2 muted, 4 looped, 0x10 archived).
+
+### Writing MIDI files (1.01)
+
+The same songs saved with `SeqSaveMidiFile` (the `files` suite) and the probes of the
+`midifiles` suite give these rules; libseq writes the same bytes (`src/smf_write.cpp`) [probe].
+
+- Format 1, one track for the maps and one per stream in id order (muted and archived streams
+  too), the ppq as the division.
+- Track 0: at each tick the meter (58) and the key signature (59) when they changed, the tempo (51)
+  and the markers: unlocked ones as marker (06), locked ones as cue point (07), at their tick. The
+  tempo in microseconds per quarter is cut, not rounded: 99.50 beats per minute gives 603015.
+- A stream's track: port (21), name (03, left out when empty), then patch, volume and pan
+  parameters as messages with a status byte each, on the forced channel or else the channel of
+  the stream's first message. The events follow with running status.
+- Forced channel, key+ and vel+ are applied, time+ and the loop count are not. The velocity stays
+  within 1 to 127. A key above 127 goes to the top octave keeping its pitch class (108 + key mod
+  12). A key below 0 becomes the second data byte of the stream's next event modulo 12, whatever
+  that event is, and 0 after the last event: a reading of memory past the note, not a rule
+  anyone meant. ENG_PARM's 5 - 12 with a next velocity of 31 gives 7.
+- A note becomes a note on and a note on with velocity 0 at its end, written before the events at
+  or after that time. Of notes that end together, the last one started ends first.
+- Only channel messages are written: no sysex, neither the bank references nor the banks.
+
+### Reading MIDI files (1.01)
+
+Each MIDI file the `files` suite wrote was read back with `SeqLoadMidiFile` and saved as a `.WRK`
+file (the `*_M.WRK` files); libseq reads them into the same sequences (`src/smf_read.cpp`)
+[probe].
+
+- The new sequence is as `SeqCreateSeq` makes it, with the division as its ppq.
+- Tempos become whole beats per minute (603015 microseconds gives 99.00), inserted as
+  `SeqInsTempo` does, slip included: the cached times stay wrong after the second entry. A cue
+  point read then gets a frame from those times, and its tick moves when it is saved. SYN_MAPS's
+  cue at 960 comes back at 2240, after the marker at 2000.
+- Meters and key signatures become meter entries at the measure of their tick; markers and cue
+  points are inserted as `SeqInsMarker` does.
+- Every track but the first of a format 1 file becomes a stream, numbered from 0, not muted, with
+  the track's name and port. When all its messages are on one channel that is its forced channel,
+  otherwise it has none.
+- The track's first program change, first volume (controller 7) and first pan (10) become the
+  stream's patch, volume and pan wherever they are, and leave the stream.
+- A note off (or note on with velocity 0) ends the last note started of its key and channel.
+- The writer and the reader work in one event that nothing clears. A message with two data bytes
+  sets the second one, and a duration of 1 for notes, 0 for the others. A program change or channel
+  pressure sets neither, so it keeps what the message before it left, from an earlier file too:
+  E2_CHAS's program change after a note off gets 0 and a duration of 1; SYN_KIND's first program
+  change gets 5A, the second data byte of the last event the writer took when it saved the file
+  just before.
+
+### The metronome note is shared
+
+Parameters 17 to 21 (metronome port, channel, key, velocity and duration) are one setting for
+all sequences in 1.01: setting them on one sequence shows on every other, and a new sequence finds
+them as they were [probe, `midifiles`]. A `.WRK` file's chunk 17 sets them only when its sequence
+becomes the current one: the one created while there is none, until it is destroyed. With a
+sequence open, loading SYN_MAPS leaves the metronome as it was; after that sequence is destroyed,
+it takes SYN_MAPS's. The `*_M.WRK` files show the same: each holds the metronome of the song loaded
+before it.
 
 ### The file callbacks and `SeqIO` (1.01, 2.10)
 

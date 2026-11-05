@@ -12,6 +12,9 @@ add_library(libseq
     src/engine.cpp
     src/timemap.cpp
     src/wrk_read.cpp
+    src/wrk_write.cpp
+    src/smf_read.cpp
+    src/smf_write.cpp
 )
 target_include_directories(libseq PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

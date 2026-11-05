@@ -157,8 +157,8 @@ suites passed numerator and denominator as two words, which the engine took as k
 | Call | Result | Notes |
 |---|---|---|
 | `SeqLoadCakewalkFile` / `SeqSaveCakewalkFile` | w | see API.md |
-| `SeqLoadMidiFile(p file, 0)` | w | the new sequence |
-| `SeqSaveMidiFile(seq, p file, d 0)` | w | |
+| `SeqLoadMidiFile(p file, 0)` | w | the new sequence, 0 when it fails (file error 7 for a missing file) |
+| `SeqSaveMidiFile(seq, p file, d 0)` | w | 1; format 1, see API.md |
 | `SeqGetFileError()` | w | |
 | `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(seq)` | w | |
 | `SeqSetNow(seq, d tick)`, `SeqSetDur(seq, d ticks)` | d | return the value |
