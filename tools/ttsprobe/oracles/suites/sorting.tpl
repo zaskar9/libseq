@@ -1,0 +1,5023 @@
+@open
+buf 0 64
+buf 1 64
+call.w SEQCREATESEQ 0000 0000
+echo == sort 5 1 1 1 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 05 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 1 1 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 2 1 1 1 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 02 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 2 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 0 0 0 0 0 0 0 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 9 1 1 1 1 1 1 1 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 09 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 0 0 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 1 0 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 2 2 1 1 0 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 02 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 5 4 3 2 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 05 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 0 1 0 1 0 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 3 3 1 1 1 2 2 2
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 2 1 3 0 0 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 02 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 2 4 0 4 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 0 3 3 0 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 4 3 0 4 0 1 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 4 4 3 0 1 0 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 2 3 1 4 0 4 2
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 4 1 0 4 4 1 2 0 4 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 04 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 4 0 4 1 3 4 3 2 3 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 04 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 2 2 1 1 1 0 4 2 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 2 3 2 4 0 0 4 3 1 2 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 3 0 0 4 4 2 2 2 4 3 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 0 0 2 3 0 0 2 4 3 2 3
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 2 0 3 2 1 4 0 3 0 1 2 1 1 3 3 3
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 02 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 0 1 3 3 4 2 1 3 4 2 3 2 3 1 1 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 1 1 1 0 3 4 1 2 2 0 1 3 4 2 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 4 2 1 4 4 0 3 4 3 3 3 3 0 3 3 0 1 0 1 3
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 04 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 0 2 4 0 0 0 4 1 4 0 2 4 0 0 1 4 3 1 2
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 2 4 2 3 0 0 3 3 3 3 2 0 1 0 2 2 3 1 4 0
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 02 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 4 2 1 4 0 4 2 0 2 4 2 1 2 1 4 4 4 2 1 4 1 1 3
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 1 4 3 2 0 0 2 3 2 1 4 2 3 2 2 0 1 0 1 3 1 2 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 4 4 0 3 2 0 0 3 1 3 1 3 2 0 3 3 3 0 1 1 1 0 1
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 4 3 1 4 4 3 2 1 4 4 1 0 0 0 4 1 3 1 1 0 2 1 2 4 1 4 2 2 4 3
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 04 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 18 40 00 00
+call.d SEQSEEK %1 0000 d:00000018
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 19 40 00 00
+call.d SEQSEEK %1 0000 d:00000019
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 1a 40 00 00
+call.d SEQSEEK %1 0000 d:0000001a
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 1b 40 00 00
+call.d SEQSEEK %1 0000 d:0000001b
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1c 40 00 00
+call.d SEQSEEK %1 0000 d:0000001c
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 1d 40 00 00
+call.d SEQSEEK %1 0000 d:0000001d
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 1 0 2 3 4 4 3 4 1 4 1 4 4 0 3 1 4 0 1 1 1 3 4 0 4 0 2 4 4 4
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 01 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 18 40 00 00
+call.d SEQSEEK %1 0000 d:00000018
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 19 40 00 00
+call.d SEQSEEK %1 0000 d:00000019
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 1a 40 00 00
+call.d SEQSEEK %1 0000 d:0000001a
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1b 40 00 00
+call.d SEQSEEK %1 0000 d:0000001b
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1c 40 00 00
+call.d SEQSEEK %1 0000 d:0000001c
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1d 40 00 00
+call.d SEQSEEK %1 0000 d:0000001d
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == sort 3 0 4 0 1 1 2 0 0 4 3 4 0 0 3 2 4 4 4 4 1 2 3 4 4 3 4 1 4 2
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 03 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 08 40 00 00
+call.d SEQSEEK %1 0000 d:00000008
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 09 40 00 00
+call.d SEQSEEK %1 0000 d:00000009
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0a 40 00 00
+call.d SEQSEEK %1 0000 d:0000000a
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 0b 40 00 00
+call.d SEQSEEK %1 0000 d:0000000b
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0c 40 00 00
+call.d SEQSEEK %1 0000 d:0000000c
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 0d 40 00 00
+call.d SEQSEEK %1 0000 d:0000000d
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 0e 40 00 00
+call.d SEQSEEK %1 0000 d:0000000e
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 0f 40 00 00
+call.d SEQSEEK %1 0000 d:0000000f
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 10 40 00 00
+call.d SEQSEEK %1 0000 d:00000010
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 11 40 00 00
+call.d SEQSEEK %1 0000 d:00000011
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 12 40 00 00
+call.d SEQSEEK %1 0000 d:00000012
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 13 40 00 00
+call.d SEQSEEK %1 0000 d:00000013
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 14 40 00 00
+call.d SEQSEEK %1 0000 d:00000014
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 15 40 00 00
+call.d SEQSEEK %1 0000 d:00000015
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 16 40 00 00
+call.d SEQSEEK %1 0000 d:00000016
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 17 40 00 00
+call.d SEQSEEK %1 0000 d:00000017
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 18 40 00 00
+call.d SEQSEEK %1 0000 d:00000018
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 19 40 00 00
+call.d SEQSEEK %1 0000 d:00000019
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1a 40 00 00
+call.d SEQSEEK %1 0000 d:0000001a
+call.w SEQINSEVT %1 @1
+fill 1 0 01 00 00 90 1b 40 00 00
+call.d SEQSEEK %1 0000 d:0000001b
+call.w SEQINSEVT %1 @1
+fill 1 0 04 00 00 90 1c 40 00 00
+call.d SEQSEEK %1 0000 d:0000001c
+call.w SEQINSEVT %1 @1
+fill 1 0 02 00 00 90 1d 40 00 00
+call.d SEQSEEK %1 0000 d:0000001d
+call.w SEQINSEVT %1 @1
+call.d SEQTEMPORALSORT %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 20 by 0xf: 0 10 20 30 40 50
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 28 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 32 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000014 d:0000000f
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 20 by 0x19: 0 10 20 30 40 50
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 28 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 32 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000014 d:00000019
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 20 by 0x19: 0 10 20 20 20 30 30 40
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 28 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000014 d:00000019
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 20 by 0xc: 0 10 20 20 20 30 30 40
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 06 40 00 00
+call.d SEQSEEK %1 0000 d:00000006
+call.w SEQINSEVT %1 @1
+fill 1 0 28 00 00 90 07 40 00 00
+call.d SEQSEEK %1 0000 d:00000007
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000014 d:0000000c
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace later from 10 by 0xfffff0: 0 10 20 30
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACELATER %1 d:0000000a d:00fffff0
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace later from 10 by 0xfffff5: 0 10 10 10 20 30
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACELATER %1 d:0000000a d:00fffff5
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 10 by 0x2: 5 0 10 3 20
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 05 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:0000000a d:00000002
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace later from 4 by 0x1: 5 0 10 3 20
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 05 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 00 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 03 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACELATER %1 d:00000004 d:00000001
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 100 by 0x5: 0 10 20
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000064 d:00000005
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+echo == displace earlier from 25 by 0x1e: 0 10 20 30 40 50
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 1 0 00 00 00 90 00 40 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @1
+fill 1 0 0a 00 00 90 01 40 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @1
+fill 1 0 14 00 00 90 02 40 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @1
+fill 1 0 1e 00 00 90 03 40 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @1
+fill 1 0 28 00 00 90 04 40 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @1
+fill 1 0 32 00 00 90 05 40 00 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @1
+call.d SEQSEEK %1 0000 d:00000002
+call.d SEQDISPLACEEARLIER %1 d:00000019 d:0000001e
+call.d SEQTELL %1
+call.d SEQSTREAMLEN %1
+call.d SEQSEEK %1 0000 d:00000000
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT %1 @0
+dump 0 0 8
+call.d SEQTELL %1
+call.w SEQEOS %1
+call.w SEQNXTEVT %1
+call.w SEQDESTROYSTREAM %1
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x2 to 0x2
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000002 d:00000002
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x2 to 0x3
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000002 d:00000003
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x5 to 0x3
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000005 d:00000003
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x11 to 0x19
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000011 d:00000019
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x12 to 0x12
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000012 d:00000012
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x13 to 0x13
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000013 d:00000013
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x13 to 0x14
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000013 d:00000014
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x78 to 0x1e0
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000078 d:000001e0
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x0 to 0x12
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000000 d:00000012
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x0 to 0x13
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000000 d:00000013
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+echo == delete range 0x14 to 0x16
+@load ENG_ORDR.WRK
+call.d SEQSEEK 0100 0000 d:00000004
+call.w SEQDELETERANGE 0100 d:00000014 d:00000016
+call.d SEQSTREAMLEN 0100
+call.d SEQTELL 0100
+call.d SEQSEEK 0100 0000 d:00000002
+fill 0 0 ee ee ee ee ee ee ee ee
+call.w SEQGETEVT 0100 @0
+dump 0 0 8
+call.w SEQDESTROYSEQ 0001
+@close

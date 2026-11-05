@@ -99,6 +99,46 @@ public:
     /// The event cursor (SeqSeek, SeqTell, SeqNxtEvt).
     std::size_t cursor = 0;
 
+    /// SeqEvtAtTimeGE / GT: the index of the first event at or after (after) a tick; the length
+    /// when there is none. Found by halving, as in a sorted stream.
+    [[nodiscard]] std::size_t indexAtOrAfter(Tick tick) const noexcept;
+    [[nodiscard]] std::size_t indexAfter(Tick tick) const noexcept;
+    /// SeqHasEvts for a tick range: whether an event starts in [from, to).
+    [[nodiscard]] bool hasEventsIn(Tick from, Tick to) const noexcept;
+
+    /// SeqPutEvt: replaces the event at the cursor. False at the end of the stream.
+    bool put(const Event& e);
+    /// SeqInsEvt: inserts an event before the cursor.
+    void insert(const Event& e);
+    /// SeqDelEvt: removes the event at the cursor. False at the end of the stream.
+    bool erase();
+    /// SeqMoveEvt: gives the event at the cursor a new time and moves it to its place among
+    /// the others; returns its new index.
+    std::size_t move(Tick tick);
+    /// SeqTemporalSort: sorts the events by time as the engine does, with Shell's sort, which
+    /// does not keep the order of events at the same time. Returns the length.
+    std::size_t sort();
+    /// What SeqDeleteRange did.
+    enum class RangeResult : std::uint8_t {
+        Empty,     // `first` is not before `end`: nothing
+        Unchanged, // the range starts at the end of the stream: nothing
+        Done,
+    };
+    /// SeqDeleteRange: removes the events with indices in [first, end). A range that reaches the
+    /// end makes the stream end at `first`, also when `first` lies past it: 1.01 then lengthens
+    /// the stream with zero events. The cursor stays where it was, within the new length when
+    /// events in the middle went.
+    RangeResult eraseRange(std::size_t first, std::size_t end);
+    /// SeqDisplaceEarlier: moves the events from the first one at or after `from` on earlier by
+    /// `amount` ticks (in the 24 bits an event keeps) and puts each back in order among the events
+    /// before it. Returns the length.
+    std::size_t displaceEarlier(Tick from, Tick amount);
+    /// SeqDisplaceLater: moves the events from the first one at or after `from` on later by
+    /// `amount` ticks (in 24 bits) without sorting. Returns the length.
+    std::size_t displaceLater(Tick from, Tick amount);
+    /// SeqInsertRange: inserts copies of the events of `src` before an index, unsorted.
+    void insertRange(std::size_t at, const std::vector<Event>& src);
+
 private:
     friend class Sequence;
     friend class Engine;
@@ -196,6 +236,12 @@ public:
     /// SeqAdoptStream: moves a stream into a sequence under a new handle, which is chosen while
     /// the stream still holds its old one. Returns the new handle, 0 when it fails.
     StreamHandle adoptStream(SeqHandle seq, StreamHandle stream);
+
+    /// SeqMergeStreams: a new stream in `seq` with the events of `a` and those of `b` moved later
+    /// by `offset`, `a`'s first at equal times; `a` takes its parameters and name to it and is
+    /// destroyed, `b` too when `destroyB`. `a` = 0 means no stream. Returns the new handle, 0
+    /// when it fails.
+    StreamHandle mergeStreams(SeqHandle seq, StreamHandle a, StreamHandle b, bool destroyB, Tick offset);
 
     /// SeqLoadCakewalkFile: a new sequence from a `.WRK` file; 0 when it fails (fileError() says why).
     SeqHandle loadCakewalkFile(const std::filesystem::path& path);

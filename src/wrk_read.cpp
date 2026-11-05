@@ -208,13 +208,10 @@ public:
                     t.events().push_back(readVarMidiEvent(c, time, status));
                     continue;
                 }
-                // A string event: its text belongs to the program (see SeqRegisterEventKind).
+                // A string event: its text belongs to the program (SeqRegisterEventKind). With no
+                // kind registered the engine leaves it out.
                 const std::uint32_t len = c.u32();
                 c.skip(len);
-                Event e;
-                e.time = time;
-                e.status = status;
-                t.events().push_back(e);
             }
             break;
         }

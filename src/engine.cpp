@@ -2,6 +2,7 @@
 #include "libseq/engine.hpp"
 
 #include <algorithm>
+#include <iterator>
 
 namespace libseq {
 
@@ -137,6 +138,124 @@ Tick Stream::duration() const noexcept {
         end = std::max(end, e.time);
     }
     return end;
+}
+
+// The engine finds times by halving, as if the stream were sorted; on an unsorted stream the answer
+// is where that search ends.
+
+std::size_t Stream::indexAtOrAfter(const Tick tick) const noexcept {
+    const auto it = std::ranges::lower_bound(events_, tick, {}, &Event::time);
+    return static_cast<std::size_t>(it - events_.begin());
+}
+
+std::size_t Stream::indexAfter(const Tick tick) const noexcept {
+    const auto it = std::ranges::upper_bound(events_, tick, {}, &Event::time);
+    return static_cast<std::size_t>(it - events_.begin());
+}
+
+bool Stream::hasEventsIn(const Tick from, const Tick to) const noexcept {
+    return std::ranges::any_of(events_, [from, to](const Event& e) { return e.time >= from && e.time < to; });
+}
+
+bool Stream::put(const Event& e) {
+    if (cursor >= events_.size()) {
+        return false;
+    }
+    events_[cursor] = e;
+    return true;
+}
+
+void Stream::insert(const Event& e) {
+    events_.insert(events_.begin() + static_cast<std::ptrdiff_t>(std::min(cursor, events_.size())), e);
+}
+
+bool Stream::erase() {
+    if (cursor >= events_.size()) {
+        return false;
+    }
+    events_.erase(events_.begin() + static_cast<std::ptrdiff_t>(cursor));
+    return true;
+}
+
+std::size_t Stream::move(const Tick tick) {
+    if (cursor >= events_.size()) {
+        return cursor;
+    }
+    Event e = events_[cursor];
+    e.time = tick;
+    events_.erase(events_.begin() + static_cast<std::ptrdiff_t>(cursor));
+    const std::size_t at = indexAfter(tick);
+    events_.insert(events_.begin() + static_cast<std::ptrdiff_t>(at), e);
+    return at;
+}
+
+std::size_t Stream::sort() {
+    // Shell's sort with the gaps n/2, n/4, ..., 1, which is why it is not stable
+    const std::size_t n = events_.size();
+    for (std::size_t gap = n / 2; gap > 0; gap /= 2) {
+        for (std::size_t i = gap; i < n; ++i) {
+            const Event e = events_[i];
+            std::size_t j = i;
+            while (j >= gap && events_[j - gap].time > e.time) {
+                events_[j] = events_[j - gap];
+                j -= gap;
+            }
+            events_[j] = e;
+        }
+    }
+    return n;
+}
+
+Stream::RangeResult Stream::eraseRange(const std::size_t first, const std::size_t end) {
+    if (first >= end) {
+        return RangeResult::Empty;
+    }
+    if (end >= events_.size()) {
+        // The tail goes: the stream ends at `first`, also when that is past its end (the new
+        // events are zero).
+        if (first == events_.size()) {
+            return RangeResult::Unchanged;
+        }
+        events_.resize(first);
+        return RangeResult::Done;
+    }
+    events_.erase(events_.begin() + static_cast<std::ptrdiff_t>(first),
+                  events_.begin() + static_cast<std::ptrdiff_t>(end));
+    cursor = std::min(cursor, events_.size());
+    return RangeResult::Done;
+}
+
+std::size_t Stream::displaceEarlier(const Tick from, const Tick amount) {
+    // The events from the first one at or after `from` on move; each is then put after the last
+    // earlier event at its new time or before it (a halving search in the events before it). The
+    // cursor follows the last event that changed its place.
+    const std::size_t first = indexAtOrAfter(from);
+    for (std::size_t i = first; i < events_.size(); ++i) {
+        events_[i].time = (events_[i].time - amount) & Event::kMaxTime;
+    }
+    for (std::size_t i = first; i < events_.size(); ++i) {
+        const auto begin = events_.begin();
+        const auto at =
+            std::ranges::upper_bound(begin, begin + static_cast<std::ptrdiff_t>(i), events_[i].time, {}, &Event::time);
+        if (at != begin + static_cast<std::ptrdiff_t>(i)) {
+            std::rotate(at, begin + static_cast<std::ptrdiff_t>(i), begin + static_cast<std::ptrdiff_t>(i + 1));
+            cursor = static_cast<std::size_t>(at - begin);
+        }
+    }
+    return events_.size();
+}
+
+std::size_t Stream::displaceLater(const Tick from, const Tick amount) {
+    // The events from the first one at or after `from` on move, in 24 bits; nothing is sorted, so
+    // a time that passes the end of the 24 bits leaves the stream out of order.
+    for (std::size_t i = indexAtOrAfter(from); i < events_.size(); ++i) {
+        events_[i].time = (events_[i].time + amount) & Event::kMaxTime;
+    }
+    return events_.size();
+}
+
+void Stream::insertRange(const std::size_t at, const std::vector<Event>& src) {
+    events_.insert(events_.begin() + static_cast<std::ptrdiff_t>(std::min(at, events_.size())), src.begin(), src.end());
 }
 
 // ---------------------------------------------------------------- Sequence
@@ -295,6 +414,38 @@ Tick Sequence::frameToTick(const std::uint32_t frame, const bool up) const noexc
 
 Engine::Engine() = default;
 Engine::~Engine() = default;
+
+// NOLINTNEXTLINE(readability-make-member-function-const): it changes the sequences the engine owns
+StreamHandle Engine::mergeStreams(const SeqHandle seq, const StreamHandle a, const StreamHandle b, const bool destroyB,
+                                  const Tick offset) {
+    Sequence* dst = sequence(seq);
+    const Stream* sa = a == 0 ? nullptr : stream(a);
+    const Stream* sb = stream(b);
+    if (dst == nullptr || sb == nullptr || (a != 0 && sa == nullptr)) {
+        return 0;
+    }
+    Stream& m = dst->createStream();
+    std::vector<Event> later = sb->events();
+    for (Event& e : later) {
+        e.time += offset;
+    }
+    const std::vector<Event> none;
+    const std::vector<Event>& first = sa == nullptr ? none : sa->events();
+    std::ranges::merge(first, later, std::back_inserter(m.events_),
+                       [](const Event& x, const Event& y) { return x.time < y.time; });
+    if (sa != nullptr) {
+        m.name_ = sa->name_;
+        m.params_ = sa->params_;
+    }
+    const StreamHandle h = m.handle();
+    if (a != 0) {
+        sequence(seqOf(a))->destroyStream(a);
+    }
+    if (destroyB) {
+        sequence(seqOf(b))->destroyStream(b);
+    }
+    return h;
+}
 
 SeqHandle Engine::freeHandle() const {
     for (SeqHandle h = 1; h < 256; ++h) {

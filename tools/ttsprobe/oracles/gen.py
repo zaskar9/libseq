@@ -3,6 +3,7 @@
 for render.py. Run it after changing a suite; mkoracles.sh then renders and runs them."""
 import json
 import os
+import random
 
 SUITES = {}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -158,6 +159,52 @@ def _():
     L += ['echo == insert range, then sort', '@load ENG_ORDR.WRK'] + source(two) + \
          ['call.d SEQINSERTRANGE 0100 d:00000000 %1', 'call.d SEQTEMPORALSORT 0100'] + walk('0100', STREAMS['ENG_ORDR']['0100'] + 3) + \
          ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    L += ['@close']
+    return L
+
+
+# Streams built event by event for the order-changing calls: data1 holds the event's original
+# index, so the result shows where each event went.
+SORT_CASES = [[5, 1, 1, 1, 1], [1, 1, 1, 1, 0], [2, 1, 1, 1, 1, 0], [3, 2, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0],
+              [9, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 1, 0], [1, 1, 0, 0], [2, 2, 1, 1, 0, 0], [5, 4, 3, 2, 1, 0],
+              [1, 0] * 4, [3, 3, 3, 1, 1, 1, 2, 2, 2]]
+_rnd = random.Random(7)
+for _n in (6, 8, 10, 12, 16, 20, 24, 30):
+    SORT_CASES += [[_rnd.randint(0, 4) for _ in range(_n)] for _ in range(3)]
+DISPLACE_CASES = [([0, 10, 20, 30, 40, 50], 'EARLIER', 20, 15), ([0, 10, 20, 30, 40, 50], 'EARLIER', 20, 25),
+                  ([0, 10, 20, 20, 20, 30, 30, 40], 'EARLIER', 20, 25), ([0, 10, 20, 20, 20, 30, 30, 40], 'EARLIER', 20, 12),
+                  ([0, 10, 20, 30], 'LATER', 10, 0xfffff0), ([0, 10, 10, 10, 20, 30], 'LATER', 10, 0xfffff5),
+                  ([5, 0, 10, 3, 20], 'EARLIER', 10, 2), ([5, 0, 10, 3, 20], 'LATER', 4, 1), ([0, 10, 20], 'EARLIER', 100, 5),
+                  ([0, 10, 20, 30, 40, 50], 'EARLIER', 25, 30)]
+
+
+def built(times):
+    """a new stream of sequence 1 (%1) with notes at the given times, data1 = index"""
+    L = ['call.w SEQCREATESTREAM 0001 0000 0000', 'let 1']
+    for i, t in enumerate(times):
+        L += [f'fill 1 0 {t & 0xff:02x} {(t >> 8) & 0xff:02x} {(t >> 16) & 0xff:02x} 90 {i:02x} 40 00 00',
+              f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @1']
+    return L
+
+
+@suite('sorting')
+def _():
+    L = ['@open', 'buf 0 64', 'buf 1 64', 'call.w SEQCREATESEQ 0000 0000']
+    for times in SORT_CASES:
+        L += ['echo == sort ' + ' '.join(map(str, times))] + built(times) + ['call.d SEQTEMPORALSORT %1'] + \
+            walk('%1', len(times) - 1) + ['call.w SEQDESTROYSTREAM %1']
+    for times, way, frm, amount in DISPLACE_CASES:
+        L += [f'echo == displace {way.lower()} from {frm} by {amount:#x}: ' + ' '.join(map(str, times))] + built(times) + \
+            ['call.d SEQSEEK %1 0000 d:00000002', f'call.d SEQDISPLACE{way} %1 d:{frm:08x} d:{amount:08x}',
+             'call.d SEQTELL %1', 'call.d SEQSTREAMLEN %1'] + walk('%1', len(times) - 1) + ['call.w SEQDESTROYSTREAM %1']
+    # SeqDeleteRange(stream, first, end) with indices; ENG_ORDR's stream has 19 events
+    L += ['call.w SEQDESTROYSEQ 0001']
+    for first, end in [(2, 2), (2, 3), (5, 3), (0x11, 0x19), (0x12, 0x12), (0x13, 0x13), (0x13, 0x14), (0x78, 0x1e0),
+                       (0, 0x12), (0, 0x13), (0x14, 0x16)]:
+        L += [f'echo == delete range {first:#x} to {end:#x}', '@load ENG_ORDR.WRK', 'call.d SEQSEEK 0100 0000 d:00000004',
+              f'call.w SEQDELETERANGE 0100 d:{first:08x} d:{end:08x}', 'call.d SEQSTREAMLEN 0100', 'call.d SEQTELL 0100',
+              'call.d SEQSEEK 0100 0000 d:00000002', 'fill 0 0 ee ee ee ee ee ee ee ee', 'call.w SEQGETEVT 0100 @0',
+              'dump 0 0 8', 'call.w SEQDESTROYSEQ 0001']
     L += ['@close']
     return L
 

@@ -135,44 +135,8 @@ void defineApi101(Probe& p, Engine& e) {
         return 1;
     });
 
-    // ---- the event cursor
-    p.define("SEQSEEK", [&e](Args& a, Probe&) -> std::uint32_t {
-        Stream* s = e.stream(a.word());
-        a.word();
-        const std::uint32_t index = a.dword();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->cursor = std::min<std::size_t>(index, s->events().size());
-        return static_cast<std::uint32_t>(s->cursor);
-    });
-    p.define("SEQTELL", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->cursor);
-    });
-    p.define("SEQEOS", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        return s == nullptr || s->cursor >= s->events().size() ? 1 : 0;
-    });
-    p.define("SEQNXTEVT", [&e](Args& a, Probe&) -> std::uint32_t {
-        Stream* s = e.stream(a.word());
-        if (s == nullptr || s->cursor >= s->events().size()) {
-            return 0;
-        }
-        ++s->cursor;
-        return s->cursor < s->events().size() ? 1 : 0;
-    });
-    p.define("SEQGETEVT", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        std::uint8_t* out = pr.mem.at(a.ptr(), libseq::Event::kSize);
-        if (s == nullptr || out == nullptr || s->cursor >= s->events().size()) {
-            return 0;
-        }
-        const auto b = s->events()[s->cursor].bytes();
-        std::memcpy(out, b.data(), b.size());
-        return 1;
-    });
     (void)w;
+    defineEvents101(p, e);
     defineTime101(p, e);
 }
 

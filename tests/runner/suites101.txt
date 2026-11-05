@@ -5,3 +5,8 @@ streams
 tempo
 meter
 timecode
+events
+eventedit
+ranges
+merge
+sorting

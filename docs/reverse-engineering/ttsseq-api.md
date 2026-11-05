@@ -171,6 +171,44 @@ Track > Archive in Cakewalk Apprentice 1.04 calls `SeqSetStreamParam(stream, 8, 
   (Edit > Transpose does get/put per event), `SeqEvtAtTimeGE(stream, tick32)` (3 words) returns an
   index [probe, trace].
 
+The edit primitives, from the `events`, `eventedit`, `ranges`, `merge` and `sorting` suites [probe].
+The `sorting` suite builds streams event by event with each event's index in its first data byte,
+so the results show where every event went. 1.01, 2.10 and 3.00 answer it alike. libseq 1.1.0
+follows all of it.
+
+- **Searching.** `SeqEvtAtTimeGE` and `SeqEvtAtTimeGT` find the first event at or after (after) a
+  tick by halving, as if the stream were sorted; the length when there is none.
+  `SeqDisplaceEarlier` and `SeqDisplaceLater` find their start the same way: on the unsorted
+  stream 5, 0, 10, 3, 20 the first event at or after 4 is the one at 10.
+- **The cursor.** `SeqSeek` past the end stops at the length. `SeqNxtEvt` returns 0 when it reaches
+  the end. `SeqPutEvt` replaces the event at the cursor, `SeqInsEvt` inserts before it,
+  `SeqDelEvt` removes it, and `SeqMoveEvt(stream, tick32)` gives it a new time, puts it after the
+  last event at or before that time and returns its new index. `SeqGetEvtCopy` answers like
+  `SeqGetEvt`.
+- **`SeqTemporalSort`** is Shell's sort with the gaps n/2, n/4, ..., 1, so it does not keep the
+  order of events at the same time: 5, 1, 1, 1, 1 comes out as the events 2, 1, 4, 3, 0. All 36
+  streams of the suite, up to 30 events with many equal times, match it event for event. It
+  returns the length.
+- **`SeqDeleteRange(stream, first32, end32)`** works on indices, `end` not included. An empty
+  range changes nothing and leaves `first` in AX. A range that reaches the end cuts the stream at
+  `first`; when `first` lies past the end the stream grows to `first` events, the new ones zero
+  (19 events, range 0x78 to 0x1E0: 120 events). Cutting at the length itself changes nothing and
+  returns the length; otherwise the result is 1. When events in the middle go, the cursor stays
+  where it was, within the new length.
+- **`SeqDisplaceEarlier(stream, from32, amount32)`** moves the events from the first one at or
+  after `from` on (by index, whatever their times) earlier, in the 24 bits an event keeps: a time
+  below 0 becomes 0xFFFFxx. Then it takes each moved event in turn and puts it after the last
+  event at or before its new time among the events before it, again by halving. Events at the
+  same time keep their order, and those that wrapped end up last. The cursor ends on the last
+  event that changed its place (it stays put when none did). It returns the length.
+- **`SeqDisplaceLater`** moves the same events later in 24 bits and sorts nothing: a time that
+  passes 0xFFFFFF wraps to a small one and stays where it is. It returns the length.
+- **`SeqMergeStreams`** makes its new stream while `a` still exists (stream 0x0201 next to 0x0200),
+  takes `a`'s name and parameters, and then destroys `a`, and `b` when the flag is not 0 (3
+  as well as 1).
+- **String events** in a file are left out while no event kind is registered; the stream keeps its
+  MIDI and sysex events only.
+
 ## Time, tempo, meter
 
 | Call | Words | Observed |
