@@ -207,7 +207,8 @@ follows all of it.
   takes `a`'s name and parameters, and then destroys `a`, and `b` when the flag is not 0 (3
   as well as 1).
 - **String events** in a file are left out while no event kind is registered; the stream keeps its
-  MIDI and sysex events only.
+  MIDI and sysex events only. With kinds registered they stay (see String events and their kinds).
+  The edit calls (`SeqDelEvt`, `SeqPutEvt`, `SeqDeleteRange`) call no event procedure.
 
 ## Time, tempo, meter
 
@@ -672,16 +673,59 @@ being the one passed to the load or save call [trace of Cakewalk Apprentice 1.04
 - Save: `0xFE` with a percentage (0, 14, 28, ... 100) for the progress bar, and `0xFF` with the
   open file at the end, before the engine's end marker: the program appends its own chunks there
   (Apprentice: the comments, as type byte, length, text length, text).
-- Code 3 comes once in both, with a word that is not the file; its meaning is not known.
+- Code 3 comes once in both, right after the VARS chunk, with a word that is not the file. The
+  load does not report VARS itself: the engine reads it and then calls with code 3 (the file
+  stands at the end of VARS). In a save, 0 from code 3 cancels the save, and so does 0 from the
+  first 0xFE.
+- Save in full: 0xFE with 0 (0 cancels before anything is written), code 3 after VARS, then 0xFE
+  with the percentage done after each stream and each sysex bank (done × 100 / count: 16, 33, 50,
+  66, 83, 100 for six streams), and 0xFF with the file before the end marker. A cancelled or
+  failed save leaves no file.
+- `SeqIOWrite` writes to the engine's open file whatever handle it gets; `SeqIOSeek` does use the
+  handle (with 0 it reports another file's position).
 - `SeqIOSeek(file, offset32, origin)` (origin 0 start, 1 current, 2 end) returns the new position;
   `SeqIORead(file, buffer, count)` and `SeqIOWrite(file, buffer, count)` return the bytes moved
   (the count is 16 bits in 1.01 and 2.10, 32 bits in 3.00).
 - String events: during a load the event procedure of the kind is called with message 4 and the
-  event's 7 bytes; it reads the event's text from the file with `SeqIORead`, the 32-bit length
-  first, using the file from the load callback. If it does not, the load fails. This is why a
-  file with string events of a registered kind loaded only with the program's load callback.
+  event; it reads the event's text from the file with `SeqIORead`, the 32-bit length first, using
+  the file from the load callback. If it does not, the engine reads on from inside the text and
+  the load fails. This is why a file with string events of a registered kind loaded only with the
+  program's load callback.
 - 3.00's file functions have no callback, and no program was seen calling `SeqIOSeek/Read/Write`
   in 3.00; how 3.00 reads string events is open.
+
+### String events and their kinds
+
+The `eventkinds` suite (1.01, 2.10, 3.00) and the probes behind it [probe]:
+
+- `SeqRegisterEventKind(name, proc, value)` gives the lowest free number from 1; the same name may
+  be registered again under a new number. `SeqUnregisterEventKind(name)` removes the first kind of
+  that name.
+- A string event is an ordinary 8-byte event whose status is its kind (1 to 127): the time in
+  bytes 0 to 2, the kind in byte 3. The procedure gets (message, far pointer to the event in the
+  stream, length) and may keep its own data in bytes 4 to 7, which stay with the event. The
+  registration value is not passed.
+- Messages: 4 load (length 7), 5 save to a `.WRK` file (7), 7 save to a MIDI file, 3 free (0), 1
+  play (step 7). `SeqCallEventProc(message, event, length)` calls the procedure of the event's
+  kind with exactly these words and returns its result, 0 for a kind that is not registered.
+- A file names its kinds in chunk 22 (count, then a Pascal string and an id each). Each entry goes
+  to the first registered kind of that name that has none yet; an event takes the first kind with
+  its id. So id 0, which no entry has, goes to the first kind the table does not name: that is
+  what happens when a procedure leaves its text unread and the engine reads an "event" from the
+  text. Events of a kind that is not registered are left out, with their text.
+- Saving a `.WRK` file: with any kind registered, chunk 22 follows VARS and lists all kinds. A
+  stream with string events is written as chunk 18 (each event with only the bytes it needs, a
+  string event as its time and kind followed by what its procedure writes with `SeqIOWrite`);
+  other streams stay chunk 2. A procedure returning 0 fails the save.
+- Saving a MIDI file: the procedure is called with length 0 (2.10: 0xFFFF) to ask whether it
+  writes an event. If it returns non-zero, the engine writes the delta time and calls it again
+  with length 7 to write the event's bytes. The running status goes on across it.
+- Freeing: when a stream or a sequence is destroyed (also by `SeqClose`), message 3 goes only to
+  the events whose kind was registered with the same value as kind 1: with values 11, 22, 33 only
+  kind 1's events, with 11, 11, 22 those of kinds 1 and 2, with kind 1 unregistered none. When a
+  load fails, it goes to the events whose name's first kind has the value of the first kind ever
+  registered. Both rules fit every case probed; why the engine picks the events so is not known.
+  All three versions behave alike here.
 
 ### Baggage (3.00)
 
@@ -893,9 +937,10 @@ callback thunks [probe]:
   (0, 0, value32). The callback's result is ignored.
 - `SeqRegisterEventKind(name, proc, value32)` (6 words) returns the new kind (1, 2, 3, ...). The
   engine keeps the name pointer, not a copy. An event procedure takes 4 words (a message, a far
-  pointer, a length): message 4 while loading (it must return 1), 1 while playing; message 3 came
-  with a failed load. Loading a file with string events of a registered kind fails unless the
-  program's `LoadProc` is there. `SeqCallEventProc` takes 4 words.
+  pointer, a length): message 4 while loading (it must return 1), 1 while playing, 3 when the
+  event is freed, 5 and 7 when it is saved. Loading a file with string events of a registered kind
+  fails unless the program's `LoadProc` is there. `SeqCallEventProc` takes 4 words. Files, String
+  events and their kinds has the details.
 - `StartProc`: the count-in callback (Recording, above), and the callback of a start that waits
   for MIDI sync or time code (External sync, above): (1, beats left, 0) counting in, (2, 0, 0)
   waiting for MIDI sync, (3, 0, 0) waiting for time code, (4, seconds × 256 + frame, 0) locking
@@ -1026,8 +1071,9 @@ function the oracle suites call, found by trying layouts through the probe. Note
   ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
-- The meaning of code 3 in the file callbacks; how 3.00 reads string events without a load
-  callback.
+- The word that comes with code 3 in the file callbacks; how 3.00 reads string events without a
+  load callback.
+- Why the free message goes only to some string events (String events and their kinds).
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
   in a buffer that has gone out of scope, so the fake port logs them as zeros (`sysex 00 00 00`);
   Wine's `+midi` trace has the real bytes.

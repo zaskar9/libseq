@@ -9,7 +9,9 @@
 
 #include "libseq/engine.hpp"
 
+#include <algorithm>
 #include <array>
+#include <functional>
 #include <optional>
 #include <string_view>
 
@@ -215,10 +217,36 @@ public:
                     t.events().push_back(readVarMidiEvent(c, time, status));
                     continue;
                 }
-                // A string event: its text belongs to the program (SeqRegisterEventKind). With no
-                // kind registered the engine leaves it out.
-                const std::uint32_t len = c.u32();
-                c.skip(len);
+                // A string event: its data belongs to the program (SeqRegisterEventKind). The
+                // event procedure of its kind reads it (message 4); with no such kind registered
+                // the engine leaves it out.
+                const std::uint8_t kind = kindOfFileId(status);
+                if (kind == 0) {
+                    c.skip(c.u32());
+                    continue;
+                }
+                Event e;
+                e.time = time;
+                e.status = kind;
+                t.events().push_back(e);
+                if (!stringEvent(t.events().back(), c)) {
+                    throw Error("an event procedure did not read its event");
+                }
+            }
+            break;
+        }
+        case wrk::STRTAB: {
+            // each entry goes to the first registered kind of its name that has none yet
+            const std::uint16_t n = c.u16();
+            for (std::uint16_t i = 0; i < n; ++i) {
+                const std::string name = c.pstr();
+                const std::uint8_t id = c.u8();
+                for (Kind& k : kinds) {
+                    if (k.fileId == 0 && k.name == name) {
+                        k.fileId = id;
+                        break;
+                    }
+                }
             }
             break;
         }
@@ -284,6 +312,28 @@ public:
         }
     }
 
+    /// The registered kinds of string events, by number, and the id each has in the file's string
+    /// table (chunk 22), 0 for none.
+    struct Kind {
+        std::uint8_t number = 0;
+        std::string name;
+        std::uint8_t fileId = 0;
+    };
+    std::vector<Kind> kinds;
+    /// The kind of a string event's status in the file: the first registered kind with that id.
+    /// So an id of 0 goes to the first kind the table does not name (seen with SYN_KIND, whose
+    /// text a procedure left unread).
+    [[nodiscard]] std::uint8_t kindOfFileId(const std::uint8_t id) const {
+        for (const Kind& k : kinds) {
+            if (k.fileId == id) {
+                return k.number;
+            }
+        }
+        return 0;
+    }
+    /// Lets the event procedure read a string event's data from the chunk; false when it fails.
+    std::function<bool(Event&, Reader&)> stringEvent;
+
     /// The metronome note (parameters 17 to 21), set on the engine only when the sequence becomes
     /// the current one (Engine::current_).
     std::optional<std::array<std::int32_t, 5>> metronome;
@@ -298,7 +348,7 @@ private:
 
 } // namespace
 
-SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
+SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path, const FileProc& callback) {
     std::vector<std::uint8_t> data;
     try {
         data = bytes::readFileBytes(path.string());
@@ -306,28 +356,55 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
         fileError_ = 7; // what 1.01 reports for a file that is not there
         return 0;
     }
-    Reader r(data);
-    if (r.remaining() < kMagic.size() + 3 || r.str(kMagic.size()) != kMagic) {
+    constexpr std::size_t kHeader = kMagic.size() + 3; // the magic, 0x1A, minor and major version
+    if (data.size() < kHeader || !std::equal(kMagic.begin(), kMagic.end(), data.begin())) {
         fileError_ = 2;
         return 0;
     }
-    r.skip(3); // 0x1A, minor and major version
+    io_ = OpenFile{std::move(data), kHeader, true};
     const SeqHandle h = createSequence();
     Sequence& s = *sequence(h);
     Loader loader(s);
+    for (const auto& [id, k] : kinds_) {
+        loader.kinds.push_back({id, k.name, 0});
+    }
+    std::size_t base = 0; // where the chunk being read starts in the file
+    loader.stringEvent = [this, &base](Event& e, Reader& c) {
+        io_.pos = base + c.pos();
+        const std::uint32_t r = callEventProc(ek::kLoad, e, 7);
+        c.seek(io_.pos >= base ? io_.pos - base : c.size());
+        return r != 0;
+    };
+    const auto ask = [&callback](const std::uint16_t code, const std::uint16_t word) {
+        return callback ? callback(code, word) : 0U;
+    };
     try {
-        while (!r.atEnd()) {
-            const std::uint8_t type = r.u8();
+        ask(fileproc::kStart, fileproc::kFile);
+        while (io_.pos < io_.data.size()) {
+            const std::uint8_t type = io_.data[io_.pos++];
             if (type == wrk::END) {
                 break;
             }
-            const std::uint32_t len = r.u32();
-            if (len > r.remaining()) {
+            // the program may take any chunk but VARS, which the engine reads and then reports
+            if (type != wrk::VARS && ask(type, fileproc::kFile) != 0) {
+                continue;
+            }
+            if (io_.data.size() - io_.pos < 4) {
+                throw Error("chunk length past the end of the file");
+            }
+            Reader l(io_.data.data() + io_.pos, 4);
+            const std::uint32_t len = l.u32();
+            io_.pos += 4;
+            if (len > io_.data.size() - io_.pos) {
                 throw Error("chunk runs past the end of the file");
             }
-            Reader c(r.ptr(), len);
-            r.skip(len);
+            base = io_.pos;
+            Reader c(io_.data.data() + base, len);
             loader.chunk(type, c);
+            io_.pos = base + len;
+            if (type == wrk::VARS) {
+                ask(fileproc::kVars, h);
+            }
         }
         loader.finish();
         if (loader.metronome && current_ == h) {
@@ -335,11 +412,14 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path) {
                 s.setParam(p, (*loader.metronome)[static_cast<std::size_t>(p - qp::kMetroPort)]);
             }
         }
+        ask(fileproc::kEnd, fileproc::kFile);
     } catch (const Error&) {
-        destroySequence(h);
+        io_ = OpenFile{};
+        destroySequence(h, true);
         fileError_ = 3;
         return 0;
     }
+    io_ = OpenFile{};
     s.setParam(qp::kNowJumped, 1);
     s.setParam(qp::kMetroSpeaker, 0); // a loaded sequence clicks on MIDI only
     fileError_ = 0;

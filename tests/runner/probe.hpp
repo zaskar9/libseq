@@ -4,6 +4,8 @@
 // format are those of the probe; the calls go to an Api instead of a DLL.
 #pragma once
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -28,6 +30,7 @@ public:
     static constexpr std::uint16_t kBufSeg = 0x1000;      // buffer N lives in segment 0x1000 + N
     static constexpr std::uint16_t kStrSeg = 0x2000;      // string copies from 0x2000 on
     static constexpr std::uint16_t kCallbackSeg = 0x3000; // callback cbN: 0x3000:N, ccN: 0x3000:10+N
+    static constexpr std::uint16_t kWindowSeg = 0x4000;   // memory of the engine a callback is shown
 
     /// The bytes at a far pointer, or nullptr when it points nowhere the probe knows.
     [[nodiscard]] std::uint8_t* at(FarPtr p, std::size_t len = 1);
@@ -39,10 +42,23 @@ public:
     [[nodiscard]] FarPtr bufferPtr(int n, unsigned off) const {
         return {static_cast<std::uint16_t>(kBufSeg + n), static_cast<std::uint16_t>(off)};
     }
+    /// A place in segment kWindowSeg for bytes of the engine that a callback gets a pointer to (an
+    /// event procedure's event). Each call gets a new place, as different events have different
+    /// addresses in the DLL, so that the probe's merging of repeated callbacks stays as it was.
+    FarPtr window(const std::vector<std::uint8_t>& bytes) {
+        const auto off = static_cast<std::uint16_t>(0x20 + 8 * (windows_++ % 0x1000));
+        if (window_.size() < off + bytes.size()) {
+            window_.resize(off + bytes.size());
+        }
+        std::copy(bytes.begin(), bytes.end(), window_.begin() + off);
+        return {kWindowSeg, off};
+    }
 
 private:
     std::map<int, std::vector<std::uint8_t>> bufs_;
     std::vector<std::vector<std::uint8_t>> strs_;
+    std::vector<std::uint8_t> window_;
+    unsigned windows_ = 0;
 };
 
 /// The arguments of a call as the probe pushed them, read in order.
@@ -96,10 +112,21 @@ private:
     struct CbRec {
         int id = 0;
         int n = 0;
-        std::uint16_t w[8]{};
+        std::array<std::uint16_t, 8> w{};
         unsigned long count = 1;
+        int dlen = -1; // with cbptr: the bytes shown, -2 for a null pointer
+        std::vector<std::uint8_t> data;
+    };
+    /// "cbdo": a line run inside a callback whose first word matches (-1: any).
+    struct CbDo {
+        int id = 0;
+        long match = -1;
+        std::string line;
     };
     void flushCallbacks();
+    void printHead(int id, int n, const std::array<std::uint16_t, 8>& w);
+    /// The calls of a call command: prints and runs it.
+    void call(const std::vector<std::string>& t, const std::string& cmd);
     std::ostream& out_;
     std::map<std::string, Function> functions_;
     bool oracle_ = false;
@@ -109,6 +136,11 @@ private:
     unsigned cbmask_ = 0;
     bool cbmerge_ = false;
     std::vector<CbRec> cbs_;
+    std::vector<CbDo> cbdo_;
+    int depth_ = 0;                     // callbacks running their commands
+    std::array<std::uint16_t, 8> cw_{}; // the words of the innermost one (%wN)
+    std::uint32_t doret_ = 0;           // what it returns ("ret")
+    int cbptr_ = -1, cblen_ = -1;       // "cbptr K L"
 };
 
 } // namespace ttsrun

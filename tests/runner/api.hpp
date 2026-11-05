@@ -20,6 +20,8 @@ void defineEvents101(Probe& p, libseq::Engine& e);
 void defineMarks101(Probe& p, libseq::Engine& e);
 /// Its time base, tempo and meter maps and timecode functions (api101_time.cpp).
 void defineTime101(Probe& p, libseq::Engine& e);
+/// Its file functions, SeqIO and event kinds (api101_files.cpp).
+void defineFiles101(Probe& p, libseq::Engine& e);
 
 /// Writes a little-endian word or double word into the probe's memory, if the pointer leads there.
 inline void putWord(Probe& p, const FarPtr at, const std::uint16_t v) {

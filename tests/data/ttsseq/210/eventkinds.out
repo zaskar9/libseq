@@ -1,0 +1,475 @@
+load TTSSEQ.DLL -> ok
+SEQWIRE(0001) -> 0000
+SEQOPEN(0000,0000) -> 0000
+== kinds: the lowest free number, a name may come twice
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0001
+SEQREGISTEREVENTKIND("MCICmd",cb4,d:00000022) -> 0002
+SEQREGISTEREVENTKIND("Text",cb4,d:00000033) -> 0003
+SEQUNREGISTEREVENTKIND("MCICmd") -> 0001
+SEQREGISTEREVENTKIND("Other",cb4,d:00000044) -> 0002
+SEQUNREGISTEREVENTKIND("Nothing") -> 0000
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("Other") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0000
+== SeqCallEventProc(message, event, length): the procedure of the event's kind
+SEQREGISTEREVENTKIND("A",cb4,d:00000011) -> 0001
+SEQREGISTEREVENTKIND("B",cb4,d:00000022) -> 0002
+SEQCALLEVENTPROC(0001,@1,0005) ...
+callback cb4(0001,----,----,0005) {
+  dump w1+0:
+  05 00 00 02 aa bb cc 00
+} -> 77
+SEQCALLEVENTPROC(...) -> 0077
+dump 1+0:
+  05 00 00 02 aa bb 5a 00
+SEQCALLEVENTPROC(0009,@1,0000) ...
+callback cb4(0009,----,----,0000) {
+  dump w1+0:
+  05 00 00 02 aa bb 5a 00
+} -> 77
+SEQCALLEVENTPROC(...) -> 0077
+SEQCALLEVENTPROC(0004,@1,0007) ...
+callback cb4(0004,----,----,0007) {
+  dump w1+0:
+  05 00 00 01 aa bb cc 00
+} -> 77
+SEQCALLEVENTPROC(...) -> 0077
+SEQCALLEVENTPROC(0004,@1,0007) ...
+SEQCALLEVENTPROC(...) -> 0000
+SEQCALLEVENTPROC(0004,@1,0007) ...
+SEQCALLEVENTPROC(...) -> 0000
+== freeing (3) when a stream goes: only events whose kind has the value of kind 1
+SEQREGISTEREVENTKIND("C",cb4,d:00000033) -> 0003
+SEQCREATESEQ(0000,0000) ...
+SEQCREATESEQ(...) -> 0001
+SEQCREATESTREAM(0001,0000,0000) ...
+SEQCREATESTREAM(...) -> 0100
+SEQSEEK(%1,0000,d:00000000) ...
+SEQSEEK(...) -> 00000000
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000001) ...
+SEQSEEK(...) -> 00000001
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000002) ...
+SEQSEEK(...) -> 00000002
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000003) ...
+SEQSEEK(...) -> 00000003
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000004) ...
+SEQSEEK(...) -> 00000004
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+delete, put over and delete range free nothing
+SEQSEEK(%1,0000,d:00000001) ...
+SEQSEEK(...) -> 00000001
+SEQDELEVT(%1) ...
+SEQDELEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000000) ...
+SEQSEEK(...) -> 00000000
+SEQPUTEVT(%1,@2) ...
+SEQPUTEVT(...) -> 0001
+SEQDELETERANGE(%1,d:00000000,d:00000001) ...
+SEQDELETERANGE(...) -> 0001
+SEQSTREAMLEN(%1) ...
+SEQSTREAMLEN(...) -> 00000003
+SEQDESTROYSTREAM(%1) ...
+callback cb4(0003,----,----,0000) {
+  dump w1+0:
+  30 00 00 01 44 44 44 44
+} -> 0
+SEQDESTROYSTREAM(...) -> 0001
+with kind 1 gone, nothing is freed
+SEQUNREGISTEREVENTKIND("A") ...
+SEQUNREGISTEREVENTKIND(...) -> 0001
+SEQCREATESTREAM(0001,0000,0000) ...
+SEQCREATESTREAM(...) -> 0100
+SEQSEEK(%1,0000,d:00000000) ...
+SEQSEEK(...) -> 00000000
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000001) ...
+SEQSEEK(...) -> 00000001
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000002) ...
+SEQSEEK(...) -> 00000002
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQDESTROYSTREAM(%1) ...
+SEQDESTROYSTREAM(...) -> 0001
+a new kind 1 named as kind 3
+SEQREGISTEREVENTKIND("C",cb4,d:00000044) ...
+SEQREGISTEREVENTKIND(...) -> 0001
+SEQCREATESTREAM(0001,0000,0000) ...
+SEQCREATESTREAM(...) -> 0100
+SEQSEEK(%1,0000,d:00000000) ...
+SEQSEEK(...) -> 00000000
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000001) ...
+SEQSEEK(...) -> 00000001
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000002) ...
+SEQSEEK(...) -> 00000002
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQDESTROYSEQ(0001) ...
+callback cb4(0003,----,----,0000) {
+  dump w1+0:
+  00 00 00 01 55 55 55 55
+} -> 0
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("B") ...
+SEQUNREGISTEREVENTKIND(...) -> 0001
+SEQUNREGISTEREVENTKIND("C") ...
+SEQUNREGISTEREVENTKIND(...) -> 0001
+SEQUNREGISTEREVENTKIND("C") ...
+SEQUNREGISTEREVENTKIND(...) -> 0001
+kinds 1 and 2 with one value, 3 with another
+SEQREGISTEREVENTKIND("A",cb4,d:00000055) ...
+SEQREGISTEREVENTKIND(...) -> 0001
+SEQREGISTEREVENTKIND("B",cb4,d:00000055) ...
+SEQREGISTEREVENTKIND(...) -> 0002
+SEQREGISTEREVENTKIND("A",cb4,d:00000066) ...
+SEQREGISTEREVENTKIND(...) -> 0003
+SEQCREATESEQ(0000,0000) ...
+SEQCREATESEQ(...) -> 0001
+SEQCREATESTREAM(0001,0000,0000) ...
+SEQCREATESTREAM(...) -> 0100
+SEQSEEK(%1,0000,d:00000000) ...
+SEQSEEK(...) -> 00000000
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000001) ...
+SEQSEEK(...) -> 00000001
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQSEEK(%1,0000,d:00000002) ...
+SEQSEEK(...) -> 00000002
+SEQINSEVT(%1,@2) ...
+SEQINSEVT(...) -> 0001
+SEQDESTROYSEQ(0001) ...
+callback cb4(0003,----,----,0000) {
+  dump w1+0:
+  00 00 00 01 55 55 55 55
+} -> 0
+callback cb4(0003,----,----,0000) {
+  dump w1+0:
+  10 00 00 02 66 66 66 66
+} -> 0
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("A") -> 0001
+SEQUNREGISTEREVENTKIND("B") -> 0001
+SEQUNREGISTEREVENTKIND("A") -> 0001
+== a MIDI file: the procedure says whether it writes (length 0) and then writes (7)
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_ORDR.WRK",0000,null,0000,0000) -> 0001
+SEQDESTROYSEQ(0001) -> 0001
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0001
+SEQCREATESEQ(0000,0000) -> 0001
+SEQCREATESTREAM(0001,0000,0000) -> 0100
+SEQSEEK(%1,0000,d:00000000) -> 00000000
+SEQINSEVT(%1,@2) -> 0001
+SEQSEEK(%1,0000,d:00000001) -> 00000001
+SEQINSEVT(%1,@2) -> 0001
+SEQSEEK(%1,0000,d:00000002) -> 00000002
+SEQINSEVT(%1,@2) -> 0001
+SEQSEEK(%1,0000,d:00000003) -> 00000003
+SEQINSEVT(%1,@2) -> 0001
+SEQSAVEMIDIFILE(0001,"C:\PROBE\ORC\OUT\KINDS.MID",d:00000000) ...
+callback cb4(0007,----,----,ffff) {
+  dump w1+0:
+  10 00 00 01 01 00 00 00
+  SEQIOWRITE(0000,@3,%w3) -> 0000
+} -> 1
+callback cb4(0007,----,----,0007) {
+  dump w1+0:
+  10 00 00 01 01 00 00 00
+  SEQIOWRITE(0000,@3,%w3) -> 0007
+} -> 1
+callback cb4(0007,----,----,ffff) {
+  dump w1+0:
+  18 00 00 01 00 00 00 00
+  SEQIOWRITE(0000,@3,%w3) -> 0000
+} -> 1
+callback cb4(0007,----,----,0007) {
+  dump w1+0:
+  18 00 00 01 00 00 00 00
+  SEQIOWRITE(0000,@3,%w3) -> 0007
+} -> 1
+SEQSAVEMIDIFILE(...) -> 0001
+SEQDESTROYSEQ(0001) -> 0001
+callback cb4(0003,----,----,0000)
+callback cb4(0003,----,----,0000)
+== load SYN_KIND: each procedure reads its text with the file of the load callback (4)
+SEQREGISTEREVENTKIND("MCICmd",cb4,d:00000022) -> 0002
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,cb4,d:00001234) ...
+callback cb4(00fe,----,----,1234) {
+} -> 0
+callback cb4(000a,----,----,1234)
+callback cb4(0003,----,----,1234)
+callback cb4(0016,----,----,1234)
+callback cb4(000f,----,----,1234)
+callback cb4(0005,----,----,1234)
+callback cb4(0017,----,----,1234)
+callback cb4(000b,----,----,1234)
+callback cb4(0011,----,----,1234)
+callback cb4(0010,----,----,1234)
+callback cb4(0001,----,----,1234)
+callback cb4(0018,----,----,1234)
+callback cb4(0012,----,----,1234)
+callback cb4(0004,----,----,0007) {
+  dump w1+0:
+  00 00 00 01 00 00 00 00
+  SEQIOREAD(%1,@1,0004) -> 0004
+  SEQIOREAD(%1,@1+4,%b1+0) -> 000d
+  dump 1+0:
+  0d 00 00 00 74 65 78 74 20 61 74 20 73 74 61 72
+  74 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee
+} -> 1
+callback cb4(0004,----,----,0007) {
+  dump w1+0:
+  00 00 00 02 00 00 00 00
+  SEQIOREAD(%1,@1,0004) -> 0004
+  SEQIOREAD(%1,@1+4,%b1+0) -> 0018
+  dump 1+0:
+  18 00 00 00 70 6c 61 79 20 63 3a 5c 73 6f 75 6e
+  64 73 5c 68 65 6c 6c 6f 2e 77 61 76 ee ee ee ee
+} -> 1
+callback cb4(0004,----,----,0007) {
+  dump w1+0:
+  e0 01 00 01 00 00 00 00
+  SEQIOREAD(%1,@1,0004) -> 0004
+  SEQIOREAD(%1,@1+4,%b1+0) -> 000f
+  dump 1+0:
+  0f 00 00 00 74 65 78 74 20 61 74 20 74 68 65 20
+  65 6e 64 ee ee ee ee ee ee ee ee ee ee ee ee ee
+} -> 1
+SEQLOADCAKEWALKFILE(...) -> 0001
+callback cb4(000e,----,----,1234)
+callback cb4(0001,----,----,1234)
+callback cb4(0018,----,----,1234)
+callback cb4(0002,----,----,1234)
+callback cb4(000e,----,----,1234)
+callback cb4(0006,----,----,1234)
+callback cb4(00ff,----,----,1234)
+SEQSTREAMLEN(0100) -> 00000010
+SEQSEEK(0100,0000,d:00000000) -> 00000000
+SEQGETEVT(0100,@2) -> 0001
+dump 2+0:
+  00 00 00 01 a1 a2 a3 00
+SEQSEEK(0100,0000,d:00000001) -> 00000001
+SEQGETEVT(0100,@2) -> 0001
+dump 2+0:
+  00 00 00 02 a1 a2 a3 00
+SEQSEEK(0100,0000,d:00000002) -> 00000002
+SEQGETEVT(0100,@2) -> 0001
+dump 2+0:
+  00 00 00 f0 00 00 00 00
+SEQSEEK(0100,0000,d:0000000f) -> 0000000f
+SEQGETEVT(0100,@2) -> 0001
+dump 2+0:
+  e0 01 00 01 a1 a2 a3 00
+== save it: each procedure writes its text (5); with kinds every stream is a chunk 18
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS1.WRK",d:00000000,null,d:00000000) ...
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  00 00 00 01 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  00 00 00 02 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  e0 01 00 01 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+SEQSAVECAKEWALKFILE(...) -> 0001
+and with the callback: 0xFE 0, 3 after VARS, the percentage after each stream and bank, 0xFF
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS2.WRK",d:00000000,cb4,d:00005678) ...
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  00 00
+} -> 1
+callback cb4(0003,----,----,5678)
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  00 00 00 01 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  00 00 00 02 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+callback cb4(0005,----,----,0007) {
+  dump w1+0:
+  e0 01 00 01 a1 a2 a3 00
+  SEQIOWRITE(%1,@4,0004) -> 0004
+  SEQIOWRITE(%1,@3,0003) -> 0003
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  21 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  42 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  64 00
+} -> 1
+SEQSAVECAKEWALKFILE(...) -> 0001
+callback cb4(00ff,----,----,5678)
+a procedure returning 0 fails the save, and no file stays
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS3.WRK",d:00000000,null,d:00000000) ...
+callback cb4(0005,----,----,0007) {
+} -> 0
+SEQSAVECAKEWALKFILE(...) -> 0000
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\OUT\KINDS3.WRK",0000,null,0000,0000) -> 0000
+SEQGETFILEERROR() -> 0007
+SEQDESTROYSEQ(0001) -> 0001
+callback cb4(0003,----,----,0000)
+callback cb4(0003,----,----,0000)
+== the callback cancels with 0 at 0xFE 0 or at 3
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\ENG_MULT.WRK",0000,null,0000,0000) -> 0001
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS4.WRK",d:00000000,cb4,d:00005678) ...
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  00 00
+} -> 1
+callback cb4(0003,----,----,5678)
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  10 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  21 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  32 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  42 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  53 00
+} -> 1
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  64 00
+} -> 1
+SEQSAVECAKEWALKFILE(...) -> 0001
+callback cb4(00ff,----,----,5678)
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS5.WRK",d:00000000,cb4,d:00005678) ...
+callback cb4(00fe,----,----,5678) {
+  dump 4+0:
+  00 00
+} -> 1
+SEQSAVECAKEWALKFILE(...) -> 0000
+callback cb4(0003,----,----,5678)
+SEQSAVECAKEWALKFILE(0001,"C:\PROBE\ORC\OUT\KINDS6.WRK",d:00000000,cb4,d:00005678) -> 0000
+callback cb4(00fe,----,----,5678)
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\OUT\KINDS5.WRK",0000,null,0000,0000) -> 0000
+SEQGETFILEERROR() -> 0007
+SEQDESTROYSEQ(0001) -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("MCICmd") -> 0001
+== which kind a file's id goes to: a procedure that reads nothing leaves the engine in the text
+Text 11 Zed 22 Yo 33
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0001
+SEQREGISTEREVENTKIND("Zed",cb4,d:00000022) -> 0002
+SEQREGISTEREVENTKIND("Yo",cb4,d:00000033) -> 0003
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0000
+callback cb4(0004,[00 00 00 01 00 00 00],0007)
+callback cb4(0004,[0d 00 00 02 00 00 00],0007)
+callback cb4(0003,[],0000)
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("Zed") -> 0001
+SEQUNREGISTEREVENTKIND("Yo") -> 0001
+Zed 11 Text 11
+SEQREGISTEREVENTKIND("Zed",cb4,d:00000011) -> 0001
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0002
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0000
+callback cb4(0004,[00 00 00 02 00 00 00],0007)
+callback cb4(0004,[0d 00 00 01 00 00 00],0007)
+callback cb4(0003,[],0000)
+callback cb4(0003,[],0000)
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Zed") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+Zed 22 Text 33
+SEQREGISTEREVENTKIND("Zed",cb4,d:00000022) -> 0001
+SEQREGISTEREVENTKIND("Text",cb4,d:00000033) -> 0002
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0000
+callback cb4(0004,[00 00 00 02 00 00 00],0007)
+callback cb4(0004,[0d 00 00 01 00 00 00],0007)
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Zed") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+Zed 33 Yo 22
+SEQREGISTEREVENTKIND("Zed",cb4,d:00000033) -> 0001
+SEQREGISTEREVENTKIND("Yo",cb4,d:00000022) -> 0002
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0001
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Zed") -> 0001
+SEQUNREGISTEREVENTKIND("Yo") -> 0001
+MCICmd 22 Text 11 Wave 11
+SEQREGISTEREVENTKIND("MCICmd",cb4,d:00000022) -> 0001
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0002
+SEQREGISTEREVENTKIND("Wave",cb4,d:00000011) -> 0003
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0000
+callback cb4(0004,[00 00 00 02 00 00 00],0007)
+callback cb4(0003,[],0000)
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("MCICmd") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("Wave") -> 0001
+Wave 11
+SEQREGISTEREVENTKIND("Wave",cb4,d:00000011) -> 0001
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0001
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Wave") -> 0001
+Text 11 MCICmd 22 Wave 33 Text 44
+SEQREGISTEREVENTKIND("Text",cb4,d:00000011) -> 0001
+SEQREGISTEREVENTKIND("MCICmd",cb4,d:00000022) -> 0002
+SEQREGISTEREVENTKIND("Wave",cb4,d:00000033) -> 0003
+SEQREGISTEREVENTKIND("Text",cb4,d:00000044) -> 0004
+SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,null,0000,0000) -> 0000
+callback cb4(0004,[00 00 00 01 00 00 00],0007)
+callback cb4(0004,[0d 00 00 04 00 00 00],0007)
+callback cb4(0003,[],0000)
+callback cb4(0003,[],0000)
+SEQDESTROYSEQ(0001) ...
+SEQDESTROYSEQ(...) -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQUNREGISTEREVENTKIND("MCICmd") -> 0001
+SEQUNREGISTEREVENTKIND("Wave") -> 0001
+SEQUNREGISTEREVENTKIND("Text") -> 0001
+SEQCLOSE() -> 0001

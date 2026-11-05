@@ -47,9 +47,9 @@ established.
 | `SeqTemporalSort(stream)` | d | Shell's sort; the length |
 | `SeqInsertRange(dst, d index, src)` | d | inserts copies of all events of `src` before `index`, keeping their times, without sorting; `src` is unchanged; 1. An index past the end, or a `src` that is not a stream, crashes or fails. Not imported by any program |
 | `SeqMergeStreams(seq, a, seq b, b, flag, d offset)`; 3.00: `(seq, a, seq b, b, flag, d count, d offset)` | w | a new stream in `seq`: the events of stream `a`, and those of `b` moved later by `offset` (3.00: the first `count` events of `b`); at equal times `a` comes first. `a` is destroyed, `b` too when `flag` is not 0; `a` = 0 means no stream. Returns the new stream. The third word has no visible effect (the programs pass `b`'s sequence) |
-| `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind (1, 2, ...); the name is kept, not copied |
-| `SeqUnregisterEventKind(p name)` | w | |
-| `SeqCallEventProc(w, p, w)` | w | ? returns 0 |
+| `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind: the lowest free number from 1; a name may be registered twice. The name is kept, not copied. The procedure is called as proc(message, p event, length) without the value |
+| `SeqUnregisterEventKind(p name)` | w | 1; removes the first kind of that name |
+| `SeqCallEventProc(w message, p event, w length)` | w | calls the procedure of the event's kind (byte 3) with the same words and returns its result; 0 when no kind of that number is registered |
 | event procedure | | proc(message, p data, length): 4 while loading, 3 on a failed load, 1 while playing |
 
 ## Time base, tempo and ratios
@@ -177,6 +177,6 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out"; past the assigned ports, the first device's name with that number |
 | `SeqHugeMemCpy(p dst, p src, d count)` | d | |
 | `SeqIOSeek(file, d offset, origin)` | d | the new position; origin 0 start, 1 current, 2 end. Only while a file is open: in the load and save callbacks and the event procedures |
-| `SeqIORead(file, p buffer, count)`, `SeqIOWrite(file, p buffer, count)` | w | the bytes moved; the count is a dword in 3.00 |
+| `SeqIORead(file, p buffer, count)`, `SeqIOWrite(file, p buffer, count)` | w | the bytes moved; the count is a dword in 3.00. `SeqIOWrite` writes to the engine's file whatever handle it gets (0 works); `SeqIOSeek` uses the handle |
 | load and save callback | | callback(code, word, d value): 0xFE (file, or a percentage when saving), a chunk type with the file, 3 (?), 0xFF with the file; returns 1 for a chunk it read |
 | `SeqConfigMidi(hwnd)` | w | the device dialog: 3 OK, 2 Cancel; OK writes `TTSSEQ.INI` (ttsseq-api.md, Devices). Not ported, not in the suites |

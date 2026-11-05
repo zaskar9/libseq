@@ -845,6 +845,103 @@ def _():
     return L
 
 
+# String events and their kinds (1.01 and 2.10; the parts with a file callback or SeqIO are not
+# run on 3.00, whose file functions have none). An event procedure gets (message, far pointer to
+# the event in the stream, length); the pointer is masked and its bytes dumped instead (dumpcb).
+# Messages: 1 play, 3 free, 4 load, 5 save, 7 MIDI file (length 0: write?, then 7: write).
+def kind_stream(seq, events):
+    """a new stream of `seq` (%1) with (time, status, data) events in that order"""
+    L = [f'call.w SEQCREATESTREAM {seq} 0000 0000', 'let 1']
+    for i, (t, st, d) in enumerate(events):
+        L += [f'fill 2 0 {t & 0xff:02x} {t >> 8 & 0xff:02x} 00 {st:02x} ' + ' '.join(f'{b:02x}' for b in d),
+              f'call.d SEQSEEK %1 0000 d:{i:08x}', 'call.w SEQINSEVT %1 @2']
+    return L
+
+
+@suite('eventkinds')
+def _():
+    V = '?101,210 '
+    L = ['@open', 'buf 1 128', 'buf 2 16', 'buf 3 16', 'buf 4 4', 'cbmask 6', 'cbret 0']
+    L += ['echo == kinds: the lowest free number, a name may come twice',
+          'call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000011', 'call.w SEQREGISTEREVENTKIND "MCICmd" cb4 d:00000022',
+          'call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000033', 'call.w SEQUNREGISTEREVENTKIND "MCICmd"',
+          'call.w SEQREGISTEREVENTKIND "Other" cb4 d:00000044', 'call.w SEQUNREGISTEREVENTKIND "Nothing"',
+          'call.w SEQUNREGISTEREVENTKIND "Text"', 'call.w SEQUNREGISTEREVENTKIND "Text"',
+          'call.w SEQUNREGISTEREVENTKIND "Other"', 'call.w SEQUNREGISTEREVENTKIND "Text"']
+    L += ['echo == SeqCallEventProc(message, event, length): the procedure of the event\'s kind',
+          'call.w SEQREGISTEREVENTKIND "A" cb4 d:00000011', 'call.w SEQREGISTEREVENTKIND "B" cb4 d:00000022',
+          'cbdo cb4 * dumpcb 1 0 8', 'cbdo cb4 * fillcb 1 6 5a', 'cbdo cb4 * ret 77',
+          'fill 1 0 05 00 00 02 aa bb cc 00', 'call.w SEQCALLEVENTPROC 0001 @1 0005', 'dump 1 0 8',
+          'call.w SEQCALLEVENTPROC 0009 @1 0000', 'fill 1 0 05 00 00 01 aa bb cc 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007',
+          'fill 1 0 05 00 00 03 aa bb cc 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007',
+          'fill 1 0 05 00 00 90 3c 40 10 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007', 'cbdo -']
+    L += ['echo == freeing (3) when a stream goes: only events whose kind has the value of kind 1',
+          'call.w SEQREGISTEREVENTKIND "C" cb4 d:00000033', 'cbdo cb4 * dumpcb 1 0 8', 'call.w SEQCREATESEQ 0000 0000']
+    L += kind_stream('0001', [(0, 1, [0x11] * 4), (0x10, 2, [0x22] * 4), (0x20, 3, [0x33] * 4), (0x30, 1, [0x44] * 4),
+                              (0x40, 0x90, [0x3c, 0x40, 0x10, 0])])
+    L += ['echo delete, put over and delete range free nothing', 'call.d SEQSEEK %1 0000 d:00000001', 'call.w SEQDELEVT %1',
+          'fill 2 0 00 00 00 90 3c 40 10 00', 'call.d SEQSEEK %1 0000 d:00000000', 'call.w SEQPUTEVT %1 @2',
+          'call.w SEQDELETERANGE %1 d:00000000 d:00000001', 'call.d SEQSTREAMLEN %1', 'call.w SEQDESTROYSTREAM %1']
+    L += ['echo with kind 1 gone, nothing is freed', 'call.w SEQUNREGISTEREVENTKIND "A"']
+    L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
+    L += ['call.w SEQDESTROYSTREAM %1', 'echo a new kind 1 named as kind 3', 'call.w SEQREGISTEREVENTKIND "C" cb4 d:00000044']
+    L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
+    L += ['call.w SEQDESTROYSEQ 0001', 'call.w SEQUNREGISTEREVENTKIND "B"', 'call.w SEQUNREGISTEREVENTKIND "C"',
+          'call.w SEQUNREGISTEREVENTKIND "C"', 'echo kinds 1 and 2 with one value, 3 with another',
+          'call.w SEQREGISTEREVENTKIND "A" cb4 d:00000055', 'call.w SEQREGISTEREVENTKIND "B" cb4 d:00000055',
+          'call.w SEQREGISTEREVENTKIND "A" cb4 d:00000066', 'call.w SEQCREATESEQ 0000 0000']
+    L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
+    L += ['call.w SEQDESTROYSEQ 0001', 'cbdo -', 'call.w SEQUNREGISTEREVENTKIND "A"', 'call.w SEQUNREGISTEREVENTKIND "B"',
+          'call.w SEQUNREGISTEREVENTKIND "A"']
+    L += ['echo == a MIDI file: the procedure says whether it writes (length 0) and then writes (7)',
+          '@load ENG_ORDR.WRK', 'call.w SEQDESTROYSEQ 0001',
+          'call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000011', 'put 3 3 "hell"', 'fill 3 0 ff 01 04',
+          'call.w SEQCREATESEQ 0000 0000']
+    L += kind_stream('0001', [(0, 0x90, [0x3c, 0x40, 5, 0]), (0x10, 1, [1, 0, 0, 0]), (0x18, 1, [0, 0, 0, 0]),
+                              (0x20, 0x90, [0x3e, 0x40, 5, 0])])
+    L += [V + 'cbdo cb4 07 dumpcb 1 0 8', V + 'cbdo cb4 07 call.w SEQIOWRITE 0000 @3 %w3', V + 'cbdo cb4 07 ret 1',
+          V + '@savemid 0001 KINDS.MID', V + 'cbdo -', 'call.w SEQDESTROYSEQ 0001']
+    L += ['echo == load SYN_KIND: each procedure reads its text with the file of the load callback (4)',
+          'call.w SEQREGISTEREVENTKIND "MCICmd" cb4 d:00000022']
+    L += [V + c for c in [
+        'cbdo cb4 fe letw 1 1', 'cbdo cb4 04 dumpcb 1 0 8', 'cbdo cb4 04 fill 1 0 ' + 'ee ' * 32,
+        'cbdo cb4 04 call.w SEQIOREAD %1 @1 0004', 'cbdo cb4 04 call.w SEQIOREAD %1 @1+4 %b1+0', 'cbdo cb4 04 dump 1 0 32',
+        'cbdo cb4 04 fillcb 1 4 a1 a2 a3', 'cbdo cb4 04 ret 1',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\SYN_KIND.WRK" 0000 cb4 d:00001234', 'cbdo -',
+        'call.d SEQSTREAMLEN 0100'] +
+        sum([[f'call.d SEQSEEK 0100 0000 d:{i:08x}', 'call.w SEQGETEVT 0100 @2', 'dump 2 0 8'] for i in (0, 1, 2, 15)], []) + [
+        'echo == save it: each procedure writes its text (5); with kinds every stream is a chunk 18',
+        'fill 4 0 03 00 00 00', 'put 3 0 "abc"', 'cbdo cb4 05 dumpcb 1 0 8', 'cbdo cb4 05 call.w SEQIOWRITE %1 @4 0004',
+        'cbdo cb4 05 call.w SEQIOWRITE %1 @3 0003', 'cbdo cb4 05 ret 1', '@save 0001 KINDS1.WRK',
+        'echo and with the callback: 0xFE 0, 3 after VARS, the percentage after each stream and bank, 0xFF',
+        'cbret 1', 'cbdo cb4 fe letw 2 1', 'cbdo cb4 fe putw 4 0 %2', 'cbdo cb4 fe dump 4 0 2',
+        'call.w SEQSAVECAKEWALKFILE 0001 "C:\\PROBE\\ORC\\OUT\\KINDS2.WRK" d:00000000 cb4 d:00005678',
+        'echo a procedure returning 0 fails the save, and no file stays', 'cbdo -', 'cbret 0',
+        'cbdo cb4 05 ret 0', '@save 0001 KINDS3.WRK', 'cbdo -', 'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\OUT\\KINDS3.WRK" 0000 null 0000 0000',
+        'call.w SEQGETFILEERROR', 'call.w SEQDESTROYSEQ 0001',
+        'echo == the callback cancels with 0 at 0xFE 0 or at 3',
+        '@load ENG_MULT.WRK', 'cbdo cb4 fe letw 2 1', 'cbdo cb4 fe putw 4 0 %2', 'cbdo cb4 fe dump 4 0 2',
+        'cbdo cb4 fe ret 1', 'cbret 1', 'call.w SEQSAVECAKEWALKFILE 0001 "C:\\PROBE\\ORC\\OUT\\KINDS4.WRK" d:00000000 cb4 d:00005678',
+        'cbret 0', 'call.w SEQSAVECAKEWALKFILE 0001 "C:\\PROBE\\ORC\\OUT\\KINDS5.WRK" d:00000000 cb4 d:00005678',
+        'cbdo -', 'call.w SEQSAVECAKEWALKFILE 0001 "C:\\PROBE\\ORC\\OUT\\KINDS6.WRK" d:00000000 cb4 d:00005678',
+        'call.w SEQLOADCAKEWALKFILE "C:\\PROBE\\ORC\\OUT\\KINDS5.WRK" 0000 null 0000 0000', 'call.w SEQGETFILEERROR',
+        'call.w SEQDESTROYSEQ 0001']]
+    L += ['call.w SEQUNREGISTEREVENTKIND "Text"', 'call.w SEQUNREGISTEREVENTKIND "MCICmd"']
+    L += ['echo == which kind a file\'s id goes to: a procedure that reads nothing leaves the engine in the text',
+          'cbret 1']
+    # what a failed load frees: events of kinds with the value or the name of the first kind ever
+    # registered (here "Text" with 0x11, at the top), as far as these cases show
+    for kinds in ([('Text', 0x11), ('Zed', 0x22), ('Yo', 0x33)], [('Zed', 0x11), ('Text', 0x11)],
+                  [('Zed', 0x22), ('Text', 0x33)], [('Zed', 0x33), ('Yo', 0x22)], [('MCICmd', 0x22), ('Text', 0x11), ('Wave', 0x11)],
+                  [('Wave', 0x11)], [('Text', 0x11), ('MCICmd', 0x22), ('Wave', 0x33), ('Text', 0x44)]):
+        L += ['echo ' + ' '.join(f'{k} {v:x}' for k, v in kinds)]
+        L += [f'call.w SEQREGISTEREVENTKIND "{k}" cb4 d:{v:08x}' for k, v in kinds]
+        L += ['cbptr 1 3', '@load SYN_KIND.WRK', 'cbptr -1', 'cbdo cb4 03 dumpcb 1 0 8', 'call.w SEQDESTROYSEQ 0001', 'cbdo -']
+        L += [f'call.w SEQUNREGISTEREVENTKIND "{k}"' for k, v in kinds]
+    L += ['@close']
+    return L
+
+
 @suite('ports')
 def _():
     # The port assignment that SeqConfigMidi's dialog writes to TTSSEQ.INI, given here directly:

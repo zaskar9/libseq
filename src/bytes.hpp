@@ -53,6 +53,8 @@ public:
         need(k);
         p_ += k;
     }
+    /// Moves to an absolute position, at most the end.
+    void seek(const std::size_t p) noexcept { p_ = p < n_ ? p : n_; }
 
     std::uint8_t u8() {
         need(1);
@@ -196,6 +198,12 @@ public:
         while (n-- > 0) {
             u8(buf[n] | (n != 0 ? 0x80U : 0U));
         }
+    }
+    void patchBe32(const std::size_t at, const std::uint32_t v) {
+        out[at] = bytes::u8(v >> 24);
+        out[at + 1] = bytes::u8(v >> 16);
+        out[at + 2] = bytes::u8(v >> 8);
+        out[at + 3] = bytes::u8(v);
     }
     void patchU32(const std::size_t at, const std::uint32_t v) {
         out[at] = bytes::u8(v);

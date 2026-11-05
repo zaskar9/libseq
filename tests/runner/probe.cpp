@@ -1,9 +1,11 @@
 #include "probe.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdio>
 #include <cstring>
 #include <istream>
+#include <iterator>
 
 namespace ttsrun {
 
@@ -75,6 +77,9 @@ std::uint8_t* Memory::at(const FarPtr p, const std::size_t len) {
         }
         return it->second.data() + p.off;
     }
+    if (p.seg == kWindowSeg) {
+        return p.off + len <= window_.size() ? window_.data() + p.off : nullptr;
+    }
     if (p.seg >= kStrSeg && p.seg < kStrSeg + strs_.size()) {
         auto& s = strs_[p.seg - kStrSeg];
         return p.off + len <= s.size() ? s.data() + p.off : nullptr;
@@ -130,11 +135,57 @@ std::uint32_t Probe::callback(const FarPtr fn, const std::vector<std::uint16_t>&
     for (std::size_t i = 0; i < words.size() && i < 8; ++i) {
         r.w[i] = words[i];
     }
+    const auto matches = [&r](const CbDo& d) { return d.id == r.id && (d.match < 0 || d.match == r.w[0]); };
+    if (depth_ < 4 && std::any_of(cbdo_.begin(), cbdo_.end(), matches)) {
+        // the callback runs its commands: it prints at once, with them indented below
+        const std::array<std::uint16_t, 8> saved = cw_;
+        const std::uint32_t savedRet = doret_;
+        cw_ = r.w;
+        doret_ = cbret_;
+        flushCallbacks();
+        printHead(r.id, r.n, r.w);
+        out_ << " {\n";
+        ++depth_;
+        const std::vector<CbDo> dos = cbdo_; // a command may change them
+        for (const CbDo& d : dos) {
+            if (!matches(d)) {
+                continue;
+            }
+            static const std::array<const char*, 17> kQuiet = {
+                "letw", "ret",   "fill",    "fillcb", "put",   "putw", "buf",        "let",  "add",
+                "set",  "cbret", "cbyield", "cbmask", "cbptr", "dxs",  "cbretafter", "sleep"};
+            const std::vector<std::string> t = tokens(d.line);
+            const bool loud =
+                t.empty() || std::none_of(kQuiet.begin(), kQuiet.end(), [&t](const char* q) { return t[0] == q; });
+            if (loud) {
+                out_ << "  ";
+            }
+            run(d.line);
+        }
+        --depth_;
+        out_ << "} -> " << hex(doret_, 1) << '\n';
+        const std::uint32_t ret = doret_;
+        doret_ = savedRet;
+        cw_ = saved;
+        return ret;
+    }
+    if (cbptr_ >= 0 && cbptr_ + 1 < r.n) {
+        const FarPtr q{r.w.at(static_cast<std::size_t>(cbptr_)), r.w.at(static_cast<std::size_t>(cbptr_) + 1)};
+        int len = cblen_ >= 0 && cblen_ < r.n ? r.w.at(static_cast<std::size_t>(cblen_)) : 16;
+        len = std::min(len, 64);
+        if (q.null()) {
+            r.dlen = -2;
+        } else {
+            const std::uint8_t* b = mem.at(q, static_cast<std::size_t>(len));
+            r.data.assign(b, b == nullptr ? b : b + len);
+            r.dlen = static_cast<int>(r.data.size());
+        }
+    }
     if (!cbs_.empty()) {
         CbRec& last = cbs_.back();
         bool same = last.id == r.id;
-        for (int k = 0; k < 8 && same; ++k) {
-            same = (cbmerge_ && (cbmask_ & (1U << k)) != 0) || last.w[k] == r.w[k];
+        for (std::size_t k = 0; k < 8 && same; ++k) {
+            same = (cbmerge_ && (cbmask_ & (1U << k)) != 0) || last.w.at(k) == r.w.at(k);
         }
         if (same) {
             ++last.count;
@@ -145,6 +196,19 @@ std::uint32_t Probe::callback(const FarPtr fn, const std::vector<std::uint16_t>&
     return cbret_;
 }
 
+void Probe::printHead(const int id, const int n, const std::array<std::uint16_t, 8>& w) {
+    if (id >= 10) {
+        out_ << "callback cc" << id - 10 << '(';
+    } else {
+        out_ << "callback cb" << id << '(';
+    }
+    for (int i = 0; i < n; ++i) {
+        out_ << (i != 0 ? "," : "")
+             << ((cbmask_ & (1U << i)) != 0 ? std::string("----") : hex(w.at(static_cast<std::size_t>(i)), 4));
+    }
+    out_ << ')';
+}
+
 void Probe::flushCallbacks() {
     for (const CbRec& r : cbs_) {
         if (r.id >= 10) {
@@ -153,7 +217,21 @@ void Probe::flushCallbacks() {
             out_ << "callback cb" << r.id << '(';
         }
         for (int i = 0; i < r.n; ++i) {
-            out_ << (i != 0 ? "," : "") << ((cbmask_ & (1U << i)) != 0 ? std::string("----") : hex(r.w[i], 4));
+            if (r.dlen != -1 && i == cbptr_) {
+                if (r.dlen == -2) {
+                    out_ << (i != 0 ? "," : "") << "null";
+                } else {
+                    out_ << (i != 0 ? "," : "") << '[';
+                    for (std::size_t k = 0; k < r.data.size(); ++k) {
+                        out_ << (k != 0 ? " " : "") << hex(r.data[k], 2);
+                    }
+                    out_ << ']';
+                }
+                ++i;
+                continue;
+            }
+            out_ << (i != 0 ? "," : "")
+                 << ((cbmask_ & (1U << i)) != 0 ? std::string("----") : hex(r.w.at(static_cast<std::size_t>(i)), 4));
         }
         if (oracle_) {
             out_ << (r.count > 1 ? "), repeated\n" : ")\n");
@@ -175,8 +253,7 @@ void Probe::run(const std::string& line) {
     const auto arg = [&](const std::size_t i) { return i < t.size() ? t[i] : std::string(); };
     if (cmd == "echo") {
         out_ << rest(line) << '\n';
-    } else if (cmd == "sleep" || cmd == "dxs" || cmd == "cbyield" || cmd == "win" || cmd == "cbptr" ||
-               cmd == "cbretafter") {
+    } else if (cmd == "sleep" || cmd == "dxs" || cmd == "cbyield" || cmd == "win" || cmd == "cbretafter") {
         // nothing to wait for; the rest has no effect without a real DLL
     } else if (cmd == "idle") {
         if (const auto it = functions_.find("SEQIDLE"); it != functions_.end()) {
@@ -200,6 +277,61 @@ void Probe::run(const std::string& line) {
         cbmerge_ = arg(2) == "merge";
     } else if (cmd == "cbret") {
         cbret_ = static_cast<std::uint32_t>(num(arg(1), 16));
+    } else if (cmd == "cbdo") {
+        if (arg(1) == "-") {
+            cbdo_.clear();
+        } else if (cbdo_.size() < 32) {
+            const std::string& c = arg(1);
+            CbDo d;
+            d.id = c.size() == 3 ? c[2] - '0' + (c[1] == 'c' ? 10 : 0) : -1;
+            d.match = arg(2) == "*" ? -1L : static_cast<long>(num(arg(2), 16) & 0xffffU);
+            // the rest of the line after the callback and the word
+            std::size_t k = 0;
+            for (int f = 0; f < 3 && k < line.size(); ++f) {
+                while (k < line.size() && (line[k] == ' ' || line[k] == '\t')) {
+                    ++k;
+                }
+                while (k < line.size() && line[k] != ' ' && line[k] != '\t') {
+                    ++k;
+                }
+            }
+            while (k < line.size() && (line[k] == ' ' || line[k] == '\t')) {
+                ++k;
+            }
+            d.line = line.substr(k);
+            cbdo_.push_back(d);
+        }
+    } else if (cmd == "letw") {
+        var_[num(arg(1), 10) % 10] = cw_[num(arg(2), 10) & 7U];
+    } else if (cmd == "ret") {
+        doret_ = static_cast<std::uint32_t>(num(arg(1), 16));
+    } else if (cmd == "cbptr") {
+        cbptr_ = static_cast<int>(std::strtol(arg(1).c_str(), nullptr, 10));
+        cblen_ = t.size() > 2 ? static_cast<int>(std::strtol(arg(2).c_str(), nullptr, 10)) : -1;
+    } else if (cmd == "dumpcb" || cmd == "fillcb") {
+        const auto k = num(arg(1), 10) & 7U;
+        const FarPtr q{cw_[k], cw_[(k + 1) & 7U]};
+        const auto off = static_cast<std::uint16_t>(num(arg(2), 0));
+        const FarPtr at{q.seg, static_cast<std::uint16_t>(q.off + off)};
+        if (cmd == "dumpcb") {
+            const auto len = num(arg(3), 0);
+            out_ << "dump w" << k << '+' << off << ":\n";
+            if (!q.null()) {
+                const std::uint8_t* b = mem.at(at, len);
+                for (unsigned long i = 0; i < len; ++i) {
+                    const char* sep = " ";
+                    if (i % 16 == 0) {
+                        sep = i == 0 ? "  " : "\n  ";
+                    }
+                    out_ << sep << hex(b != nullptr ? b[i] : 0, 2);
+                }
+                out_ << '\n';
+            }
+        } else if (std::uint8_t* b = mem.at(at, t.size() - 3)) {
+            for (std::size_t i = 3; i < t.size(); ++i) {
+                b[i - 3] = static_cast<std::uint8_t>(num(t[i], 16));
+            }
+        }
     } else if (cmd == "time") {
         if (!oracle_) {
             out_ << "time 0\n";
@@ -246,88 +378,101 @@ void Probe::run(const std::string& line) {
         }
         out_ << '\n';
     } else if (cmd.starts_with("call") && (cmd.size() == 4 || cmd[4] == '.')) {
-        const char type = cmd.size() > 5 ? cmd[5] : 'r';
-        const std::string name = arg(1);
-        std::vector<std::uint16_t> w;
-        out_ << name << '(';
-        for (std::size_t i = 2; i < t.size(); ++i) {
-            const std::string& a = t[i];
-            out_ << (i > 2 ? "," : "") << a << (a[0] == '"' ? "\"" : "");
-            const auto push32 = [&w](const std::uint32_t v) {
-                w.push_back(static_cast<std::uint16_t>(v >> 16));
-                w.push_back(static_cast<std::uint16_t>(v & 0xffffU));
-            };
-            if (a[0] == '"') {
-                const FarPtr p = mem.allocString(a.substr(1));
-                w.push_back(p.seg);
-                w.push_back(p.off);
-            } else if (a[0] == '@') {
-                const auto plus = a.find('+');
-                const FarPtr p =
-                    mem.bufferPtr(static_cast<int>(num(a.substr(1), 10)),
-                                  plus == std::string::npos ? 0U : static_cast<unsigned>(num(a.substr(plus + 1), 0)));
-                w.push_back(p.seg);
-                w.push_back(p.off);
-            } else if (a.starts_with("d:")) {
-                push32(static_cast<std::uint32_t>(num(a.substr(2), 16)));
-            } else if (a.size() == 3 && a[0] == 'c' && (a[1] == 'b' || a[1] == 'c') && a[2] >= '0' && a[2] <= '8') {
-                w.push_back(Memory::kCallbackSeg);
-                w.push_back(static_cast<std::uint16_t>(a[2] - '0' + (a[1] == 'c' ? 10 : 0)));
-            } else if (a.starts_with("%b")) {
-                const auto plus = a.find('+');
-                const auto& b = mem.buffer(static_cast<int>(num(a.substr(2), 10)));
-                const auto off = plus == std::string::npos ? 0UL : num(a.substr(plus + 1), 0);
-                w.push_back(static_cast<std::uint16_t>(b.at(off) | (b.at(off + 1) << 8)));
-            } else if (a.starts_with("%d")) {
-                push32(var_[num(a.substr(2), 10) % 10]);
-            } else if (a[0] == '%') {
-                w.push_back(static_cast<std::uint16_t>(var_[num(a.substr(1), 10) % 10] & 0xffffU));
-            } else if (a == "hwnd") {
-                w.push_back(0x0123);
-            } else if (a == "null") {
-                w.push_back(0);
-                w.push_back(0);
-            } else if (a == "$r") {
-                push32(r_);
-            } else if (a == "$ax") {
-                w.push_back(static_cast<std::uint16_t>(r_ & 0xffffU));
-            } else if (a == "$dx") {
-                w.push_back(static_cast<std::uint16_t>(r_ >> 16));
-            } else {
-                w.push_back(static_cast<std::uint16_t>(num(a, 16)));
-            }
-        }
-        const auto it = functions_.find(name);
-        if (it == functions_.end()) {
-            ++missing[name];
-            out_ << ") -> not implemented\n";
-            return;
-        }
-        Args a(std::move(w));
-        r_ = it->second(a, *this);
-        if (type == 'w') {
-            out_ << ") -> " << hex(r_ & 0xffffU, 4) << '\n';
-        } else if (type == 'd') {
-            out_ << ") -> " << hex(r_, 8) << '\n';
-        } else if (type == 'v') {
-            out_ << ")\n";
-        } else if (type == 'p') {
-            const FarPtr p{static_cast<std::uint16_t>(r_ >> 16), static_cast<std::uint16_t>(r_ & 0xffffU)};
-            if (r_ == 0) {
-                out_ << ") -> null\n";
-            } else if (p.seg >= Memory::kBufSeg && p.seg < Memory::kBufSeg + 16 &&
-                       mem.hasBuffer(p.seg - Memory::kBufSeg)) {
-                out_ << ") -> @" << p.seg - Memory::kBufSeg << '+' << p.off << '\n';
-            } else {
-                out_ << ") -> ptr\n";
-            }
-        } else {
-            out_ << ") -> " << hex(r_ >> 16, 4) << ':' << hex(r_ & 0xffffU, 4) << '\n';
-        }
-        flushCallbacks();
+        call(t, cmd);
     } else {
         out_ << "? " << cmd << '\n';
     }
+}
+
+void Probe::call(const std::vector<std::string>& t, const std::string& cmd) {
+    const auto arg = [&](const std::size_t i) { return i < t.size() ? t[i] : std::string(); };
+    const char type = cmd.size() > 5 ? cmd[5] : 'r';
+    const std::string name = arg(1);
+    std::vector<std::uint16_t> w;
+    out_ << name << '(';
+    for (std::size_t i = 2; i < t.size(); ++i) {
+        const std::string& a = t[i];
+        out_ << (i > 2 ? "," : "") << a << (a[0] == '"' ? "\"" : "");
+        const auto push32 = [&w](const std::uint32_t v) {
+            w.push_back(static_cast<std::uint16_t>(v >> 16));
+            w.push_back(static_cast<std::uint16_t>(v & 0xffffU));
+        };
+        if (a[0] == '"') {
+            const FarPtr p = mem.allocString(a.substr(1));
+            w.push_back(p.seg);
+            w.push_back(p.off);
+        } else if (a[0] == '@') {
+            const auto plus = a.find('+');
+            const FarPtr p =
+                mem.bufferPtr(static_cast<int>(num(a.substr(1), 10)),
+                              plus == std::string::npos ? 0U : static_cast<unsigned>(num(a.substr(plus + 1), 0)));
+            w.push_back(p.seg);
+            w.push_back(p.off);
+        } else if (a.starts_with("d:")) {
+            push32(static_cast<std::uint32_t>(num(a.substr(2), 16)));
+        } else if (a.size() == 3 && a[0] == 'c' && (a[1] == 'b' || a[1] == 'c') && a[2] >= '0' && a[2] <= '8') {
+            w.push_back(Memory::kCallbackSeg);
+            w.push_back(static_cast<std::uint16_t>(a[2] - '0' + (a[1] == 'c' ? 10 : 0)));
+        } else if (a.starts_with("%b")) {
+            const auto plus = a.find('+');
+            const auto& b = mem.buffer(static_cast<int>(num(a.substr(2), 10)));
+            const auto off = plus == std::string::npos ? 0UL : num(a.substr(plus + 1), 0);
+            w.push_back(static_cast<std::uint16_t>(b.at(off) | (b.at(off + 1) << 8)));
+        } else if (a.starts_with("%w")) {
+            w.push_back(cw_[num(a.substr(2), 10) & 7U]);
+        } else if (a.starts_with("%d")) {
+            push32(var_[num(a.substr(2), 10) % 10]);
+        } else if (a[0] == '%') {
+            w.push_back(static_cast<std::uint16_t>(var_[num(a.substr(1), 10) % 10] & 0xffffU));
+        } else if (a == "hwnd") {
+            w.push_back(0x0123);
+        } else if (a == "null") {
+            w.push_back(0);
+            w.push_back(0);
+        } else if (a == "$r") {
+            push32(r_);
+        } else if (a == "$ax") {
+            w.push_back(static_cast<std::uint16_t>(r_ & 0xffffU));
+        } else if (a == "$dx") {
+            w.push_back(static_cast<std::uint16_t>(r_ >> 16));
+        } else {
+            w.push_back(static_cast<std::uint16_t>(num(a, 16)));
+        }
+    }
+    const auto it = functions_.find(name);
+    if (it == functions_.end()) {
+        ++missing[name];
+        out_ << ") -> not implemented\n";
+        return;
+    }
+    const bool dots = !cbdo_.empty() && depth_ == 0; // callbacks with commands print in between
+    if (dots) {
+        out_ << ") ...\n";
+    }
+    Args a(std::move(w));
+    r_ = it->second(a, *this);
+    if (dots) {
+        out_ << name << "(...";
+    }
+    if (type == 'w') {
+        out_ << ") -> " << hex(r_ & 0xffffU, 4) << '\n';
+    } else if (type == 'd') {
+        out_ << ") -> " << hex(r_, 8) << '\n';
+    } else if (type == 'v') {
+        out_ << ")\n";
+    } else if (type == 'p') {
+        const FarPtr p{static_cast<std::uint16_t>(r_ >> 16), static_cast<std::uint16_t>(r_ & 0xffffU)};
+        if (r_ == 0) {
+            out_ << ") -> null\n";
+        } else if (p.seg >= Memory::kBufSeg && p.seg < Memory::kBufSeg + 16 && mem.hasBuffer(p.seg - Memory::kBufSeg)) {
+            out_ << ") -> @" << p.seg - Memory::kBufSeg << '+' << p.off << '\n';
+        } else {
+            out_ << ") -> ptr\n";
+        }
+    } else {
+        out_ << ") -> " << hex(r_ >> 16, 4) << ':' << hex(r_ & 0xffffU, 4) << '\n';
+    }
+    flushCallbacks();
 }
 
 } // namespace ttsrun

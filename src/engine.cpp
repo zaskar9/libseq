@@ -624,13 +624,130 @@ SeqHandle Engine::createSequence() {
 }
 
 bool Engine::destroySequence(const SeqHandle handle) {
-    if (sequences_.erase(handle) != 1) {
+    return destroySequence(handle, false);
+}
+
+bool Engine::destroyStream(const StreamHandle handle) {
+    Sequence* s = sequence(seqOf(handle));
+    Stream* st = s == nullptr ? nullptr : s->stream(handle);
+    if (st == nullptr) {
         return false;
     }
+    freeStringEvents(*st);
+    return s->destroyStream(handle);
+}
+
+void Engine::close() {
+    while (!sequences_.empty()) {
+        destroySequence(sequences_.begin()->first);
+    }
+}
+
+std::uint8_t Engine::registerEventKind(std::string name, EventProc proc, const std::uint32_t value) {
+    for (unsigned k = 1; k < 0x80; ++k) {
+        const auto id = static_cast<std::uint8_t>(k);
+        if (!kinds_.contains(id)) {
+            kindNames_[id] = name;
+            kinds_[id] = EventKind{std::move(name), std::move(proc), value};
+            if (!firstKind_) {
+                firstKind_ = kinds_[id];
+            }
+            return id;
+        }
+    }
+    return 0;
+}
+
+bool Engine::unregisterEventKind(const std::string& name) {
+    for (auto it = kinds_.begin(); it != kinds_.end(); ++it) {
+        if (it->second.name == name) {
+            kindNames_.erase(it->first);
+            kinds_.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
+const Engine::EventKind* Engine::kindOf(const std::uint8_t status) const noexcept {
+    const auto it = kinds_.find(status);
+    return it == kinds_.end() ? nullptr : &it->second;
+}
+
+std::uint32_t Engine::callEventProc(const std::uint16_t message, Event& event, const std::uint16_t length) {
+    const EventKind* k = kindOf(event.status);
+    return k == nullptr || !k->proc ? 0 : k->proc(message, event, length);
+}
+
+void Engine::freeStringEvents(Stream& stream, const bool failedLoad) {
+    const EventKind* one = kindOf(1);
+    for (Event& e : stream.events()) {
+        const EventKind* k = kindOf(e.status);
+        if (k == nullptr || !k->proc) {
+            continue;
+        }
+        bool freed = one != nullptr && k->value == one->value;
+        if (failedLoad) {
+            // the first kind of the event's name, compared with the first kind ever registered
+            const auto named =
+                std::find_if(kinds_.begin(), kinds_.end(), [k](const auto& kv) { return kv.second.name == k->name; });
+            freed = firstKind_ && named != kinds_.end() && named->second.value == firstKind_->value;
+        }
+        if (freed) {
+            k->proc(ek::kFree, e, 0);
+        }
+    }
+}
+
+bool Engine::destroySequence(const SeqHandle handle, const bool failedLoad) {
+    Sequence* s = sequence(handle);
+    if (s == nullptr) {
+        return false;
+    }
+    for (Stream* st : s->streams()) {
+        freeStringEvents(*st, failedLoad);
+    }
+    sequences_.erase(handle);
     if (handle == current_) {
         current_ = 0;
     }
     return true;
+}
+
+std::uint32_t Engine::ioSeek(const std::int32_t offset, const int origin) {
+    if (!io_.open) {
+        return 0;
+    }
+    std::int64_t base = 0;
+    if (origin == 1) {
+        base = static_cast<std::int64_t>(io_.pos);
+    } else if (origin == 2) {
+        base = static_cast<std::int64_t>(io_.data.size());
+    }
+    io_.pos = static_cast<std::size_t>(std::max<std::int64_t>(base + offset, 0));
+    return static_cast<std::uint32_t>(io_.pos);
+}
+
+std::size_t Engine::ioRead(std::uint8_t* to, const std::size_t count) {
+    if (!io_.open || io_.pos >= io_.data.size()) {
+        return 0;
+    }
+    const std::size_t n = std::min(count, io_.data.size() - io_.pos);
+    std::copy_n(io_.data.begin() + static_cast<std::ptrdiff_t>(io_.pos), n, to);
+    io_.pos += n;
+    return n;
+}
+
+std::size_t Engine::ioWrite(const std::uint8_t* from, const std::size_t count) {
+    if (!io_.open) {
+        return 0;
+    }
+    if (io_.data.size() < io_.pos + count) {
+        io_.data.resize(io_.pos + count);
+    }
+    std::copy_n(from, count, io_.data.begin() + static_cast<std::ptrdiff_t>(io_.pos));
+    io_.pos += count;
+    return count;
 }
 
 Sequence* Engine::sequence(const SeqHandle handle) const noexcept {

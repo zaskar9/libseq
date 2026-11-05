@@ -225,6 +225,21 @@ of their own, now the suite `midifiles`.
 
 With these, libseq writes and reads all of them byte for byte.
 
+### 14. String events and the file callbacks (2026-11-05)
+
+Event kinds let a program keep its own events in the engine's streams: texts, MCI commands,
+waves. The `fileio` suite already showed the load callback and an event procedure reading its
+text. Libseq needed the rest, so the probe learned two commands, `dumpcb` and `fillcb`, to read and
+change the bytes an event procedure gets a pointer to. That showed the pointer leads into the
+stream itself, and that bytes the procedure writes there stay with the event.
+
+Saving showed the other messages: 5 for a `.WRK` file, 7 twice for a MIDI file (asking, then
+writing). Destroying the sequences was the surprise. The free message reached only some events.
+First it looked like kind 1 alone, then like kind 1's name. Varying one thing at a time pointed
+to the value the kind was registered with, which the procedures never see. A failed load frees by
+yet another rule. Both rules now fit every case probed, which is all that can be said without
+looking inside the DLL. The suite `eventkinds` keeps these cases on all three versions.
+
 ## In this folder
 
 | File | Content |

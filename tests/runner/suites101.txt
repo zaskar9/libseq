@@ -16,3 +16,5 @@ sysex
 sysextext
 files
 midifiles
+fileio
+eventkinds

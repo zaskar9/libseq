@@ -67,13 +67,81 @@ Writer vars(const Sequence& s, const Tick end) {
     return w;
 }
 
+/// Appends what the writer holds to the file and empties it.
+template <class File>
+void emit(File& f, Writer& w) {
+    f.data.insert(f.data.end(), w.out.begin(), w.out.end());
+    f.pos = f.data.size();
+    w.out.clear();
+}
+
 } // namespace
 
-bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& path) {
+bool Engine::stringStream(const Stream& st, const std::uint32_t number, bytes::Writer& w) {
+    // A stream with string events is a chunk 18: each event with only the bytes it needs, a
+    // string event as its time and kind followed by what its procedure writes (message 5).
+    emit(io_, w);
+    w.u8(wrk::STRSTREAM);
+    const std::size_t at = io_.data.size() + 1;
+    w.u32(0);
+    w.u16(number);
+    w.u32(static_cast<std::uint32_t>(st.events().size()));
+    for (const Event& e : st.events()) {
+        w.u24(e.time);
+        w.u8(e.status);
+        if (e.status < 0x80) {
+            emit(io_, w);
+            Event copy = e;
+            if (callEventProc(ek::kSave, copy, 7) == 0) {
+                return false;
+            }
+            io_.pos = io_.data.size();
+            continue;
+        }
+        w.u8(e.data1);
+        switch (e.status & 0xf0U) {
+        case 0x90:
+            w.u8(e.data2);
+            w.u16(e.duration);
+            break;
+        case 0xa0:
+        case 0xb0:
+        case 0xe0:
+            w.u8(e.data2);
+            break;
+        default:
+            break;
+        }
+    }
+    emit(io_, w);
+    const auto len = static_cast<std::uint32_t>(io_.data.size() - at - 4);
+    for (std::size_t i = 0; i < 4; ++i) {
+        io_.data[at + i] = static_cast<std::uint8_t>((len >> (8 * i)) & 0xffU);
+    }
+    return true;
+}
+
+bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& path, const FileProc& callback) {
     const Sequence* s = sequence(seq);
     if (s == nullptr) {
         return false;
     }
+    const auto ask = [&callback, this](const std::uint16_t code, const std::uint16_t word) -> std::uint32_t {
+        io_.pos = io_.data.size();
+        return callback ? callback(code, word) : 1U;
+    };
+    // the program may cancel before anything is written
+    if (ask(fileproc::kStart, 0) == 0) {
+        return false;
+    }
+    io_ = OpenFile{{}, 0, true};
+    // a failed save leaves no file behind
+    const auto fail = [this, &path] {
+        io_ = OpenFile{};
+        std::error_code ec;
+        std::filesystem::remove(path, ec);
+        return false;
+    };
     Writer w;
     w.str("CAKEWALK");
     w.u8(0x1a);
@@ -85,10 +153,32 @@ bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& 
         end = std::max(end, st->duration());
     }
 
+    // the percentage done after each stream and sysex bank
+    const std::size_t parts = s->streams().size() + s->sysxBanks.size();
+    std::size_t done = 0;
+    const auto progress = [&] {
+        ++done;
+        ask(fileproc::kStart, static_cast<std::uint16_t>(done * 100 / parts));
+    };
+
     Writer b;
     b.u16(s->ppq);
     chunk(w, wrk::TIMEBASE, b);
     chunk(w, wrk::VARS, vars(*s, end));
+    emit(io_, w);
+    if (ask(fileproc::kVars, seq) == 0) {
+        return fail();
+    }
+    // the kinds of string events, when any is registered
+    if (!kinds_.empty()) {
+        b = Writer{};
+        b.u16(static_cast<std::uint32_t>(kinds_.size()));
+        for (const auto& [id, k] : kinds_) {
+            b.pstr(k.name.substr(0, 255));
+            b.u8(id);
+        }
+        chunk(w, wrk::STRTAB, b);
+    }
 
     b = Writer{};
     b.u16(static_cast<std::uint32_t>(s->tempoMap.size()));
@@ -183,14 +273,20 @@ bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& 
         b.pstr(name.substr(0, 255));
         chunk(w, wrk::TRKNAME, b);
 
-        b = Writer{};
-        b.u16(number);
-        b.u16(static_cast<std::uint32_t>(st->events().size()));
-        for (const Event& e : st->events()) {
-            const auto r = e.bytes();
-            b.bytes(r.data(), r.size());
+        const bool strings =
+            std::any_of(st->events().begin(), st->events().end(), [](const Event& e) { return e.status < 0x80; });
+        if (!strings) {
+            b = Writer{};
+            b.u16(number);
+            b.u16(static_cast<std::uint32_t>(st->events().size()));
+            for (const Event& e : st->events()) {
+                const auto r = e.bytes();
+                b.bytes(r.data(), r.size());
+            }
+            chunk(w, wrk::STREAM, b);
+        } else if (!stringStream(*st, number, w)) {
+            return fail();
         }
-        chunk(w, wrk::STREAM, b);
 
         if (st->param(sp::kPatch) >= 0) {
             b = Writer{};
@@ -218,6 +314,8 @@ bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& 
             b.s16(st->param(sp::kPan));
             chunk(w, wrk::TRKVOL, b);
         }
+        emit(io_, w);
+        progress();
     }
 
     for (const auto& [id, bank] : s->sysxBanks) {
@@ -228,11 +326,19 @@ bool Engine::saveCakewalkFile(const SeqHandle seq, const std::filesystem::path& 
         b.pstr(bank.name.substr(0, 255));
         b.bytes(bank.data);
         chunk(w, wrk::SYSEX, b);
+        emit(io_, w);
+        progress();
     }
 
+    emit(io_, w);
+    ask(fileproc::kEnd, fileproc::kFile);
     w.u8(wrk::END);
+    io_.pos = io_.data.size();
+    emit(io_, w);
+    const std::vector<std::uint8_t> out = std::move(io_.data);
+    io_ = OpenFile{};
     try {
-        bytes::writeFileBytes(path.string(), w.out);
+        bytes::writeFileBytes(path.string(), out);
     } catch (const Error&) {
         fileError_ = 7;
         return false;

@@ -44,6 +44,9 @@
  *                             lparam high,lparam low)", and "cbdo msg MSG LINE" answers them
  *   add N HEX                 add HEX to variable N (set N HEX sets it)
  *   letw N K                  keep word K of the callback running its commands in variable N
+ *   dumpcb K OFF LEN          inside a callback: hex dump of LEN bytes at the far pointer in words
+ *                             K (segment) and K+1 (offset) of the callback, plus OFF
+ *   fillcb K OFF HEX...       inside a callback: write bytes there (an event procedure's event)
  *   cbmask HEX [merge]        callback words whose bit is set print as "----" (values that differ
  *                             from run to run, such as free memory); with "merge", repeated calls
  *                             that differ only in those words are counted as one
@@ -129,7 +132,7 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
             ++g_dodepth;
             for (i = 0; i < g_ndo; ++i)
                 if (g_do[i].id == id && (g_do[i].match < 0 || (WORD)g_do[i].match == w0)) {
-                    static const char* quiet[] = { "letw", "ret", "fill", "put", "putw", "buf", "let", "add", "set", "cbret", "cbyield",
+                    static const char* quiet[] = { "letw", "ret", "fill", "fillcb", "put", "putw", "buf", "let", "add", "set", "cbret", "cbyield",
                                                    "cbmask", "cbptr", "dxs", "cbretafter", "sleep", NULL };
                     int q, loud = 1;
                     strcpy(line, g_do[i].line);
@@ -458,6 +461,20 @@ static void run(char* line) {
         unsigned len = (unsigned)strtoul(nexttok(&p), NULL, 0);
         fprintf(g_out, "dump %d+%u:\n", n, off);
         hexdump(g_buf[n] + off, len);
+    } else if (strcmp(cmd, "dumpcb") == 0 || strcmp(cmd, "fillcb") == 0) {
+        /* dumpcb K OFF LEN / fillcb K OFF HEX...: the far pointer in the running callback's words K, K+1 */
+        int k = atoi(nexttok(&p)) & 7;
+        unsigned off = (unsigned)strtoul(nexttok(&p), NULL, 0);
+        BYTE far* q = (BYTE far*)MAKELONG(g_cw[(k + 1) & 7], g_cw[k]);
+        if (cmd[0] == 'd') {
+            unsigned len = (unsigned)strtoul(nexttok(&p), NULL, 0);
+            fprintf(g_out, "dump w%d+%u:\n", k, off);
+            if (q) hexdump(q + off, len);
+        } else if (q) {
+            char* t;
+            q += off;
+            while ((t = nexttok(&p)) != NULL && *t) *q++ = (BYTE)strtoul(t, NULL, 16);
+        }
     } else if (strcmp(cmd, "dumpr") == 0) {
         unsigned len = (unsigned)strtoul(nexttok(&p), NULL, 0);
         BYTE far* q = (BYTE far*)g_r;

@@ -103,7 +103,9 @@ hides callback words that differ from run to run (the free memory the engine rep
 Some functions only work inside a callback (`SeqIORead` while the engine loads a file). `cbdo cbN
 W0 LINE` makes callback cbN run LINE when its first word is W0 (`*` for any); in LINE, `%wN` is
 the callback's word N, `letw N K` keeps word K in variable N, `%bN+OFF` passes a word read from a
-buffer, and `ret HEX` sets what that call of the callback returns. `win` makes a hidden window
+buffer, and `ret HEX` sets what that call of the callback returns. `dumpcb K OFF LEN` and
+`fillcb K OFF HEX...` read and write the bytes at the far pointer in the callback's words K and
+K+1: an event procedure's event, which the engine passes by address. `win` makes a hidden window
 for functions that report to one (`SeqStepRecSetup`): the argument `hwnd` passes it, its messages
 print like callbacks, and `cbdo msg 0464 ...` answers them; `set` and `add` change a variable.
 

@@ -14,6 +14,7 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -21,6 +22,10 @@
 #include <vector>
 
 namespace libseq {
+
+namespace bytes {
+class Writer;
+} // namespace bytes
 
 /// Stream parameters (SeqGetStreamParam / SeqSetStreamParam).
 namespace sp {
@@ -261,6 +266,32 @@ private:
     std::map<std::uint8_t, std::unique_ptr<Stream>> streams_;
 };
 
+/// What the engine asks of an event procedure (SeqRegisterEventKind): the message, then the
+/// string event in the stream (its time, its kind as the status and four bytes the program may
+/// use) and a length.
+namespace ek {
+inline constexpr std::uint16_t kPlay = 1; // the event plays (length 7)
+inline constexpr std::uint16_t kFree = 3; // the event goes away (length 0)
+inline constexpr std::uint16_t kLoad = 4; // read the event's data from the file (length 7)
+inline constexpr std::uint16_t kSave = 5; // write it to the .WRK file (length 7)
+inline constexpr std::uint16_t kMidi = 7; // length 0: write to the MIDI file?  length 7: write it
+} // namespace ek
+
+/// An event procedure: (message, event, length). The program reads and writes the event's data in
+/// the file with Engine::ioRead and Engine::ioWrite; a load fails when it returns 0.
+using EventProc = std::function<std::uint32_t(std::uint16_t message, Event& event, std::uint16_t length)>;
+
+/// The program's callback of a file load or save (`LoadProc`, `SaveProc`): (code, word), the code
+/// being a chunk type or one of the codes in fileproc.
+using FileProc = std::function<std::uint32_t(std::uint16_t code, std::uint16_t word)>;
+
+namespace fileproc {
+inline constexpr std::uint16_t kStart = 0xfe; // load: the file is open; save: a percentage
+inline constexpr std::uint16_t kVars = 3;     // the VARS chunk is done (the word is not the file)
+inline constexpr std::uint16_t kEnd = 0xff;   // the end; a save appends the program's chunks here
+inline constexpr std::uint16_t kFile = 7;     // the file word libseq passes (1.01's DOS handle)
+} // namespace fileproc
+
 /// The engine: the sequences it holds.
 class Engine {
 public:
@@ -288,10 +319,36 @@ public:
     /// when it fails.
     StreamHandle mergeStreams(SeqHandle seq, StreamHandle a, StreamHandle b, bool destroyB, Tick offset);
 
+    /// SeqDestroyStream: the stream goes, after its string events are freed (freeStringEvents).
+    bool destroyStream(StreamHandle handle);
+    /// SeqClose: destroys every sequence.
+    void close();
+
+    /// SeqRegisterEventKind: a kind of string event, numbered from 1 (the lowest free number); a
+    /// name may be registered more than once. 0 when all 127 numbers are taken.
+    std::uint8_t registerEventKind(std::string name, EventProc proc, std::uint32_t value = 0);
+    /// SeqUnregisterEventKind: the first kind with that name goes.
+    bool unregisterEventKind(const std::string& name);
+    /// SeqCallEventProc: the procedure of the event's kind (its status), 0 when there is none.
+    std::uint32_t callEventProc(std::uint16_t message, Event& event, std::uint16_t length);
+    /// The names of the kinds, by number.
+    [[nodiscard]] const std::map<std::uint8_t, std::string>& eventKindNames() const noexcept { return kindNames_; }
+
+    /// SeqIOSeek, SeqIORead, SeqIOWrite: the file the engine has open during a load or a save,
+    /// whatever handle the program passes. Seek: origin 0 the start, 1 here, 2 the end; returns the
+    /// position. Read and write return the bytes moved; all give 0 with no file open.
+    std::uint32_t ioSeek(std::int32_t offset, int origin);
+    std::size_t ioRead(std::uint8_t* to, std::size_t count);
+    std::size_t ioWrite(const std::uint8_t* from, std::size_t count);
+
     /// SeqLoadCakewalkFile: a new sequence from a `.WRK` file; 0 when it fails (fileError() says why).
-    SeqHandle loadCakewalkFile(const std::filesystem::path& path);
-    /// SeqSaveCakewalkFile without a program callback: the sequence as 1.01 writes it.
-    bool saveCakewalkFile(SeqHandle seq, const std::filesystem::path& path);
+    /// With a callback the program sees the file open, each chunk before the engine reads it (it
+    /// returns 1 when it read the chunk itself), the VARS chunk done, and the end.
+    SeqHandle loadCakewalkFile(const std::filesystem::path& path, const FileProc& callback = {});
+    /// SeqSaveCakewalkFile: the sequence as 1.01 writes it. The callback gets 0xFE with 0 first and
+    /// with a percentage after each stream and sysex bank, 3 after VARS (0 at either of the first
+    /// two cancels the save), and 0xFF with the file before the end marker.
+    bool saveCakewalkFile(SeqHandle seq, const std::filesystem::path& path, const FileProc& callback = {});
     /// SeqSaveMidiFile: the sequence as a format 1 Standard MIDI File, as 1.01 writes it.
     bool saveMidiFile(SeqHandle seq, const std::filesystem::path& path);
     /// SeqLoadMidiFile: a new sequence from a Standard MIDI File; 0 when it fails.
@@ -301,8 +358,36 @@ public:
     [[nodiscard]] int fileError() const noexcept { return fileError_; }
 
 private:
+    struct EventKind {
+        std::string name;
+        EventProc proc;
+        std::uint32_t value = 0; // the program's value; the procedures do not get it
+    };
+    /// The file of a load or save: its bytes and the position SeqIOSeek, SeqIORead and SeqIOWrite
+    /// work at.
+    struct OpenFile {
+        std::vector<std::uint8_t> data;
+        std::size_t pos = 0;
+        bool open = false;
+    };
     [[nodiscard]] SeqHandle freeHandle() const;
+    /// The kind of a string event's status, nullptr when none is registered.
+    [[nodiscard]] const EventKind* kindOf(std::uint8_t status) const noexcept;
+    /// The free message (3) for the string events of a stream that goes. 1.01 does not send it to
+    /// every event: when a stream or sequence is destroyed, only to events whose kind has the value
+    /// that kind 1 was registered with; when a load fails, to events whose name's first kind has
+    /// the value of the first kind ever registered. These rules fit every probe of the eventkinds
+    /// suite; why 1.01 picks the events so is not known.
+    void freeStringEvents(Stream& stream, bool failedLoad = false);
+    bool destroySequence(SeqHandle handle, bool failedLoad);
+    /// Writes a stream as chunk 18 to the open file, with the string events' procedures; false
+    /// when one fails. `w` holds what is not written yet.
+    bool stringStream(const Stream& stream, std::uint32_t number, bytes::Writer& w);
     std::map<SeqHandle, std::unique_ptr<Sequence>> sequences_;
+    std::map<std::uint8_t, EventKind> kinds_;
+    std::optional<EventKind> firstKind_; // the first kind ever registered, for freeStringEvents
+    std::map<std::uint8_t, std::string> kindNames_;
+    OpenFile io_;
     int fileError_ = 0;
     /// The event the MIDI file writer and reader work in. 1.01 keeps one for both and never clears
     /// it, so what a message does not fill (the second data byte and the duration of a program

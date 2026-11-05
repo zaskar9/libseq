@@ -20,7 +20,10 @@ void defineApi101(Probe& p, Engine& e) {
     // ---- lifecycle
     p.define("SEQGETVERSION", [](Args&, Probe&) -> std::uint32_t { return Engine::kVersion; });
     p.define("SEQOPEN", [](Args&, Probe&) -> std::uint32_t { return 1; });
-    p.define("SEQCLOSE", [](Args&, Probe&) -> std::uint32_t { return 1; });
+    p.define("SEQCLOSE", [&e](Args&, Probe&) -> std::uint32_t {
+        e.close();
+        return 1;
+    });
 
     // ---- sequences
     p.define("SEQCREATESEQ", [&e](Args&, Probe&) -> std::uint32_t { return e.createSequence(); });
@@ -38,26 +41,6 @@ void defineApi101(Probe& p, Engine& e) {
         const int param = a.word();
         const auto v = static_cast<std::int32_t>(a.dword());
         return s != nullptr && s->setParam(param, v) ? 1 : 0;
-    });
-    p.define("SEQLOADCAKEWALKFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        return e.loadCakewalkFile(path);
-    });
-    p.define("SEQSAVECAKEWALKFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
-        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        return e.saveCakewalkFile(seq, path) ? 1 : 0;
-    });
-    p.define("SEQLOADMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.word(); // always 0 in the corpus
-        return e.loadMidiFile(path);
-    });
-    p.define("SEQSAVEMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
-        const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.dword(); // the program callback, not called
-        return e.saveMidiFile(seq, path) ? 1 : 0;
     });
     p.define("SEQGETFILEERROR",
              [&e](Args&, Probe&) -> std::uint32_t { return static_cast<std::uint32_t>(e.fileError()); });
@@ -119,11 +102,7 @@ void defineApi101(Probe& p, Engine& e) {
         Sequence* s = e.sequence(a.word());
         return s == nullptr ? 0 : s->createStream().handle();
     });
-    p.define("SEQDESTROYSTREAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const libseq::StreamHandle h = a.word();
-        Sequence* s = e.sequence(libseq::seqOf(h));
-        return s != nullptr && s->destroyStream(h) ? 1 : 0;
-    });
+    p.define("SEQDESTROYSTREAM", [&e](Args& a, Probe&) -> std::uint32_t { return e.destroyStream(a.word()) ? 1 : 0; });
     p.define("SEQADOPTSTREAM", [&e](Args& a, Probe&) -> std::uint32_t {
         const libseq::SeqHandle seq = a.word();
         return e.adoptStream(seq, a.word());
@@ -155,6 +134,7 @@ void defineApi101(Probe& p, Engine& e) {
     defineEvents101(p, e);
     defineMarks101(p, e);
     defineTime101(p, e);
+    defineFiles101(p, e);
 }
 
 } // namespace ttsrun

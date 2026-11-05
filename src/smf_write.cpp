@@ -9,7 +9,8 @@
 //    the forced channel or else the channel of the stream's first channel message;
 //  - the forced channel, key+ and vel+ are applied; time+ and the loop count are not; the velocity
 //    stays within 1 to 127 (for the key, see transposed());
-//  - only channel messages are written: sysex bank references and other kinds are left out;
+//  - only channel messages are written, and string events as their procedures write them;
+//    sysex bank references are left out;
 //  - a note is a note on and a note on with velocity 0 at its end, written before the events at or
 //    after that time; of notes that end together, the last one started ends first;
 //  - running status is used from the first event on, the header's messages do not take part;
@@ -19,6 +20,7 @@
 #include "libseq/engine.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 namespace libseq {
@@ -35,19 +37,30 @@ std::uint8_t byte(const std::int32_t v) {
     return static_cast<std::uint8_t>(v & 0xff);
 }
 
-/// Bytes of one track with delta times.
+/// One track, written to the end of the file: its chunk header, events with delta times, and the
+/// length filled in at the end.
 class Track {
 public:
+    explicit Track(std::vector<std::uint8_t>& file) : file_(&file), start_(file.size() + 8) {
+        Writer w;
+        w.str("MTrk");
+        w.be32(0);
+        put(w);
+    }
     void at(const Tick t) {
-        w_.vlq(t - now_);
+        Writer w;
+        w.vlq(t - now_);
+        put(w);
         now_ = t;
     }
     void meta(const Tick t, const std::uint8_t type, const std::vector<std::uint8_t>& data) {
         at(t);
-        w_.u8(0xff);
-        w_.u8(type);
-        w_.vlq(static_cast<std::uint32_t>(data.size()));
-        w_.bytes(data);
+        Writer w;
+        w.u8(0xff);
+        w.u8(type);
+        w.vlq(static_cast<std::uint32_t>(data.size()));
+        w.bytes(data);
+        put(w);
         running_ = 0;
     }
     void text(const Tick t, const std::uint8_t type, const std::string& s) {
@@ -57,32 +70,38 @@ public:
     void channel(const Tick t, const std::uint8_t status, const std::uint8_t d1, const std::uint8_t d2,
                  const bool running = true) {
         at(t);
+        Writer w;
         if (!running || status != running_) {
-            w_.u8(status);
+            w.u8(status);
         }
         running_ = running ? status : 0;
-        w_.u8(d1);
+        w.u8(d1);
         const unsigned kind = status & 0xf0U;
         if (kind != 0xc0U && kind != 0xd0U) {
-            w_.u8(d2);
+            w.u8(d2);
         }
+        put(w);
     }
-    void end() { meta(now_, 0x2f, {}); }
-    void appendTo(Writer& file) const {
-        file.str("MTrk");
-        file.be32(static_cast<std::uint32_t>(w_.size()));
-        file.bytes(w_.out);
+    /// Ends the track and fills in its length.
+    void end() {
+        meta(now_, 0x2f, {});
+        const auto len = static_cast<std::uint32_t>(file_->size() - start_);
+        for (std::size_t i = 0; i < 4; ++i) {
+            (*file_)[start_ - 4 + i] = static_cast<std::uint8_t>((len >> (8 * (3 - i))) & 0xffU);
+        }
     }
 
 private:
-    Writer w_;
+    void put(const Writer& w) { file_->insert(file_->end(), w.out.begin(), w.out.end()); }
+    std::vector<std::uint8_t>* file_;
+    std::size_t start_ = 0;
     Tick now_ = 0;
     std::uint8_t running_ = 0;
 };
 
 /// Track 0: at each tick the meter and the key signature when they changed, the tempo and the
 /// markers.
-Track mapTrack(const Sequence& s) {
+void mapTrack(const Sequence& s, std::vector<std::uint8_t>& file) {
     struct Item {
         Tick tick;
         int order;
@@ -115,12 +134,11 @@ Track mapTrack(const Sequence& s) {
     std::stable_sort(items.begin(), items.end(), [](const Item& a, const Item& b) {
         return a.tick != b.tick ? a.tick < b.tick : a.order < b.order;
     });
-    Track t;
+    Track t(file);
     for (const Item& i : items) {
         t.meta(i.tick, i.type, i.data);
     }
     t.end();
-    return t;
 }
 
 /// A note's key with key+: above 127 it goes to the top octave (108 to 119) keeping its pitch
@@ -137,8 +155,11 @@ std::uint8_t transposed(const std::vector<Event>& events, const std::size_t i, c
     return static_cast<std::uint8_t>(k);
 }
 
-Track streamTrack(const Stream& st, Event& scratch) {
-    Track t;
+/// A string event's procedure with the file standing at its end.
+using Proc = std::function<std::uint32_t(std::uint16_t message, Event& event, std::uint16_t length)>;
+
+void streamTrack(const Stream& st, Event& scratch, std::vector<std::uint8_t>& file, const Proc& proc) {
+    Track t(file);
     t.meta(0, 0x21, {byte(st.param(sp::kPort))});
     if (!st.name().empty()) {
         t.text(0, 0x03, st.name());
@@ -192,10 +213,20 @@ Track streamTrack(const Stream& st, Event& scratch) {
     const int velPlus = st.param(sp::kVelPlus);
     for (std::size_t i = 0; i < events.size(); ++i) {
         const Event& e = events[i];
-        if (e.status < 0x80 || e.status >= 0xf0) {
+        if (e.status >= 0xf0) {
             continue;
         }
         flush(e.time, false);
+        if (e.status < 0x80) {
+            // a string event: its procedure says whether it writes an event (message 7, length
+            // 0), and then writes it after the delta time (length 7). Running status goes on.
+            Event copy = e;
+            if (proc(ek::kMidi, copy, 0) != 0) {
+                t.at(e.time);
+                proc(ek::kMidi, copy, 7);
+            }
+            continue;
+        }
         const auto status = static_cast<std::uint8_t>(forced >= 0 ? (e.status & 0xf0U) | channel : e.status);
         scratch = e;
         scratch.status = status;
@@ -208,7 +239,6 @@ Track streamTrack(const Stream& st, Event& scratch) {
     }
     flush(0, true);
     t.end();
-    return t;
 }
 
 } // namespace
@@ -219,16 +249,24 @@ bool Engine::saveMidiFile(const SeqHandle seq, const std::filesystem::path& path
         return false;
     }
     const std::vector<Stream*> streams = s->streams();
+    io_ = OpenFile{{}, 0, true};
     Writer w;
     w.str("MThd");
     w.be32(6);
     w.be16(1);
     w.be16(static_cast<std::uint32_t>(streams.size() + 1));
     w.be16(s->ppq);
-    mapTrack(*s).appendTo(w);
+    io_.data = std::move(w.out);
+    mapTrack(*s, io_.data);
+    const Proc proc = [this](const std::uint16_t message, Event& e, const std::uint16_t length) {
+        io_.pos = io_.data.size();
+        return callEventProc(message, e, length);
+    };
     for (const Stream* st : streams) {
-        streamTrack(*st, midiScratch_).appendTo(w);
+        streamTrack(*st, midiScratch_, io_.data, proc);
     }
+    w.out = std::move(io_.data);
+    io_ = OpenFile{};
     try {
         bytes::writeFileBytes(path.string(), w.out);
     } catch (const Error&) {
