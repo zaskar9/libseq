@@ -10,3 +10,4 @@ eventedit
 ranges
 merge
 sorting
+copypaste

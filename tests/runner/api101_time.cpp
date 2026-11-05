@@ -129,15 +129,14 @@ void defineTime101(Probe& p, Engine& e) {
         }
         const auto hi = static_cast<std::uint16_t>(value >> 16);
         const auto lo = static_cast<std::uint16_t>(value & 0xffffU);
-        // the callback gets each entry's elapsed time (microseconds times the ppq, 32 bits of it)
-        for (const libseq::TempoEntry& t : s->tempoMap.entries()) {
-            if (t.tick >= from && t.tick <= thru) {
-                const auto el = static_cast<std::uint32_t>(t.elapsed);
-                pr.callback(cb,
-                            {static_cast<std::uint16_t>(el >> 16), static_cast<std::uint16_t>(el & 0xffffU), hi, lo});
-            }
+        // the callback gets each entry's elapsed time (microseconds times the ppq, 32 bits of it),
+        // then (0, 0, 0, 0)
+        const std::size_t n = s->tempoMap.enumCount(from, thru);
+        for (std::size_t i = 0; i < n; ++i) {
+            const auto el = static_cast<std::uint32_t>(s->tempoMap.entries()[i].elapsed);
+            pr.callback(cb, {static_cast<std::uint16_t>(el >> 16), static_cast<std::uint16_t>(el & 0xffffU), hi, lo});
         }
-        pr.callback(cb, {0, 0, hi, lo});
+        pr.callback(cb, {0, 0, 0, 0});
         return 1;
     });
     p.define("SEQSWAPTEMPOMAPS", [seq](Args& a, Probe&) -> std::uint32_t {
@@ -147,6 +146,35 @@ void defineTime101(Probe& p, Engine& e) {
             std::swap(x->tempoMap, y->tempoMap);
         }
         return 0;
+    });
+
+    p.define("SEQTEMPOCOPY", [seq](Args& a, Probe& pr) -> std::uint32_t {
+        const Sequence* src = seq(a);
+        Sequence* clip = seq(a);
+        const Tick from = a.dword();
+        const Tick thru = a.dword();
+        a.dword(); // no visible effect
+        const FarPtr flag = a.ptr();
+        if (src == nullptr || clip == nullptr) {
+            return 0;
+        }
+        if (clip->tempoMap.copyFrom(src->tempoMap, from, thru)) {
+            putWord(pr, flag, 1);
+        }
+        return 1;
+    });
+    p.define("SEQTEMPOPASTE", [seq](Args& a, Probe&) -> std::uint32_t {
+        const Sequence* clip = seq(a);
+        Sequence* dst = seq(a);
+        const Tick at = a.dword();
+        const Tick length = a.dword();
+        const std::uint16_t reps = a.word();
+        const bool slide = a.word() != 0;
+        if (clip == nullptr || dst == nullptr) {
+            return 0;
+        }
+        dst->tempoMap.paste(clip->tempoMap, at, length, reps, slide);
+        return 1;
     });
 
     // ---- tempo ratios
@@ -264,13 +292,12 @@ void defineTime101(Probe& p, Engine& e) {
         }
         const auto hi = static_cast<std::uint16_t>(value >> 16);
         const auto lo = static_cast<std::uint16_t>(value & 0xffffU);
-        for (const libseq::MeterEntry& m : s->meterMap.entries()) {
-            const auto measure = static_cast<std::uint16_t>(m.measure + 1);
-            if (measure >= from && measure <= thru) {
-                pr.callback(cb, {keyWord(m), m.meter(), hi, lo});
-            }
+        const std::size_t n = s->meterMap.enumCount(from, thru);
+        for (std::size_t i = 0; i < n; ++i) {
+            const libseq::MeterEntry& m = s->meterMap.entries()[i];
+            pr.callback(cb, {keyWord(m), m.meter(), hi, lo});
         }
-        pr.callback(cb, {0, 0, hi, lo});
+        pr.callback(cb, {0, 0, 0, 0});
         return 1;
     });
     p.define("SEQSWAPMETERMAPS", [seq](Args& a, Probe&) -> std::uint32_t {
@@ -280,6 +307,38 @@ void defineTime101(Probe& p, Engine& e) {
             std::swap(x->meterMap, y->meterMap);
         }
         return 0;
+    });
+
+    p.define("SEQMETERCOPY", [seq](Args& a, Probe& pr) -> std::uint32_t {
+        Sequence* src = seq(a);
+        Sequence* clip = seq(a);
+        const std::uint16_t from = a.word();
+        const std::uint16_t thru = a.word();
+        const bool cut = a.word() != 0;
+        a.word(); // no visible effect
+        const FarPtr flag = a.ptr();
+        if (src == nullptr || clip == nullptr) {
+            return 0;
+        }
+        bool found = false;
+        const bool ok = clip->meterMap.copyFrom(src->meterMap, from, thru, cut, src->ppq, found);
+        if (found) {
+            putWord(pr, flag, 1);
+        }
+        return ok ? 1 : 0;
+    });
+    p.define("SEQMETERPASTE", [seq](Args& a, Probe&) -> std::uint32_t {
+        const Sequence* clip = seq(a);
+        Sequence* dst = seq(a);
+        const std::uint16_t measure = a.word();
+        const std::uint16_t length = a.word();
+        const std::uint16_t reps = a.word();
+        const bool slide = a.word() != 0;
+        if (clip == nullptr || dst == nullptr) {
+            return 0;
+        }
+        dst->meterMap.paste(clip->meterMap, measure, length, reps, slide, dst->ppq);
+        return 1;
     });
 
     // ---- positions

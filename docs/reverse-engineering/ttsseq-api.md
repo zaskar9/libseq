@@ -231,7 +231,8 @@ settle single points [probe]. libseq 1.1.0 follows all of it.
   ppq: the sum of ticks × microseconds per quarter note, where microseconds per quarter note is
   6,000,000,000 / tempo rounded to the nearest whole number (the MIDI file unit). With 46.60 bpm
   that is 1,287,554, not 1,287,553.6. `SeqEnumTempos` passes this time to its callback as a double
-  word: (time, value) per entry in the range, then (0, 0, value). The 0.x notes left this open.
+  word: (time, value) per entry, then (0, 0, 0, 0); which entries, see "Copy and paste". The 0.x
+  notes left this open.
 - **Stale entries.** `SeqSetTempo` and `SeqInsTempo` refresh the entries from the one they change
   on, with a slip: the changed entry gets only the time from the entry before it, without that
   entry's own elapsed time. After inserting at tick 0x200 behind an entry at 0x1E0 at 60 bpm the
@@ -813,10 +814,50 @@ From Cakewalk Apprentice 1.04 (2.10) and Cakewalk Professional 2.00 (3.00) doing
   For undo, Cakewalk Apprentice 1.04 also makes sequence 3, with an empty clone of the track
   (`SeqCloneStream(3, track, 1)`) and a copy of the whole tempo map.
 - `SeqTempoCopy(src, clip, from32, thru32, 0, pointer)` (10 words);
-  `SeqTempoPaste(clip, dst, at32, value32, 1, 0 or 1)` (8 words).
-- `SeqMeterCopy` (8 words); `SeqMeterPaste(clip, dst, at32, 1, 0)` (6 words). Cakewalk Apprentice 1.04 refuses
-  a meter paste off a measure boundary with an assertion ("Meters and non-measure boundary",
-  edit1.c line 806).
+  `SeqTempoPaste(clip, dst, at32, length32, 1, 0 or 1)` (8 words).
+- `SeqMeterCopy` (8 words); `SeqMeterPaste` (6 words). Cakewalk Apprentice 1.04 refuses a meter
+  paste off a measure boundary with an assertion ("Meters and non-measure boundary", edit1.c line
+  806). The trace's reading of the meter calls as taking a 32-bit time was wrong: they take
+  measures (below).
+
+How the four calls work, from the `copypaste` suite: built clipboards and destinations, pasted
+with every combination of the last words, 108 meter and 90 tempo cases [probe]. 1.01 and 2.10
+answer it alike; 3.00 too, but its `SeqGetMeterAtIx` returns the last entry instead of
+0xFFFFFFFF past the end. libseq 1.1.0 follows all of it.
+
+- **`SeqTempoCopy(src, clip, from32, thru32, ?32, &flag)`** puts the tempo in effect at `from` at
+  tick 0 of the clipboard and the entries after `from` up to `thru` (included) at their distance
+  from `from`, replacing entries at the same tick; the clipboard keeps anything else it had. The
+  times are then recomputed. It sets `*flag` to 1 (a word) when `src` has an entry in
+  [from, thru], and returns 1. The fifth argument had no visible effect.
+- **`SeqTempoPaste(clip, dst, at32, length32, reps, slide)`**: with `slide`, the entries at or
+  after `at` move later by `length × reps`, all but the first. Without it, the entries from `at`
+  to `at + length × reps` go, the end included (so with Apprentice's length, thru − from + 1, the
+  entry just after the pasted range goes too), and with no repetitions the entry at `at` still
+  goes. Then each repetition puts the clipboard's entries at `at + r × length` on: in tick order,
+  replacing an entry at the same tick, but never before or instead of the first entry. A paste
+  at tick 0 therefore leaves two entries at tick 0, the old first one first. The map is
+  recomputed (the first entry to tick 0). It returns 1.
+- **`SeqMeterCopy(src, clip, from, thru, cut, ?, &flag)`** works in measures counted from 1: the
+  entry in effect at `from` goes to measure 1 of the clipboard, the entries after `from` up to
+  `thru` follow at their distance. With `cut` not 0 the entries in [from, thru] leave `src`; the
+  later ones keep their measures. It returns 0 and does nothing unless 1 <= from <= thru, else 1,
+  and sets `*flag` as `SeqTempoCopy` does. The sixth word had no visible effect.
+- **`SeqMeterPaste(clip, dst, measure, length, reps, slide)`** is the tempo paste in measures:
+  the clipboard's measure 1 lands at `measure`, repetitions `length` measures apart, the same
+  removal (end included) or slide, the same placement after the first entry. When the removal
+  takes the first entry, the next one becomes the first and moves to measure 1 when the map is
+  recomputed, ahead of a pasted entry at measure 1.
+- **The enumerations** `SeqEnumTempos` and `SeqEnumMeters` always start at the first entry. They
+  report as many entries as lie from the entry in effect at `from` to the one in effect at
+  `thru` (for meters: the last entry at or before the measure, counted from 1, unsigned). So
+  (0x1E1, 0xFFFFFFFF) on SYN_MAPS reports its first four entries, not the last four. The
+  terminator is (0, 0, 0, 0), without the value, unlike `SeqEnumStreams`, whose terminator
+  carries it. Two ranges do not fit this rule and are open: ticks 0x300 to 0x300 on SYN_MAPS
+  report two entries (the rule says one), and measures 6 to 6 two (the rule says one). On a
+  tempo map with two entries at tick 0 the counts and values differ again (the full range
+  reports the times 0, 0 and 460,800,000 of a map that has four entries); the suite reads such
+  maps by index only.
 - `SeqMarkerCopy` (3.00, 10 words) has the layout of `SeqTempoCopy`.
 - "Slide over existing material" moves the events later with `SeqDisplaceLater(stream, at32,
   amount32)` (5 words) in both programs; neither calls `SeqInsertRange`.

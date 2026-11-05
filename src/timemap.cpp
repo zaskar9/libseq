@@ -118,6 +118,67 @@ void TempoMap::rescale(const std::uint16_t from, const std::uint16_t to) {
     recalc();
 }
 
+bool TempoMap::copyFrom(const TempoMap& src, const Tick from, const Tick thru) {
+    insert(0, src.tempoAt(from));
+    bool found = false;
+    for (const TempoEntry& e : src.entries_) {
+        if (e.tick >= from && e.tick <= thru) {
+            found = true;
+            if (e.tick > from) {
+                insert(e.tick - from, e.tempo);
+            }
+        }
+    }
+    recalc();
+    return found;
+}
+
+void TempoMap::insertAfterFirst(const Tick tick, const std::uint16_t tempo) {
+    TempoEntry n;
+    n.tick = tick;
+    n.tempo = tempo;
+    for (std::size_t i = 1; i < entries_.size(); ++i) {
+        if (entries_[i].tick == tick) {
+            entries_[i].tempo = tempo;
+            return;
+        }
+        if (entries_[i].tick > tick) {
+            entries_.insert(entries_.begin() + static_cast<std::ptrdiff_t>(i), n);
+            return;
+        }
+    }
+    entries_.push_back(n);
+}
+
+void TempoMap::paste(const TempoMap& clip, const Tick at, const Tick length, const std::uint16_t reps,
+                     const bool slide) {
+    // with no repetitions the entry at `at` still goes
+    const Tick span = length * reps;
+    if (slide) {
+        for (std::size_t i = 1; i < entries_.size(); ++i) {
+            if (entries_[i].tick >= at) {
+                entries_[i].tick += span;
+            }
+        }
+    } else {
+        std::erase_if(entries_, [at, span](const TempoEntry& e) { return e.tick >= at && e.tick - at <= span; });
+    }
+    for (std::uint16_t r = 0; r < reps; ++r) {
+        const Tick base = at + (r * length);
+        for (const TempoEntry& e : clip.entries_) {
+            insertAfterFirst(base + e.tick, e.tempo);
+        }
+    }
+    recalc();
+}
+
+std::size_t TempoMap::enumCount(const Tick from, const Tick thru) const noexcept {
+    // from the first entry on, as many as lie between the entries in effect at `from` and `thru`
+    const std::size_t a = indexAt(from);
+    const std::size_t b = indexAt(thru);
+    return b < a ? 0 : std::min(b - a + 1, entries_.size());
+}
+
 std::int64_t TempoMap::elapsedAt(const Tick tick) const noexcept {
     const TempoEntry& e = entries_[indexAt(tick)];
     return e.elapsed + (static_cast<std::int64_t>(tick) - static_cast<std::int64_t>(e.tick)) * usPerQuarter(e.tempo);
@@ -232,6 +293,92 @@ void MeterMap::assign(std::vector<MeterEntry> entries, const std::uint16_t ppq) 
     }
     entries_ = std::move(entries);
     recalc(ppq);
+}
+
+std::size_t MeterMap::indexAtMeasure1(const std::uint16_t measure) const noexcept {
+    std::size_t i = 0;
+    while (i + 1 < entries_.size() && entries_[i + 1].measure + 1U <= measure) {
+        ++i;
+    }
+    return i;
+}
+
+void MeterMap::insertAfterFirst(const MeterEntry& e) {
+    for (std::size_t i = 1; i < entries_.size(); ++i) {
+        if (entries_[i].measure == e.measure) {
+            entries_[i] = e;
+            return;
+        }
+        if (entries_[i].measure > e.measure) {
+            entries_.insert(entries_.begin() + static_cast<std::ptrdiff_t>(i), e);
+            return;
+        }
+    }
+    entries_.push_back(e);
+}
+
+bool MeterMap::copyFrom(MeterMap& src, const std::uint16_t from, const std::uint16_t thru, const bool cut,
+                        const std::uint16_t ppq, bool& found) {
+    found = false;
+    if (from == 0 || from > thru) {
+        return false;
+    }
+    const auto m0 = static_cast<std::uint16_t>(from - 1);
+    const MeterEntry& first = src.entries_[src.indexAtMeasure(m0)];
+    insert(1, first.key, first.meter(), ppq);
+    for (const MeterEntry& e : src.entries_) {
+        const unsigned m = e.measure + 1U;
+        if (m >= from && m <= thru) {
+            found = true;
+            if (m > from) {
+                insert(static_cast<std::uint16_t>(m - from + 1), e.key, e.meter(), ppq);
+            }
+        }
+    }
+    if (cut) {
+        std::erase_if(src.entries_, [from, thru](const MeterEntry& e) {
+            const unsigned m = e.measure + 1U;
+            return m >= from && m <= thru;
+        });
+        if (src.entries_.empty()) {
+            src.entries_.emplace_back();
+        }
+        src.refresh(ppq);
+    }
+    recalc(ppq);
+    return true;
+}
+
+void MeterMap::paste(const MeterMap& clip, const std::uint16_t measure, const std::uint16_t length,
+                     const std::uint16_t reps, const bool slide, const std::uint16_t ppq) {
+    const auto m0 = static_cast<std::uint16_t>(measure - 1);
+    const auto span = static_cast<std::uint16_t>(length * reps);
+    if (slide) {
+        for (std::size_t i = 1; i < entries_.size(); ++i) {
+            if (entries_[i].measure >= m0) {
+                entries_[i].measure = static_cast<std::uint16_t>(entries_[i].measure + span);
+            }
+        }
+    } else {
+        std::erase_if(entries_, [m0, span](const MeterEntry& e) { return e.measure >= m0 && e.measure - m0 <= span; });
+    }
+    for (std::uint16_t r = 0; r < reps; ++r) {
+        const auto base = static_cast<std::uint16_t>(m0 + (r * length));
+        for (MeterEntry e : clip.entries_) {
+            e.measure = static_cast<std::uint16_t>(base + e.measure);
+            insertAfterFirst(e);
+        }
+    }
+    if (entries_.empty()) {
+        entries_.emplace_back();
+    }
+    recalc(ppq);
+}
+
+std::size_t MeterMap::enumCount(const std::uint16_t from, const std::uint16_t thru) const noexcept {
+    const std::size_t a = indexAtMeasure1(from);
+    const std::size_t b = indexAtMeasure1(thru);
+    return b < a ? 0 : std::min(b - a + 1, entries_.size());
 }
 
 Tick MeterMap::toTick(const std::uint16_t measure, const std::uint16_t beat, const std::uint16_t tick,

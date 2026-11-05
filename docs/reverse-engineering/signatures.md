@@ -68,10 +68,10 @@ established.
 | `SeqDelTempo(seq, d tick)` | w | deletes the entry in effect at the tick |
 | `SeqClearTempoMap(seq, tempo)` | w | one entry |
 | `SeqRecalcTempoMap(seq)` | w | |
-| `SeqEnumTempos(seq, d from, d thru, p callback, d value)` | d | callback(d elapsed time, d value) per entry, then (0, 0, d value); see `ttsseq-api.md` |
+| `SeqEnumTempos(seq, d from, d thru, p callback, d value)` | d | callback(d elapsed time, d value) per entry from the first on, then (0, 0, 0, 0); see `ttsseq-api.md` |
 | `SeqSwapTempoMaps(seq, seq)` | w | returns 0 |
-| `SeqTempoCopy(dst, src, d from, d thru, d 0, p ?)` | w | from the traces |
-| `SeqTempoPaste(dst, src, d at, d ?, 1, slide)` | w | from the traces |
+| `SeqTempoCopy(src, clip, d from, d thru, d ?, p flag)` | w | 1; sets `*flag` to 1 when `src` has an entry in the range; see `ttsseq-api.md` |
+| `SeqTempoPaste(clip, dst, d at, d length, reps, slide)` | w | 1 |
 | `SeqGetTempoRatio(seq, i)`, `SeqSetTempoRatio(seq, i, ratio)` | w | ratio in 64ths |
 | `SeqSelectTempoRatio(seq, i)`, `SeqWhichTempoRatio(seq)` | w | |
 | `SeqTempoRatio2Str(ratio, p buffer)` | d | "1.25" for 0x50; returns the buffer |
@@ -95,10 +95,10 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqSetMeter(seq, d tick, key, meter)` | w | changes the entry in effect at the tick; positions are recalculated |
 | `SeqClearMeterMap(seq, key, meter)` | w | one entry at measure 1 |
 | `SeqRecalcMeterMap(seq)` | d | the number of entries |
-| `SeqEnumMeters(seq, from, thru, p callback, d value)` | d | callback(key, meter, d value) per entry, then (0, 0, d value) |
+| `SeqEnumMeters(seq, from, thru, p callback, d value)` | d | callback(key, meter, d value) per entry from the first on, then (0, 0, 0, 0); measures from 1 |
 | `SeqSwapMeterMaps(seq, seq)` | w | |
-| `SeqMeterCopy(dst, src, d from, d thru, p ?)` | w | from the traces |
-| `SeqMeterPaste(dst, src, d at, 1, 0)` | w | from the traces |
+| `SeqMeterCopy(src, clip, from, thru, cut, ?, p flag)` | w | measures from 1; 0 unless 1 <= from <= thru |
+| `SeqMeterPaste(clip, dst, measure, length, reps, slide)` | w | 1 |
 | `SeqMBT2Tick(seq, measure, beat, tick)` | d | |
 | `SeqTick2MBT(seq, d tick, p measure, p beat, p tick)` | d | |
 | `SeqTick2Meas(seq, d tick)` | d | |

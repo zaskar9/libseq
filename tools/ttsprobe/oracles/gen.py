@@ -475,25 +475,85 @@ def _():
             '@stop', 'idle 1000', '@close']
 
 
+# Tempo and meter copy and paste. The clipboard is a sequence of its own, as in Cakewalk
+# Apprentice 1.04. Layouts, found through the probe:
+#   SeqTempoCopy(src, clip, from32, thru32, d ?, &flag)  SeqTempoPaste(clip, dst, at32, length32, reps, slide)
+#   SeqMeterCopy(src, clip, from, thru, cut, ?, &flag)    SeqMeterPaste(clip, dst, measure, length, reps, slide)
+# with the meter's measures counted from 1. The maps are read by index (up to 14 entries) and enumerated.
+def tempomap_all(seq, enum=True):
+    L = ['call.w SEQGETTEMPOMAPLEN ' + seq]
+    for i in range(14):
+        L += ['fill 0 0 ee ee ee ee', f'call.w SEQGETTEMPOATIX {seq} {i:04x} @0', 'dump 0 0 4']
+    return L + ([f'call.w SEQENUMTEMPOS {seq} d:00000000 d:ffffffff cb4 d:00000000'] if enum else [])
+
+
+def metermap_all(seq):
+    L = ['call.w SEQGETMETERMAPLEN ' + seq]
+    for i in range(14):
+        L += ['fill 0 0 ee ee ee ee', f'call.d SEQGETMETERATIX {seq} {i:04x} @0', 'dump 0 0 4']
+    return L + [f'call.w SEQENUMMETERS {seq} 0000 ffff cb4 d:00000000']
+
+
+TEMPO_CLIPS = {'c1': [(0, 5000)], 'c2': [(0, 5000), (0x40, 6000)], 'c3': [(0x10, 7000), (0x80, 8000)]}
+TEMPO_DSTS = {'d1': [], 'd3': [(0x100, 11000), (0x200, 12000)], 'd4': [(0x80, 11000), (0x180, 12000), (0x400, 13000)]}
+METER_CLIPS = {'c1': [(1, 3)], 'c2': [(1, 3), (2, 5)], 'c3': [(1, 3), (3, 5), (4, 6)], 'c3b': [(2, 3), (3, 5)]}
+METER_DSTS = {'d1': [], 'd3': [(3, 7), (6, 2)], 'd4': [(2, 7), (4, 2), (9, 3)]}
+
+
 @suite('copypaste')
 def _():
-    L = ['@open', 'buf 0 64', 'buf 1 64']
-    for title, cmds in [
-        ('tempo copy 0..0x780, paste at 0x780 (Apprentice)',
-         ['call.w SEQTEMPOCOPY 0002 0001 d:00000000 d:00000780 d:00000000 @1', 'dump 1 0 8',
-          'call.w SEQTEMPOPASTE 0001 0002 d:00000780 d:00000781 0001 0000']),
-        ('tempo copy 0..0x3c0, paste at 0x1e0 with slide (Professional)',
-         ['call.w SEQTEMPOCOPY 0002 0001 d:00000000 d:000003c0 d:00000000 @1', 'dump 1 0 8',
-          'call.w SEQTEMPOPASTE 0001 0002 d:000001e0 d:000003c1 0001 0001']),
-        ('meter copy 0..0x780, paste at 0x780',
-         ['call.w SEQMETERCOPY 0002 0001 d:00000000 d:00000780 @1', 'dump 1 0 8',
-          'call.w SEQMETERPASTE 0001 0002 d:00000780 0001 0000']),
-    ]:
-        for song in ['ENG_TMPO', 'SYN_MAPS']:
-            L += [f'echo == {title}: {song}', f'@load {song}.WRK', 'call.w SEQCREATESEQ 0000 0000'] + cmds
-            L += tempomap('0001') + metermap('0001') + tempomap('0002') + metermap('0002')
-            L += ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
-    L += ['@close']
+    L = ['#! secs 300', '@open', 'buf 0 64', 'buf 1 64']
+    # tempo copy: ENG_TMPO (0 120.00, 0x1e0 60.00, 0x3c0 240.00, 0x5dc 90.50) into a new sequence
+    for f, t, v in [(0, 0x780, 0), (0x100, 0x400, 0), (0x1e0, 0x3c0, 0), (0x200, 0x300, 0), (0x1e0, 0x1e0, 0), (0, 0x780, 1),
+                    (0x5dc, 0x5dc, 0)]:
+        L += [f'echo == tempo copy {f:#x}..{t:#x}, word {v}', '@load ENG_TMPO.WRK', 'call.w SEQCREATESEQ 0000 0000',
+              'fill 1 0 ' + 'ee ' * 8, f'call.w SEQTEMPOCOPY 0001 0002 d:{f:08x} d:{t:08x} d:{v:08x} @1', 'dump 1 0 8'] + \
+            tempomap_all('0001') + tempomap_all('0002') + ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    # tempo paste: built clips and destinations. The enumeration of a map that ends up with two
+    # entries at tick 0 (a paste at 0) is not understood; those maps are read by index only.
+    for cn, clip in TEMPO_CLIPS.items():
+        for dn, dst in TEMPO_DSTS.items():
+            for at, ln, reps, slide in [(0, 1, 1, 0), (0x80, 1, 1, 0), (0x100, 0x100, 1, 0), (0x100, 0x100, 1, 1), (0x100, 0x80, 2, 0),
+                                        (0x100, 0x80, 2, 1), (0x180, 0, 1, 0), (0x100, 0x40, 3, 0), (0, 0x100, 1, 1), (0x100, 0x100, 0, 0)]:
+                L += [f'echo == tempo paste {cn} into {dn} at {at:#x}, length {ln:#x}, {reps} times, slide {slide}',
+                      'call.w SEQCREATESEQ 0000 0000', 'call.w SEQCREATESEQ 0000 0000'] + \
+                    [f'call.w SEQINSTEMPO 0001 d:{t:08x} {p:04x}' for t, p in dst] + ['call.w SEQRECALCTEMPOMAP 0001'] + \
+                    [f'call.w SEQINSTEMPO 0002 d:{t:08x} {p:04x}' for t, p in clip] + ['call.w SEQRECALCTEMPOMAP 0002'] + \
+                    [f'call.w SEQTEMPOPASTE 0002 0001 d:{at:08x} d:{ln:08x} {reps:04x} {slide:04x}'] + \
+                    tempomap_all('0001', enum=at != 0) + ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    # meter copy: SYN_MAPS (4/4, 3/4 2 sharps, 6/8 2 sharps, 2/2 3 flats, 5/4 3 flats, at measures 1 to 5,
+    # and 4/4 7 sharps at 7) into a new sequence; the fifth word cuts
+    for f, t, cut in [(2, 4, 0), (1, 7, 0), (3, 3, 0), (2, 4, 1), (3, 6, 0), (6, 6, 0), (6, 7, 0), (5, 9, 0), (8, 9, 0), (0, 2, 0),
+                      (2, 0, 0), (4, 2, 0)]:
+        L += [f'echo == meter copy measures {f}..{t}, cut {cut}', '@load SYN_MAPS.WRK', 'call.w SEQCREATESEQ 0000 0000',
+              'fill 1 0 ' + 'ee ' * 8, f'call.w SEQMETERCOPY 0001 0002 {f:04x} {t:04x} {cut:04x} 0000 @1', 'dump 1 0 8'] + \
+            metermap_all('0001') + metermap_all('0002') + ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    # meter paste: built clips (key = measure, 2/n with n the given numerator) and destinations
+    for cn, clip in METER_CLIPS.items():
+        for dn, dst in METER_DSTS.items():
+            for m, ln, reps, slide in [(1, 0, 1, 0), (2, 0, 1, 0), (5, 0, 1, 0), (5, 2, 1, 1), (5, 2, 2, 0), (5, 2, 2, 1), (3, 4, 1, 0),
+                                       (3, 4, 1, 1), (5, 0, 0, 0)]:
+                L += [f'echo == meter paste {cn} into {dn} at measure {m}, length {ln}, {reps} times, slide {slide}',
+                      'call.w SEQCREATESEQ 0000 0000', 'call.w SEQCREATESEQ 0000 0000'] + \
+                    [f'call.w SEQINSMETER 0001 {x:04x} {x:04x} 02{n:02x}' for x, n in dst] + ['call.w SEQRECALCMETERMAP 0001'] + \
+                    [f'call.w SEQINSMETER 0002 {x:04x} {x:04x} 02{n:02x}' for x, n in clip] + ['call.w SEQRECALCMETERMAP 0002'] + \
+                    [f'call.w SEQMETERPASTE 0002 0001 {m:04x} {ln:04x} {reps:04x} {slide:04x}'] + \
+                    metermap_all('0001') + ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    # what Cakewalk Apprentice 1.04 does: copy 1:1:000..4:4:119 with tempo and meter, paste at 5:1:000
+    L += ['echo == Apprentice: copy measures 1..4 of SYN_MAPS, paste at measure 5 (0x780)', '@load SYN_MAPS.WRK',
+          'call.w SEQCREATESEQ 0000 0000', 'call.w SEQTEMPOCOPY 0001 0002 d:00000000 d:0000077f d:00000000 @1',
+          'call.w SEQMETERCOPY 0001 0002 0001 0004 0000 0000 @1', 'call.w SEQTEMPOPASTE 0002 0001 d:00000780 d:00000780 0001 0000',
+          'call.w SEQMETERPASTE 0002 0001 0005 0004 0001 0000'] + tempomap_all('0001') + metermap_all('0001') + \
+         ['call.w SEQDESTROYSEQ 0002', 'call.w SEQDESTROYSEQ 0001']
+    # The enumerations start at the first entry whatever `from` says; how many entries they give
+    # follows from the entries in effect at `from` and `thru` (ttsseq-api.md). Two ranges that do
+    # not fit that rule (ticks 0x300..0x300, measures 6..6) are left out.
+    L += ['echo == enumeration ranges on SYN_MAPS', '@load SYN_MAPS.WRK']
+    for f, t in [(0, 1), (0, 2), (0, 3), (0, 5), (0, 6), (0, 7), (0, 8), (5, 0xffff), (7, 0xffff), (8, 0xffff)]:
+        L += [f'call.w SEQENUMMETERS 0001 {f:04x} {t:04x} cb4 d:00050007']
+    for f, t in [(0, 0), (0, 0x1df), (0, 0x1e0), (0x1e1, 0xffffffff), (0x5a1, 0xffffffff), (0x5a2, 0xffffffff), (0x1000, 0xffffffff)]:
+        L += [f'call.w SEQENUMTEMPOS 0001 d:{f:08x} d:{t:08x} cb4 d:00050007']
+    L += ['call.w SEQENUMSTREAMS 0001 cb4 d:00050007', 'call.w SEQDESTROYSEQ 0001', '@close']
     return L
 
 

@@ -59,6 +59,17 @@ public:
     /// The ticks of the entries scaled to another ppq (SeqSetPPQ), recomputed.
     void rescale(std::uint16_t from, std::uint16_t to);
 
+    /// SeqTempoCopy into this map (the clipboard): the tempo in effect at `from` goes to tick 0, the
+    /// entries after `from` up to `thru` follow at their distance from `from`. True when `src` has
+    /// an entry in [from, thru] (the engine then sets the caller's flag).
+    bool copyFrom(const TempoMap& src, Tick from, Tick thru);
+    /// SeqTempoPaste of `clip` into this map at `at`, `reps` times `length` ticks apart. With
+    /// `slide` the entries at or after `at` (but the first) move later by length × reps; without,
+    /// the entries in [at, at + length × reps] go, the end included.
+    void paste(const TempoMap& clip, Tick at, Tick length, std::uint16_t reps, bool slide);
+    /// How many entries SeqEnumTempos(from, thru) reports, always from the first entry on.
+    [[nodiscard]] std::size_t enumCount(Tick from, Tick thru) const noexcept;
+
     /// Elapsed time at a tick, in microseconds times the ppq.
     [[nodiscard]] std::int64_t elapsedAt(Tick tick) const noexcept;
     /// The tick at an elapsed time `whole + part / parts` (microseconds times the ppq): rounded to
@@ -66,6 +77,9 @@ public:
     [[nodiscard]] Tick tickAt(std::uint64_t whole, std::uint64_t part, std::uint64_t parts, bool up) const noexcept;
 
 private:
+    /// An entry as a paste puts it: in tick order, replacing one at the same tick, but never before
+    /// or instead of the first entry.
+    void insertAfterFirst(Tick tick, std::uint16_t tempo);
     /// What the engine does after changing entry `i`: entry `i` gets the time from the entry before
     /// it to itself (but not the time before that entry), and the entries after it follow on.
     void refresh(std::size_t i);
@@ -116,6 +130,18 @@ public:
     std::size_t recalc(std::uint16_t ppq);
     /// SeqClearMeterMap: one entry at measure 1.
     void clear(std::int8_t key, std::uint16_t meter);
+
+    /// SeqMeterCopy into this map (the clipboard): measures `from` to `thru` (from 1) of `src`, the
+    /// entry in effect at `from` at measure 1. With `cut` the entries in the range leave `src`.
+    /// False, with nothing done, unless 1 <= from <= thru. `found` tells whether `src` has an entry
+    /// in the range (the engine then sets the caller's flag).
+    bool copyFrom(MeterMap& src, std::uint16_t from, std::uint16_t thru, bool cut, std::uint16_t ppq, bool& found);
+    /// SeqMeterPaste of `clip` into this map at `measure` (from 1), `reps` times `length` measures
+    /// apart; `slide` and the range removed as for the tempo paste.
+    void paste(const MeterMap& clip, std::uint16_t measure, std::uint16_t length, std::uint16_t reps, bool slide,
+               std::uint16_t ppq);
+    /// How many entries SeqEnumMeters(from, thru) reports (measures from 1), from the first entry on.
+    [[nodiscard]] std::size_t enumCount(std::uint16_t from, std::uint16_t thru) const noexcept;
     /// The entries of a file, recomputed.
     void assign(std::vector<MeterEntry> entries, std::uint16_t ppq);
 
@@ -133,6 +159,10 @@ public:
 private:
     /// Recomputes the ticks the entries start at from the first entry's measure on.
     void refresh(std::uint16_t ppq);
+    /// As TempoMap::insertAfterFirst, by measure.
+    void insertAfterFirst(const MeterEntry& e);
+    /// The last entry at or before a measure counted from 1 (unsigned), the first when none is.
+    [[nodiscard]] std::size_t indexAtMeasure1(std::uint16_t measure) const noexcept;
     std::vector<MeterEntry> entries_;
 };
 
