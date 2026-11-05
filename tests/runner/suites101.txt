@@ -11,3 +11,6 @@ ranges
 merge
 sorting
 copypaste
+markers
+sysex
+sysextext

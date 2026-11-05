@@ -503,6 +503,24 @@ without the patch is a little less exact than 86Box's.
   with flag 1); `SeqEmptySysxBank(bank)` 1 [probe].
 - `SeqGetMarkerName(seq, index32, buffer, size)` (6 words) returns the name's length ("Locked",
   6) [probe]; marker indexes are 32-bit, as in `SeqGetMarkerTime` [trace].
+- **Locked markers keep a frame** [probe, suite `markers`]. The flag of `SeqGetMarkerTime`,
+  `SeqSetMarkerTime` and `SeqInsMarker` is the SMPTE lock. A locked marker is kept as the frame
+  of its tick (`SeqTick2Frame`, with the frame offset); `SeqGetMarkerTime` turns that frame back
+  into a tick with the tempo map and the frame rate as they are then (`SeqFrame2TickRndOpt`,
+  rounded). So the tick moves with a new tempo or rate: SILENT.WRK's marker at 2880 reads 2878 at
+  84 bpm and 30 fps (frame 514), 1439 at 42 bpm, 1799 at 24 fps. A file stores the tick; the frame
+  is taken when the file is read. `SeqMarkerForTime` and the time order of `SeqInsMarker` and
+  `SeqSortMarkers` (which returns the number of markers) use the converted ticks. `SeqInsMarker`
+  puts a marker after those at the same time.
+- **Bank details** [probe, suite `sysex`]: parameter 1 is the auto-send flag, 2 the bank number
+  (signed 16 bits, -1 for a bank made with `SeqCreateSysxBank`), 3 a signed 16-bit value with no
+  visible use (perhaps the port of later versions); 0, 4 and 5 read 0 and cannot be set (the set
+  returns 0). `SeqGetSysxBankName` copies as much of the name as fits and returns 1 only when a
+  name was there and all of it fitted. `SeqSysxBin2Asc` writes "XX " per byte with CR LF after
+  every `n` bytes, nothing at all for an empty bank, and returns the number of bytes;
+  `SeqGetSysxAscLen` is the length of that text plus 1. A bank file (`SeqSaveSysxBank`) holds the
+  bare bytes; `SeqLoadSysxBank` replaces the bytes and keeps the name and parameters.
+  `SeqCreateSysxBank` gives the lowest free id.
 - `SeqConfigMidi(hwnd)` (1 word) shows the "Select MIDI Devices" dialog (Devices, above).
 - `SeqSysxAsc2Bin(bank, text, &position)` turns the text of the "Edit Bytes" dialog back into the
   bank's bytes; Cakewalk Professional 2.00 calls it on OK and says "Not a number!" when it returns

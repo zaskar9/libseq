@@ -148,18 +148,40 @@ private:
     std::vector<Event> events_;
 };
 
+/// A marker. A locked marker keeps a frame instead of a tick, so its tick follows the tempo map and
+/// the frame rate (Sequence::markerTime).
 struct Marker {
     std::string name;
-    Tick time = 0;
+    Tick time = 0;           // unlocked
+    std::uint32_t frame = 0; // locked
     bool smpteLocked = false;
 };
 
+/// A sysex bank: bytes with a name, the bank number and whether it is sent when playback starts.
+/// The handle packs the sequence like a stream handle (0x0100 is bank 0 of sequence 1).
 struct SysxBank {
-    std::uint8_t number = 0;
+    std::int16_t number = -1; // -1 for a bank made with SeqCreateSysxBank
     bool autoSend = false;
+    std::int16_t port = 0; // parameter 3; a guess: later file versions keep a port per bank
     std::string name;
     std::vector<std::uint8_t> data;
+
+    /// SeqGetSysxBankParam / SeqSetSysxBankParam: 1 auto-send, 2 number, 3 the port; 0, 4 and 5
+    /// read 0 and cannot be set.
+    [[nodiscard]] std::int32_t param(int p) const noexcept;
+    bool setParam(int p, std::int32_t value) noexcept;
 };
+
+/// The sysex text of the "Edit Bytes" dialog: "F0 7E ... " with CR LF after every `perLine` bytes
+/// (SeqSysxBin2Asc). `perLine` must not be 0.
+[[nodiscard]] std::string sysxToText(const std::vector<std::uint8_t>& data, std::size_t perLine);
+/// What SeqSysxAsc2Bin made of a text.
+struct SysxParse {
+    enum Result : std::uint8_t { Ok = 0, NoF0 = 1, NoF7 = 2, NotHex = 4 } result = Ok;
+    std::size_t position = 0; // with NotHex: the offset of the character
+    std::vector<std::uint8_t> data;
+};
+[[nodiscard]] SysxParse sysxFromText(const std::string& text);
 
 /// A sequence: streams, parameters, maps, markers and sysex banks.
 class Sequence {
@@ -183,6 +205,18 @@ public:
     /// parameters too when `copyParams`; otherwise a new stream's parameters.
     Stream& clone(const Stream& source, bool copyParams);
 
+    /// A marker's tick: a locked marker's frame converted with the tempo map and the frame rate
+    /// as they are now (SeqGetMarkerTime).
+    [[nodiscard]] Tick markerTime(const Marker& m) const noexcept;
+    /// SeqSetMarkerTime: a tick, or for a locked marker the frame at the tick.
+    void setMarkerTime(Marker& m, Tick tick, bool locked) const noexcept;
+    /// SeqInsMarker: a marker after those at or before its time.
+    void insertMarker(Marker m);
+    /// SeqSortMarkers: the markers in time order.
+    void sortMarkers();
+    /// SeqMarkerForTime: the last marker at or before a tick (0 when there is none).
+    [[nodiscard]] std::size_t markerForTime(Tick tick) const noexcept;
+
     /// SeqSetPPQ: a new time base; the events and the tempo map move to it.
     bool setPpq(std::uint16_t ppq);
     /// SeqSetFPS: false (and no change) for a rate the engine does not take.
@@ -201,7 +235,11 @@ public:
     TempoMap tempoMap;
     MeterMap meterMap;
     std::vector<Marker> markers;
-    std::vector<SysxBank> sysxBanks;
+    /// The sysex banks by id (the low byte of the handle).
+    std::map<std::uint8_t, SysxBank> sysxBanks;
+    /// SeqCreateSysxBank: a new bank with the lowest free id; returns its handle.
+    StreamHandle createSysxBank();
+    [[nodiscard]] SysxBank* sysxBank(StreamHandle handle) noexcept;
     std::uint16_t fps = 30;
     std::uint32_t frameOffset = 0;
     /// The three tempo ratios (SeqGetTempoRatio) in 64ths, and the one selected.

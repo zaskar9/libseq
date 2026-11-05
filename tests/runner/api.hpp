@@ -16,6 +16,8 @@ namespace ttsrun {
 void defineApi101(Probe& p, libseq::Engine& e);
 /// Its event cursor and edit primitives (api101_events.cpp).
 void defineEvents101(Probe& p, libseq::Engine& e);
+/// Its markers and sysex banks (api101_marks.cpp).
+void defineMarks101(Probe& p, libseq::Engine& e);
 /// Its time base, tempo and meter maps and timecode functions (api101_time.cpp).
 void defineTime101(Probe& p, libseq::Engine& e);
 

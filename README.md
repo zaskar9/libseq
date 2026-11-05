@@ -58,5 +58,5 @@ same script. `tests/runner/suites101.txt` lists the suites the library passes so
 Release 1.1.0 (TTSSEQ 1.01) is being built one layer at a time, each with the oracle suites it
 makes pass. Done: sequences and streams with the engine's handles and parameters, reading `.WRK`
 files into them, the time base (tempo and meter maps with their copy and paste, positions and
-timecode), and the event cursor with the edit primitives. An earlier exploration (versions 0.1.0 to 0.8.1) is kept on the
+timecode), the event cursor with the edit primitives, markers and sysex banks. An earlier exploration (versions 0.1.0 to 0.8.1) is kept on the
 branch `archive/0.x`.

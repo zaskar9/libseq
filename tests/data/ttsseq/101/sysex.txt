@@ -220,6 +220,45 @@ dump 0 0 64
 fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
 call.w SEQSYSXBIN2ASC %1 @0 0010
 dump 0 0 64
+call.w SEQSETSYSXBANKPARAM %1 0001 d:000001ff
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.w SEQSETSYSXBANKPARAM %1 0001 d:ffffffff
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.w SEQSETSYSXBANKPARAM %1 0001 d:00012345
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.w SEQSETSYSXBANKPARAM %1 0001 d:00000080
+call.d SEQGETSYSXBANKPARAM %1 0001
+call.w SEQSETSYSXBANKPARAM %1 0002 d:000001ff
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.w SEQSETSYSXBANKPARAM %1 0002 d:ffffffff
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.w SEQSETSYSXBANKPARAM %1 0002 d:00012345
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.w SEQSETSYSXBANKPARAM %1 0002 d:00000080
+call.d SEQGETSYSXBANKPARAM %1 0002
+call.w SEQSETSYSXBANKPARAM %1 0003 d:000001ff
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.w SEQSETSYSXBANKPARAM %1 0003 d:ffffffff
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.w SEQSETSYSXBANKPARAM %1 0003 d:00012345
+call.d SEQGETSYSXBANKPARAM %1 0003
+call.w SEQSETSYSXBANKPARAM %1 0003 d:00000080
+call.d SEQGETSYSXBANKPARAM %1 0003
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0001
+dump 0 0 16
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0002
+dump 0 0 16
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 0005
+dump 0 0 16
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 000a
+dump 0 0 16
+fill 0 0 ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee ee 
+call.w SEQGETSYSXBANKNAME %1 @0 000b
+dump 0 0 16
 call.w SEQDESTROYSYSXBANK %1
 call.w SEQENUMSYSXBANKS 0001 cb4 d:00000000
 call.w SEQCLOSE

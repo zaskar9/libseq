@@ -2,7 +2,9 @@
 #include "libseq/engine.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <iterator>
+#include <string_view>
 
 namespace libseq {
 
@@ -362,6 +364,34 @@ bool Sequence::setPpq(const std::uint16_t newPpq) {
     return true;
 }
 
+Tick Sequence::markerTime(const Marker& m) const noexcept {
+    return m.smpteLocked ? frameToTick(m.frame, false) : m.time;
+}
+
+void Sequence::setMarkerTime(Marker& m, const Tick tick, const bool locked) const noexcept {
+    m.smpteLocked = locked;
+    m.time = tick;
+    m.frame = locked ? tickToFrame(tick) : 0;
+}
+
+void Sequence::insertMarker(Marker m) {
+    const Tick t = markerTime(m);
+    const auto at = std::ranges::find_if(markers, [this, t](const Marker& x) { return markerTime(x) > t; });
+    markers.insert(at, std::move(m));
+}
+
+void Sequence::sortMarkers() {
+    std::ranges::stable_sort(markers, {}, [this](const Marker& x) { return markerTime(x); });
+}
+
+std::size_t Sequence::markerForTime(const Tick tick) const noexcept {
+    std::size_t i = 0;
+    while (i + 1 < markers.size() && markerTime(markers[i + 1]) <= tick) {
+        ++i;
+    }
+    return i;
+}
+
 bool Sequence::setFps(const std::uint16_t newFps) {
     if (!validFps(newFps)) {
         return false;
@@ -408,6 +438,123 @@ Tick Sequence::frameToTick(const std::uint32_t frame, const bool up) const noexc
     const std::uint64_t b = std::uint64_t{frame - frameOffset} * r.den;
     const std::uint64_t rest = (b % r.num) * d;
     return tempoMap.tickAt((b / r.num) * d + rest / r.num, rest % r.num, r.num, up);
+}
+
+StreamHandle Sequence::createSysxBank() {
+    for (unsigned id = 0; id < 256; ++id) {
+        if (!sysxBanks.contains(static_cast<std::uint8_t>(id))) {
+            sysxBanks.emplace(static_cast<std::uint8_t>(id), SysxBank{});
+            return makeStreamHandle(handle_, static_cast<std::uint8_t>(id));
+        }
+    }
+    throw Error("no free sysex bank id");
+}
+
+SysxBank* Sequence::sysxBank(const StreamHandle handle) noexcept {
+    if (seqOf(handle) != handle_) {
+        return nullptr;
+    }
+    const auto it = sysxBanks.find(idOf(handle));
+    return it == sysxBanks.end() ? nullptr : &it->second;
+}
+
+// ---------------------------------------------------------------- sysex banks
+
+std::int32_t SysxBank::param(const int p) const noexcept {
+    switch (p) {
+    case 1:
+        return autoSend ? 1 : 0;
+    case 2:
+        return number;
+    case 3:
+        return port;
+    default:
+        return 0;
+    }
+}
+
+bool SysxBank::setParam(const int p, const std::int32_t value) noexcept {
+    switch (p) {
+    case 1:
+        autoSend = value != 0;
+        return true;
+    case 2:
+        number = static_cast<std::int16_t>(value & 0xffff);
+        return true;
+    case 3:
+        port = static_cast<std::int16_t>(value & 0xffff);
+        return true;
+    default:
+        return false;
+    }
+}
+
+std::string sysxToText(const std::vector<std::uint8_t>& data, const std::size_t perLine) {
+    static constexpr std::string_view kHex = "0123456789ABCDEF";
+    std::string t;
+    for (std::size_t i = 0; i < data.size(); ++i) {
+        t += kHex[data[i] >> 4];
+        t += kHex[data[i] & 0x0fU];
+        t += ' ';
+        if ((i + 1) % perLine == 0) {
+            t += "\r\n";
+        }
+    }
+    return t;
+}
+
+namespace {
+
+int hexDigit(const char c) noexcept {
+    const auto u = static_cast<unsigned char>(c);
+    if (std::isdigit(u) != 0) {
+        return c - '0';
+    }
+    if (std::isxdigit(u) != 0) {
+        return std::toupper(u) - 'A' + 10;
+    }
+    return -1;
+}
+
+} // namespace
+
+SysxParse sysxFromText(const std::string& text) {
+    // groups of hex digits between white space, read two digits to a byte (a last single digit
+    // is a byte of its own)
+    SysxParse r;
+    std::size_t i = 0;
+    while (i < text.size()) {
+        if (std::isspace(static_cast<unsigned char>(text[i])) != 0) {
+            ++i;
+            continue;
+        }
+        unsigned value = 0;
+        int digits = 0;
+        while (i < text.size() && std::isspace(static_cast<unsigned char>(text[i])) == 0) {
+            const int d = hexDigit(text[i]);
+            if (d < 0) {
+                r.result = SysxParse::NotHex;
+                r.position = i;
+                return r;
+            }
+            value = value * 16 + static_cast<unsigned>(d);
+            if (++digits == 2) {
+                r.data.push_back(static_cast<std::uint8_t>(value));
+                value = 0;
+                digits = 0;
+            }
+            ++i;
+        }
+        if (digits == 1) {
+            r.data.push_back(static_cast<std::uint8_t>(value));
+        }
+    }
+    if (r.data.empty() || r.data.front() != 0xf0) {
+        r.result = SysxParse::NoF0;
+    } else if (r.data.back() != 0xf7) {
+        r.result = SysxParse::NoF7;
+    }
+    return r;
 }
 
 // ---------------------------------------------------------------- Engine

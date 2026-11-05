@@ -243,12 +243,13 @@ public:
         }
         case wrk::SYSEX: {
             SysxBank b;
-            b.number = c.u8();
+            b.number = static_cast<std::int16_t>(c.u8());
             const std::size_t n = c.u16();
             b.autoSend = c.u8() != 0;
             b.name = c.pstr();
             b.data = c.bytes(n);
-            s_->sysxBanks.push_back(std::move(b));
+            // banks get their ids in file order
+            s_->sysxBanks.emplace(static_cast<std::uint8_t>(s_->sysxBanks.size()), std::move(b));
             break;
         }
         default:
@@ -256,7 +257,8 @@ public:
         }
     }
 
-    /// The maps, once all chunks are read: their cached times are computed from the time base.
+    /// The maps, once all chunks are read: their cached times are computed from the time base;
+    /// then the locked markers get their frames.
     void finish() {
         if (!tempo_.empty()) {
             s_->tempoMap.assign(std::move(tempo_));
@@ -266,6 +268,12 @@ public:
             s_->meterMap.assign(std::move(meterKey_), s_->ppq);
         } else if (!meter_.empty()) {
             s_->meterMap.assign(std::move(meter_), s_->ppq);
+        }
+        // a locked marker keeps the frame its tick has with the file's tempo map and frame rate
+        for (Marker& m : s_->markers) {
+            if (m.smpteLocked) {
+                m.frame = s_->tickToFrame(m.time);
+            }
         }
     }
 

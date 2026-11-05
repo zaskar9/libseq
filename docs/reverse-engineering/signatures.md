@@ -127,12 +127,12 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqNumMarkers(seq)` | d | |
 | `SeqGetMarkerName(seq, d index, p buffer, size)` | w | the name's length |
 | `SeqSetMarkerName(seq, d index, p name)` | w | |
-| `SeqGetMarkerTime(seq, d index, p d time, p flag)` | w | the flag pointer may be null |
+| `SeqGetMarkerTime(seq, d index, p d time, p flag)` | w | the flag (SMPTE lock) pointer may be null |
 | `SeqSetMarkerTime(seq, d index, d time, flag)` | w | |
 | `SeqInsMarker(seq, p name, d time, flag)` | w | kept in time order |
 | `SeqDelMarker(seq, d index)` | w | |
-| `SeqSortMarkers(seq, d ?)` | w | |
-| `SeqMarkerForTime(seq, d tick)` | d | |
+| `SeqSortMarkers(seq, d ?)` | w | the number of markers |
+| `SeqMarkerForTime(seq, d tick)` | d | the last marker at or before the tick, 0 when none is |
 
 ## Sysex banks
 

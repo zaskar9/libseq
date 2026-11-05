@@ -389,6 +389,14 @@ def _():
     L += ['echo == other fixtures']
     for song in STREAMS:
         L += [f'@load {song}.WRK', 'call.d SEQNUMMARKERS 0002', 'call.w SEQDESTROYSEQ 0002']
+    # A locked marker keeps a frame: its tick follows a new tempo and a new frame rate
+    L += ['call.w SEQDESTROYSEQ 0001', 'echo == locked markers follow the tempo and the frame rate', '@load SILENT.WRK']
+    for c in ['call.w SEQSETTEMPO 0001 d:00000000 1068', 'call.w SEQSETFPS 0001 0018',
+              'call.w SEQSETMARKERTIME 0001 d:00000000 d:00000b40 0001', 'call.w SEQSETTEMPO 0001 d:00000000 20d0',
+              'call.w SEQSETFPS 0001 001e', 'call.w SEQSETMARKERTIME 0001 d:00000001 d:00000b40 0000',
+              'call.w SEQSETTEMPO 0001 d:00000000 1068']:
+        L += [c] + sum([['fill 0 0 ee ee ee ee ee ee', f'call.w SEQGETMARKERTIME 0001 d:{i:08x} @0 @0+4', 'dump 0 0 6']
+                        for i in range(3)], []) + [f'call.d SEQMARKERFORTIME 0001 d:{t:08x}' for t in (0x5a0, 0xb3f, 0x1700)]
     L += ['@close']
     return L
 
@@ -418,7 +426,14 @@ def _():
     for p in range(6):
         L += [f'call.w SEQSETSYSXBANKPARAM %1 {p:04x} d:00000001', f'call.d SEQGETSYSXBANKPARAM %1 {p:04x}']
     L += ['call.w SEQSAVESYSXBANK 0100 "C:\\PROBE\\ORC\\OUT\\B0.SYX"', 'call.w SEQLOADSYSXBANK %1 "C:\\PROBE\\ORC\\OUT\\B0.SYX"'] + bank('%1')
-    L += ['call.w SEQEMPTYSYSXBANK %1'] + bank('%1') + ['call.w SEQDESTROYSYSXBANK %1'] + banks()
+    L += ['call.w SEQEMPTYSYSXBANK %1'] + bank('%1')
+    # the widths of the parameters, and the name into short buffers
+    for p in (1, 2, 3):
+        for v in ('000001ff', 'ffffffff', '00012345', '00000080'):
+            L += [f'call.w SEQSETSYSXBANKPARAM %1 {p:04x} d:{v}', f'call.d SEQGETSYSXBANKPARAM %1 {p:04x}']
+    for n in (1, 2, 5, 10, 11):
+        L += ['fill 0 0 ' + 'ee ' * 16, f'call.w SEQGETSYSXBANKNAME %1 @0 {n:04x}', 'dump 0 0 16']
+    L += ['call.w SEQDESTROYSYSXBANK %1'] + banks()
     L += ['@close']
     return L
 

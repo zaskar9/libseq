@@ -137,6 +137,7 @@ void defineApi101(Probe& p, Engine& e) {
 
     (void)w;
     defineEvents101(p, e);
+    defineMarks101(p, e);
     defineTime101(p, e);
 }
 
