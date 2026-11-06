@@ -253,6 +253,7 @@ public:
         case wrk::TRKPATCH: {
             Stream& t = track(c.u16());
             t.setParam(sp::kPatch, c.u16());
+            paramSet(t, sp::kPatch);
             break;
         }
         case wrk::TRKREPS: {
@@ -273,7 +274,9 @@ public:
         case wrk::TRKVOL: {
             Stream& t = track(c.u16());
             t.setParam(sp::kVolume, c.s16());
+            paramSet(t, sp::kVolume);
             t.setParam(sp::kPan, c.s16());
+            paramSet(t, sp::kPan);
             break;
         }
         case wrk::SYSEX: {
@@ -320,6 +323,8 @@ public:
         std::uint8_t fileId = 0;
     };
     std::vector<Kind> kinds;
+    /// Called when a chunk sets a stream's patch, volume or pan (Engine::sendStreamParam).
+    std::function<void(const Stream&, int)> paramSet = [](const Stream&, int) {};
     /// The kind of a string event's status in the file: the first registered kind with that id.
     /// So an id of 0 goes to the first kind the table does not name (seen with SYN_KIND, whose
     /// text a procedure left unread).
@@ -368,6 +373,7 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path, const File
     for (const auto& [id, k] : kinds_) {
         loader.kinds.push_back({id, k.name, 0});
     }
+    loader.paramSet = [this](const Stream& st, const int param) { sendStreamParam(st, param); };
     std::size_t base = 0; // where the chunk being read starts in the file
     loader.stringEvent = [this, &base](Event& e, Reader& c) {
         io_.pos = base + c.pos();
@@ -415,7 +421,7 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path, const File
         ask(fileproc::kEnd, fileproc::kFile);
     } catch (const Error&) {
         io_ = OpenFile{};
-        destroySequence(h, true);
+        destroySequence(h);
         fileError_ = 3;
         return 0;
     }

@@ -504,7 +504,9 @@ def _():
 PLAY_SONGS = ['E2_CHAS', 'E2_KORD', 'E2_METR', 'E2_OVLP', 'E2_SPP', 'E2_STOP', 'E3_DENS', 'E3_MA', 'E3_MB', 'E3_MC',
               'E3_MD', 'E3_ME', 'E3_MF', 'E3_SHTL', 'E3_SPPD', 'ENG_CHAS', 'ENG_LOOP', 'ENG_METR', 'ENG_MULT', 'ENG_ORDR',
               'ENG_PARM', 'ENG_SYNC', 'ENG_SYSX', 'ENG_TMPO', 'FURELISE']
-PLAY_MS = {'E3_DENS': 20000, 'FURELISE': 30000}
+# E3_SHTL loops for ever; its playback is cut off between two notes, so that the timer's few
+# milliseconds of drift under Wine cannot decide whether one more note goes out before the close.
+PLAY_MS = {'E3_DENS': 20000, 'FURELISE': 30000, 'E3_SHTL': 11870}
 
 
 # Songs whose playback needs the timer to run while the start call waits in a loop (the locate
@@ -875,24 +877,32 @@ def _():
           'call.w SEQCALLEVENTPROC 0009 @1 0000', 'fill 1 0 05 00 00 01 aa bb cc 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007',
           'fill 1 0 05 00 00 03 aa bb cc 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007',
           'fill 1 0 05 00 00 90 3c 40 10 00', 'call.w SEQCALLEVENTPROC 0004 @1 0007', 'cbdo -']
-    L += ['echo == freeing (3) when a stream goes: only events whose kind has the value of kind 1',
+    # The registration value is a set of flags: bit 1 keeps the free message (3) away, bit 0 the play
+    # message (1); the cases below were how that showed (values 0x11, 0x22, 0x33, 0x44, ...).
+    L += ['echo == freeing (3) when a stream goes: not for kinds whose value has bit 1 (2)',
           'call.w SEQREGISTEREVENTKIND "C" cb4 d:00000033', 'cbdo cb4 * dumpcb 1 0 8', 'call.w SEQCREATESEQ 0000 0000']
     L += kind_stream('0001', [(0, 1, [0x11] * 4), (0x10, 2, [0x22] * 4), (0x20, 3, [0x33] * 4), (0x30, 1, [0x44] * 4),
                               (0x40, 0x90, [0x3c, 0x40, 0x10, 0])])
     L += ['echo delete, put over and delete range free nothing', 'call.d SEQSEEK %1 0000 d:00000001', 'call.w SEQDELEVT %1',
           'fill 2 0 00 00 00 90 3c 40 10 00', 'call.d SEQSEEK %1 0000 d:00000000', 'call.w SEQPUTEVT %1 @2',
           'call.w SEQDELETERANGE %1 d:00000000 d:00000001', 'call.d SEQSTREAMLEN %1', 'call.w SEQDESTROYSTREAM %1']
-    L += ['echo with kind 1 gone, nothing is freed', 'call.w SEQUNREGISTEREVENTKIND "A"']
+    L += ['echo with A (11) gone, the others (22, 33) are not freed', 'call.w SEQUNREGISTEREVENTKIND "A"']
     L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
-    L += ['call.w SEQDESTROYSTREAM %1', 'echo a new kind 1 named as kind 3', 'call.w SEQREGISTEREVENTKIND "C" cb4 d:00000044']
+    L += ['call.w SEQDESTROYSTREAM %1', 'echo a new kind 1 (44), named as kind 3', 'call.w SEQREGISTEREVENTKIND "C" cb4 d:00000044']
     L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
     L += ['call.w SEQDESTROYSEQ 0001', 'call.w SEQUNREGISTEREVENTKIND "B"', 'call.w SEQUNREGISTEREVENTKIND "C"',
-          'call.w SEQUNREGISTEREVENTKIND "C"', 'echo kinds 1 and 2 with one value, 3 with another',
+          'call.w SEQUNREGISTEREVENTKIND "C"', 'echo kinds 1 and 2 with 55, 3 with 66',
           'call.w SEQREGISTEREVENTKIND "A" cb4 d:00000055', 'call.w SEQREGISTEREVENTKIND "B" cb4 d:00000055',
           'call.w SEQREGISTEREVENTKIND "A" cb4 d:00000066', 'call.w SEQCREATESEQ 0000 0000']
     L += kind_stream('0001', [(0, 1, [0x55] * 4), (0x10, 2, [0x66] * 4), (0x20, 3, [0x77] * 4)])
-    L += ['call.w SEQDESTROYSEQ 0001', 'cbdo -', 'call.w SEQUNREGISTEREVENTKIND "A"', 'call.w SEQUNREGISTEREVENTKIND "B"',
+    L += ['call.w SEQDESTROYSEQ 0001', 'call.w SEQUNREGISTEREVENTKIND "A"', 'call.w SEQUNREGISTEREVENTKIND "B"',
           'call.w SEQUNREGISTEREVENTKIND "A"']
+    L += ['echo == playing (1, a copy of the event, length 0) and freeing by the value\'s bits 0 and 1']
+    L += [f'call.w SEQREGISTEREVENTKIND "V{v}" cb4 d:{v:08x}' for v in (0, 1, 2, 3, 4)]
+    L += ['call.w SEQCREATESEQ 0000 0000']
+    L += kind_stream('0001', [(0x10 * i, i + 1, [0xa0 + i, 0, 0, 0]) for i in range(5)] + [(0x60, 0x90, [0x3c, 0x40, 8, 0])])
+    L += ['call.w SEQSETSTREAMPARAM %1 0007 d:00000000', 'call.w SEQSETPLAYINGSEQ 0001', '@play',
+          'idle 1500', 'call.w SEQDESTROYSEQ 0001', 'cbdo -'] + [f'call.w SEQUNREGISTEREVENTKIND "V{v}"' for v in (0, 1, 2, 3, 4)]
     L += ['echo == a MIDI file: the procedure says whether it writes (length 0) and then writes (7)',
           '@load ENG_ORDR.WRK', 'call.w SEQDESTROYSEQ 0001',
           'call.w SEQREGISTEREVENTKIND "Text" cb4 d:00000011', 'put 3 3 "hell"', 'fill 3 0 ff 01 04',
@@ -929,8 +939,7 @@ def _():
     L += ['call.w SEQUNREGISTEREVENTKIND "Text"', 'call.w SEQUNREGISTEREVENTKIND "MCICmd"']
     L += ['echo == which kind a file\'s id goes to: a procedure that reads nothing leaves the engine in the text',
           'cbret 1']
-    # what a failed load frees: events of kinds with the value or the name of the first kind ever
-    # registered (here "Text" with 0x11, at the top), as far as these cases show
+    # what a failed load frees: the events of kinds without bit 1 in their value, as always
     for kinds in ([('Text', 0x11), ('Zed', 0x22), ('Yo', 0x33)], [('Zed', 0x11), ('Text', 0x11)],
                   [('Zed', 0x22), ('Text', 0x33)], [('Zed', 0x33), ('Yo', 0x22)], [('MCICmd', 0x22), ('Text', 0x11), ('Wave', 0x11)],
                   [('Wave', 0x11)], [('Text', 0x11), ('MCICmd', 0x22), ('Wave', 0x33), ('Text', 0x44)]):

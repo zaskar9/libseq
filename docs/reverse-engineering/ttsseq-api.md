@@ -305,6 +305,20 @@ unless noted [probe]:
   Stop: `SeqPlayStop()` [trace]. A null callback works [probe].
 - The engine does not stop by itself at the end: `SeqIdle()` notices the end, returns 1 and the
   stop output (All Notes Off) goes out [probe].
+- The start call sends the Song Position Pointer, the streams' patch, volume and pan and the
+  search-back; the events at the start position go out with the timer's next run, after the call
+  has returned (a string event's play message comes after the call's result) [probe].
+- `SeqGetEnd(seq)` is the time of the last event of any stream, where it starts (1680 for
+  ENG_ORDR, whose last note lasts until 1920); the playback runs on until the last note has
+  ended. `SeqSetDur` and `SeqGetDur` keep a number for the program; the engine does not use it.
+  `SeqSetNow` and `SeqRewind` return the new Now [probe, suite `transport`].
+- Stream parameters go out when set: `SeqSetStreamParam` of the patch (5), volume (6) or pan (10)
+  sends the program change or controller at once (the low 7 bits; -1 sends nothing), on the
+  forced channel or else the channel of the stream's first message, to the stream's port. So does
+  loading a `.WRK` file, for each patch and volume chunk, and a MIDI file, for a program change,
+  volume or pan it takes from a track after the track's first other message. Neither happens
+  for a sequence other than the current one (loaded or created while another one is), nor for a
+  stream with no channel [probe, the load output of the `files` suite].
 - `SeqGetNow(seq)` is polled constantly by all three programs [trace].
 - Song Position Pointer: when playback starts, every version sends `F2` with the start position
   in MIDI beats (tick / (ppq / 4)), before Start or Continue, also when MIDI sync is off; 1.01,
@@ -476,6 +490,41 @@ version (from just after the SPP to the stop burst):
 - Wine against 86Box for the same engine (2.10, ENG_ORDR): same order, note times within 3.3 ms.
 
 So the probe can replace the manual 86Box captures for engine questions, on all three versions.
+
+## Playback in libseq (1.01)
+
+libseq's player (`src/playback.cpp`) carries over the rules of libseq 0.8.1's engine, which came
+from the 86Box captures and matched the probe for every test song. The suites check it against
+1.01: each `play_*` suite, `transport` and `eventkinds` must give the same MIDI messages in the same
+order, at times within 40 ms of the DLL's, counted from the call they follow. The rules:
+
+- Start: the Song Position Pointer (with parameter 4, after rounding the start down to a MIDI
+  beat); the patch, volume and pan of every stream that is not muted or archived and has events,
+  in track order; then, with search-back (parameter 1), for each such stream that still has events
+  at or after the start, its last patch, pitch wheel, modulation (1), sustain (64) and volume (7)
+  before the start, in that order.
+- At one tick: the ends of notes that are due first, then the streams in track order, each in
+  stored order; sysex banks after the channel messages. The note ends wait in a binary heap,
+  which decides the order of ends that come together.
+- A note-on for a key that is sounding on the same port and channel first ends it; an end for a
+  key that is not sounding is dropped.
+- Key+ beyond 0 to 127 folds by octaves (unlike the MIDI file writer); Vel+ keeps 1 to 127; an
+  event that Time+ moves before tick 0 does not play. A looped stream repeats rounded up to whole
+  measures; 9999 repeats it as long as the other streams play.
+- The auto-shuttle (parameters 23 to 27): with auto-rewind and auto-restart the playback wraps
+  from the stop time (or the end) to the rewind time without a stop, ending the sounding notes;
+  with auto-stop alone it stops at the stop time, whose events do not play; auto-rewind puts Now
+  at the rewind time when the playback ends by itself.
+- The metronome (parameter 13): the note of parameters 17 to 21 on every beat; the duration counts
+  MIDI clocks and the click ends two clocks before it (a duration of 1 wraps round to 23), at the
+  latest one clock before the next measure.
+- Stop and the end: for each channel of each port in use the sounding notes' ends in key order and
+  All Notes Off (123); with parameter 2, then pitch wheel centre, modulation 0, sustain 0 and
+  controller 121 on every channel.
+- Ports that do not exist get nothing.
+
+The engine's timer runs every 10 ms (`TimerPeriod`) and sends what has become due. Under Wine the
+DLL's timer comes up to about 30 ms late now and then; the comparison allows for that.
 
 ## Locate delay
 
@@ -706,8 +755,12 @@ The `eventkinds` suite (1.01, 2.10, 3.00) and the probes behind it [probe]:
   stream, length) and may keep its own data in bytes 4 to 7, which stay with the event. The
   registration value is not passed.
 - Messages: 4 load (length 7), 5 save to a `.WRK` file (7), 7 save to a MIDI file, 3 free (0), 1
-  play (step 7). `SeqCallEventProc(message, event, length)` calls the procedure of the event's
-  kind with exactly these words and returns its result, 0 for a kind that is not registered.
+  play (0, and the pointer is to a copy of the event). `SeqCallEventProc(message, event, length)`
+  calls the procedure of the event's kind with exactly these words and returns its result, 0 for
+  a kind that is not registered.
+- The registration value holds flags: with bit 0 (1) the procedure gets no message when the
+  kind's events play, with bit 1 (2) none when they are freed. No other bit changed anything
+  tried (4 to 0x80, 0x100, 0x8000, 0x10000), nor did any bit change the load and save messages.
 - A file names its kinds in chunk 22 (count, then a Pascal string and an id each). Each entry goes
   to the first registered kind of that name that has none yet; an event takes the first kind with
   its id. So id 0, which no entry has, goes to the first kind the table does not name: that is
@@ -720,12 +773,12 @@ The `eventkinds` suite (1.01, 2.10, 3.00) and the probes behind it [probe]:
 - Saving a MIDI file: the procedure is called with length 0 (2.10: 0xFFFF) to ask whether it
   writes an event. If it returns non-zero, the engine writes the delta time and calls it again
   with length 7 to write the event's bytes. The running status goes on across it.
-- Freeing: when a stream or a sequence is destroyed (also by `SeqClose`), message 3 goes only to
-  the events whose kind was registered with the same value as kind 1: with values 11, 22, 33 only
-  kind 1's events, with 11, 11, 22 those of kinds 1 and 2, with kind 1 unregistered none. When a
-  load fails, it goes to the events whose name's first kind has the value of the first kind ever
-  registered. Both rules fit every case probed; why the engine picks the events so is not known.
-  All three versions behave alike here.
+- Freeing: when a stream or a sequence is destroyed (also by `SeqClose`, and when a load fails),
+  message 3 goes to every string event whose kind was registered without bit 1. The first values
+  probed (0x11, 0x22, 0x33, 0x44) made this look like a rule about kind 1; values 0 to 4 showed
+  the bits. Playing calls the procedure with message 1 for every string event whose kind was
+  registered without bit 0, when the event's time comes (from the timer, after the start call has
+  returned). All three versions behave alike here.
 
 ### Baggage (3.00)
 
@@ -1073,7 +1126,6 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
 - The word that comes with code 3 in the file callbacks; how 3.00 reads string events without a
   load callback.
-- Why the free message goes only to some string events (String events and their kinds).
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
   in a buffer that has gone out of scope, so the fake port logs them as zeros (`sysex 00 00 00`);
   Wine's `+midi` trace has the real bytes.

@@ -36,7 +36,7 @@ call.w SEQCALLEVENTPROC 0004 @1 0007
 fill 1 0 05 00 00 90 3c 40 10 00
 call.w SEQCALLEVENTPROC 0004 @1 0007
 cbdo -
-echo == freeing (3) when a stream goes: only events whose kind has the value of kind 1
+echo == freeing (3) when a stream goes: not for kinds whose value has bit 1 (2)
 call.w SEQREGISTEREVENTKIND "C" cb4 d:00000033
 cbdo cb4 * dumpcb 1 0 8
 call.w SEQCREATESEQ 0000 0000
@@ -66,7 +66,7 @@ call.w SEQPUTEVT %1 @2
 call.w SEQDELETERANGE %1 d:00000000 d:00000001
 call.d SEQSTREAMLEN %1
 call.w SEQDESTROYSTREAM %1
-echo with kind 1 gone, nothing is freed
+echo with A (11) gone, the others (22, 33) are not freed
 call.w SEQUNREGISTEREVENTKIND "A"
 call.w SEQCREATESTREAM 0001 0000 0000
 let 1
@@ -80,7 +80,7 @@ fill 2 0 20 00 00 03 77 77 77 77
 call.d SEQSEEK %1 0000 d:00000002
 call.w SEQINSEVT %1 @2
 call.w SEQDESTROYSTREAM %1
-echo a new kind 1 named as kind 3
+echo a new kind 1 (44), named as kind 3
 call.w SEQREGISTEREVENTKIND "C" cb4 d:00000044
 call.w SEQCREATESTREAM 0001 0000 0000
 let 1
@@ -97,7 +97,7 @@ call.w SEQDESTROYSEQ 0001
 call.w SEQUNREGISTEREVENTKIND "B"
 call.w SEQUNREGISTEREVENTKIND "C"
 call.w SEQUNREGISTEREVENTKIND "C"
-echo kinds 1 and 2 with one value, 3 with another
+echo kinds 1 and 2 with 55, 3 with 66
 call.w SEQREGISTEREVENTKIND "A" cb4 d:00000055
 call.w SEQREGISTEREVENTKIND "B" cb4 d:00000055
 call.w SEQREGISTEREVENTKIND "A" cb4 d:00000066
@@ -114,10 +114,47 @@ fill 2 0 20 00 00 03 77 77 77 77
 call.d SEQSEEK %1 0000 d:00000002
 call.w SEQINSEVT %1 @2
 call.w SEQDESTROYSEQ 0001
-cbdo -
 call.w SEQUNREGISTEREVENTKIND "A"
 call.w SEQUNREGISTEREVENTKIND "B"
 call.w SEQUNREGISTEREVENTKIND "A"
+echo == playing (1, a copy of the event, length 0) and freeing by the value's bits 0 and 1
+call.w SEQREGISTEREVENTKIND "V0" cb4 d:00000000
+call.w SEQREGISTEREVENTKIND "V1" cb4 d:00000001
+call.w SEQREGISTEREVENTKIND "V2" cb4 d:00000002
+call.w SEQREGISTEREVENTKIND "V3" cb4 d:00000003
+call.w SEQREGISTEREVENTKIND "V4" cb4 d:00000004
+call.w SEQCREATESEQ 0000 0000
+call.w SEQCREATESTREAM 0001 0000 0000
+let 1
+fill 2 0 00 00 00 01 a0 00 00 00
+call.d SEQSEEK %1 0000 d:00000000
+call.w SEQINSEVT %1 @2
+fill 2 0 10 00 00 02 a1 00 00 00
+call.d SEQSEEK %1 0000 d:00000001
+call.w SEQINSEVT %1 @2
+fill 2 0 20 00 00 03 a2 00 00 00
+call.d SEQSEEK %1 0000 d:00000002
+call.w SEQINSEVT %1 @2
+fill 2 0 30 00 00 04 a3 00 00 00
+call.d SEQSEEK %1 0000 d:00000003
+call.w SEQINSEVT %1 @2
+fill 2 0 40 00 00 05 a4 00 00 00
+call.d SEQSEEK %1 0000 d:00000004
+call.w SEQINSEVT %1 @2
+fill 2 0 60 00 00 90 3c 40 08 00
+call.d SEQSEEK %1 0000 d:00000005
+call.w SEQINSEVT %1 @2
+call.w SEQSETSTREAMPARAM %1 0007 d:00000000
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQPLAYSTART null
+idle 1500
+call.w SEQDESTROYSEQ 0001
+cbdo -
+call.w SEQUNREGISTEREVENTKIND "V0"
+call.w SEQUNREGISTEREVENTKIND "V1"
+call.w SEQUNREGISTEREVENTKIND "V2"
+call.w SEQUNREGISTEREVENTKIND "V3"
+call.w SEQUNREGISTEREVENTKIND "V4"
 echo == a MIDI file: the procedure says whether it writes (length 0) and then writes (7)
 call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_ORDR.WRK" 0000 null 0000 0000
 call.w SEQDESTROYSEQ 0001

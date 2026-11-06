@@ -19,7 +19,10 @@ void defineApi101(Probe& p, Engine& e) {
 
     // ---- lifecycle
     p.define("SEQGETVERSION", [](Args&, Probe&) -> std::uint32_t { return Engine::kVersion; });
-    p.define("SEQOPEN", [](Args&, Probe&) -> std::uint32_t { return 1; });
+    p.define("SEQOPEN", [&e](Args&, Probe&) -> std::uint32_t {
+        e.open();
+        return 1;
+    });
     p.define("SEQCLOSE", [&e](Args&, Probe&) -> std::uint32_t {
         e.close();
         return 1;
@@ -60,10 +63,10 @@ void defineApi101(Probe& p, Engine& e) {
         return s == nullptr ? 0 : static_cast<std::uint32_t>(s->param(param));
     });
     p.define("SEQSETSTREAMPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        Stream* s = e.stream(a.word());
+        const libseq::StreamHandle h = a.word();
         const int param = a.word();
         const auto v = static_cast<std::int32_t>(a.dword());
-        return s != nullptr && s->setParam(param, v) ? 1 : 0;
+        return e.setStreamParam(h, param, v) ? 1 : 0;
     });
     p.define("SEQGETSTREAMALLPARAMS", [&e](Args& a, Probe& pr) -> std::uint32_t {
         const Stream* s = e.stream(a.word());
@@ -135,6 +138,7 @@ void defineApi101(Probe& p, Engine& e) {
     defineMarks101(p, e);
     defineTime101(p, e);
     defineFiles101(p, e);
+    definePlay101(p, e);
 }
 
 } // namespace ttsrun

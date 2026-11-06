@@ -13,6 +13,7 @@ add_library(libseq
     src/timemap.cpp
     src/wrk_read.cpp
     src/wrk_write.cpp
+    src/playback.cpp
     src/smf_read.cpp
     src/smf_write.cpp
 )

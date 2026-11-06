@@ -253,17 +253,29 @@ void Probe::run(const std::string& line) {
     const auto arg = [&](const std::size_t i) { return i < t.size() ? t[i] : std::string(); };
     if (cmd == "echo") {
         out_ << rest(line) << '\n';
-    } else if (cmd == "sleep" || cmd == "dxs" || cmd == "cbyield" || cmd == "win" || cmd == "cbretafter") {
-        // nothing to wait for; the rest has no effect without a real DLL
-    } else if (cmd == "idle") {
-        if (const auto it = functions_.find("SEQIDLE"); it != functions_.end()) {
-            Args a({});
-            const std::uint32_t r = it->second(a, *this);
-            if ((r & 0xffffU) != 0) {
-                out_ << "SEQIDLE() -> " << hex(r & 0xffffU, 4) << '\n';
-            }
+    } else if (cmd == "sleep") {
+        if (advance) {
+            advance(static_cast<std::uint32_t>(num(arg(1), 0)));
         }
-        flushCallbacks();
+    } else if (cmd == "dxs" || cmd == "cbyield" || cmd == "win" || cmd == "cbretafter") {
+        // no effect without a real DLL
+    } else if (cmd == "idle") {
+        // SeqIdle between messages, as Cakewalk's message loop calls it, once a millisecond
+        const auto ms = static_cast<std::uint32_t>(num(arg(1), 0));
+        const auto it = functions_.find("SEQIDLE");
+        for (std::uint32_t i = 0; i < std::max<std::uint32_t>(ms, 1); ++i) {
+            if (advance && ms != 0) {
+                advance(1);
+            }
+            if (it != functions_.end()) {
+                Args a({});
+                const std::uint32_t r = it->second(a, *this);
+                if ((r & 0xffffU) != 0) {
+                    out_ << "SEQIDLE() -> " << hex(r & 0xffffU, 4) << '\n';
+                }
+            }
+            flushCallbacks();
+        }
     } else if (cmd == "let") {
         var_[num(arg(1), 10) % 10] = r_;
     } else if (cmd == "mode") {
@@ -385,6 +397,9 @@ void Probe::run(const std::string& line) {
 }
 
 void Probe::call(const std::vector<std::string>& t, const std::string& cmd) {
+    if (depth_ == 0) {
+        ++calls;
+    }
     const auto arg = [&](const std::size_t i) { return i < t.size() ? t[i] : std::string(); };
     const char type = cmd.size() > 5 ? cmd[5] : 'r';
     const std::string name = arg(1);

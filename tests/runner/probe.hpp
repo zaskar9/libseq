@@ -107,6 +107,12 @@ public:
     std::uint32_t callback(FarPtr fn, const std::vector<std::uint16_t>& words);
     /// The functions called that the Api does not have, by name.
     std::map<std::string, int> missing;
+    /// The script's time in milliseconds: calls take none, `sleep` and `idle` move it on.
+    std::uint32_t clock = 0;
+    /// Moves the clock on by that many milliseconds, running the engine's timer on the way.
+    std::function<void(std::uint32_t)> advance;
+    /// Counts the top-level calls; output is anchored at the call it came during or after.
+    unsigned long calls = 0;
 
 private:
     struct CbRec {

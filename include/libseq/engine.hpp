@@ -8,6 +8,7 @@
 #pragma once
 
 #include "event.hpp"
+#include "platform.hpp"
 #include "timemap.hpp"
 #include "types.hpp"
 
@@ -18,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -26,6 +28,7 @@ namespace libseq {
 namespace bytes {
 class Writer;
 } // namespace bytes
+class Player;
 
 /// Stream parameters (SeqGetStreamParam / SeqSetStreamParam).
 namespace sp {
@@ -243,6 +246,10 @@ public:
 
     std::uint16_t ppq = 120;
     Tick now = 0;
+    /// SeqSetDur, SeqGetDur: a length the program keeps here; the engine does not use it.
+    Tick dur = 0;
+    /// SeqGetEnd: the time of the last event of any stream (where it starts, not where it ends).
+    [[nodiscard]] Tick end() const noexcept;
     TempoMap tempoMap;
     MeterMap meterMap;
     std::vector<Marker> markers;
@@ -270,7 +277,7 @@ private:
 /// string event in the stream (its time, its kind as the status and four bytes the program may
 /// use) and a length.
 namespace ek {
-inline constexpr std::uint16_t kPlay = 1; // the event plays (length 7)
+inline constexpr std::uint16_t kPlay = 1; // the event plays (a copy of it, length 0)
 inline constexpr std::uint16_t kFree = 3; // the event goes away (length 0)
 inline constexpr std::uint16_t kLoad = 4; // read the event's data from the file (length 7)
 inline constexpr std::uint16_t kSave = 5; // write it to the .WRK file (length 7)
@@ -321,14 +328,59 @@ public:
 
     /// SeqDestroyStream: the stream goes, after its string events are freed (freeStringEvents).
     bool destroyStream(StreamHandle handle);
-    /// SeqClose: destroys every sequence.
+    /// The system the engine sends its MIDI to and takes its time from; null for none.
+    void setPlatform(Platform* platform) noexcept { platform_ = platform; }
+    [[nodiscard]] Platform* platform() const noexcept { return platform_; }
+    /// SeqOpen: Local Control Off on all 16 channels of every output port (`SendLocalOff`).
+    void open();
+    /// SeqClose: destroys every sequence, then All Sound Off and sustain off on all 16 channels of
+    /// every output port.
     void close();
+    /// Sends one message to a port, as the engine does all its output.
+    void send(int port, std::span<const std::uint8_t> message);
+    /// SeqSetStreamParam: sets the parameter; a patch, volume or pan of 0 or more also goes out at
+    /// once, on the stream's channel and port (sendStreamParam).
+    bool setStreamParam(StreamHandle handle, int param, std::int32_t value);
+    /// Sends a stream's patch (program change), volume (controller 7) or pan (10), when it is set
+    /// and the stream has a channel and an output port, and its sequence is the current one
+    /// (current_). Loading a file does this for each one it sets. The channel is the forced one,
+    /// or else the channel of the stream's first channel message; a stream with neither sends
+    /// nothing.
+    void sendStreamParam(const Stream& stream, int param, bool anySequence = false);
+    /// The channel a stream's own messages go out on, -1 when it has none (sendStreamParam).
+    [[nodiscard]] static int outputChannel(const Stream& stream) noexcept;
+    /// The timer: the host calls it every timerPeriod() milliseconds while the engine is open.
+    void timer();
+
+    /// SeqSetPlayingSeq, SeqSetStandbySeq: the sequence the transport plays (0 for none).
+    bool setPlayingSeq(SeqHandle seq);
+    bool setStandbySeq(SeqHandle seq);
+    [[nodiscard]] SeqHandle playingSeq() const noexcept { return playing_; }
+    /// SeqPlayStart: plays the playing sequence from its Now; false when it plays already or there
+    /// is no playing sequence.
+    bool playStart();
+    /// SeqPlayStop: stops the playback; false when it does not play.
+    bool playStop();
+    /// SeqSetNow: moves Now (sets parameter 3); while playing, the playback goes on from there.
+    Tick setNow(SeqHandle seq, Tick tick);
+    /// SeqIdle: 1 once when the playback has ended by itself (and its stop output goes out then).
+    std::uint16_t idle();
+    /// SeqExpired: true while the transport is stopped.
+    [[nodiscard]] bool expired() const noexcept;
+    /// `TimerPeriod` of TTSSEQ.INI (1.01: 10 ms).
+    [[nodiscard]] unsigned timerPeriod() const noexcept { return timerPeriod_; }
 
     /// SeqRegisterEventKind: a kind of string event, numbered from 1 (the lowest free number); a
     /// name may be registered more than once. 0 when all 127 numbers are taken.
     std::uint8_t registerEventKind(std::string name, EventProc proc, std::uint32_t value = 0);
     /// SeqUnregisterEventKind: the first kind with that name goes.
     bool unregisterEventKind(const std::string& name);
+    /// The registration value's bits [probe, suite eventkinds]: the procedure of a kind registered
+    /// with kNoPlay gets no message when its events play, with kNoFree none when they go.
+    static constexpr std::uint32_t kNoPlay = 1;
+    static constexpr std::uint32_t kNoFree = 2;
+    /// A string event plays: its kind's procedure gets message 1 with a copy of it and length 0.
+    void playStringEvent(const Event& event);
     /// SeqCallEventProc: the procedure of the event's kind (its status), 0 when there is none.
     std::uint32_t callEventProc(std::uint16_t message, Event& event, std::uint16_t length);
     /// The names of the kinds, by number.
@@ -361,7 +413,7 @@ private:
     struct EventKind {
         std::string name;
         EventProc proc;
-        std::uint32_t value = 0; // the program's value; the procedures do not get it
+        std::uint32_t value = 0; // the program's value: flags (kNoPlay, kNoFree); the procedures do not get it
     };
     /// The file of a load or save: its bytes and the position SeqIOSeek, SeqIORead and SeqIOWrite
     /// work at.
@@ -373,21 +425,21 @@ private:
     [[nodiscard]] SeqHandle freeHandle() const;
     /// The kind of a string event's status, nullptr when none is registered.
     [[nodiscard]] const EventKind* kindOf(std::uint8_t status) const noexcept;
-    /// The free message (3) for the string events of a stream that goes. 1.01 does not send it to
-    /// every event: when a stream or sequence is destroyed, only to events whose kind has the value
-    /// that kind 1 was registered with; when a load fails, to events whose name's first kind has
-    /// the value of the first kind ever registered. These rules fit every probe of the eventkinds
-    /// suite; why 1.01 picks the events so is not known.
-    void freeStringEvents(Stream& stream, bool failedLoad = false);
-    bool destroySequence(SeqHandle handle, bool failedLoad);
+    /// The free message (3) for the string events of a stream that goes (also when a load fails),
+    /// but not for kinds registered with kNoFree.
+    void freeStringEvents(Stream& stream);
     /// Writes a stream as chunk 18 to the open file, with the string events' procedures; false
     /// when one fails. `w` holds what is not written yet.
     bool stringStream(const Stream& stream, std::uint32_t number, bytes::Writer& w);
     std::map<SeqHandle, std::unique_ptr<Sequence>> sequences_;
     std::map<std::uint8_t, EventKind> kinds_;
-    std::optional<EventKind> firstKind_; // the first kind ever registered, for freeStringEvents
     std::map<std::uint8_t, std::string> kindNames_;
     OpenFile io_;
+    Platform* platform_ = nullptr;
+    std::unique_ptr<Player> player_;
+    SeqHandle playing_ = 0;
+    SeqHandle standby_ = 0;
+    unsigned timerPeriod_ = 10;
     int fileError_ = 0;
     /// The event the MIDI file writer and reader work in. 1.01 keeps one for both and never clears
     /// it, so what a message does not fill (the second data byte and the duration of a program

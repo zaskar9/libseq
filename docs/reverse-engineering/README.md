@@ -240,6 +240,28 @@ to the value the kind was registered with, which the procedures never see. A fai
 yet another rule. Both rules now fit every case probed, which is all that can be said without
 looking inside the DLL. The suite `eventkinds` keeps these cases on all three versions.
 
+### 15. Playback (2026-11-06)
+
+The suites had recorded what 1.01 sends to the fake MIDI port all along; the runner had ignored
+it. It now keeps what libseq sends, on a clock of its own that only `sleep` and `idle` move, and
+compares: the same messages in the same order, at times close to the DLL's. A few captures were
+older than their suites, and recording them again fixed them.
+
+Before any playback this already showed more than expected: the engine sends a stream's patch,
+volume and pan whenever they are set, also while it loads a file, but only for the current
+sequence. Marker messages sent between the calls of a probe showed which call sent what.
+
+The player came over from libseq 0.8.1, whose rules had matched the probe before. 22 of the 25
+songs played right at once. The rest were a muted stream that was not skipped, one stall of
+Wine's timer in a capture (gone when recorded again), and an endless loop whose cut-off fell on a
+note, now moved between two notes.
+
+Playing string events settled the question chapter 14 left open. Only some events got the play
+message, and they were the ones that did not get the free message. Registering kinds with the
+values 0 to 4 showed why: the registration value is a set of flags, bit 0 for no play message,
+bit 1 for no free message. The values tried before (0x11, 0x22, ...) had only made it look like
+a rule about kind 1.
+
 ## In this folder
 
 | File | Content |

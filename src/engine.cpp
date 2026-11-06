@@ -1,7 +1,10 @@
 // libseq: sequences, streams and their parameters (TTSSEQ 1.01).
 #include "libseq/engine.hpp"
 
+#include "playback.hpp"
+
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <iterator>
 #include <string_view>
@@ -565,7 +568,7 @@ SysxParse sysxFromText(const std::string& text) {
 
 // ---------------------------------------------------------------- Engine
 
-Engine::Engine() {
+Engine::Engine() : player_(std::make_unique<Player>(*this)) {
     const Sequence fresh(0);
     for (int p = qp::kMetroPort; p <= qp::kMetroDuration; ++p) {
         shared_[static_cast<std::size_t>(p)] = fresh.param(p);
@@ -623,10 +626,6 @@ SeqHandle Engine::createSequence() {
     return h;
 }
 
-bool Engine::destroySequence(const SeqHandle handle) {
-    return destroySequence(handle, false);
-}
-
 bool Engine::destroyStream(const StreamHandle handle) {
     Sequence* s = sequence(seqOf(handle));
     Stream* st = s == nullptr ? nullptr : s->stream(handle);
@@ -637,9 +636,137 @@ bool Engine::destroyStream(const StreamHandle handle) {
     return s->destroyStream(handle);
 }
 
+void Engine::send(const int port, const std::span<const std::uint8_t> message) {
+    if (platform_ != nullptr && !message.empty()) {
+        platform_->send(port, message);
+    }
+}
+
+bool Engine::setStreamParam(const StreamHandle handle, const int param, const std::int32_t value) {
+    Stream* st = stream(handle);
+    if (st == nullptr || !st->setParam(param, value)) {
+        return false;
+    }
+    sendStreamParam(*st, param);
+    return true;
+}
+
+int Engine::outputChannel(const Stream& stream) noexcept {
+    if (const int forced = stream.param(sp::kChannel); forced >= 0) {
+        return forced & 0x0f;
+    }
+    for (const Event& e : stream.events()) {
+        if (e.status >= 0x80 && e.status < 0xf0) {
+            return e.status & 0x0f;
+        }
+    }
+    return -1;
+}
+
+void Engine::sendStreamParam(const Stream& stream, const int param, const bool anySequence) {
+    const std::int32_t v = stream.param(param);
+    const int channel = outputChannel(stream);
+    const int port = stream.param(sp::kPort);
+    if (v < 0 || channel < 0 || platform_ == nullptr || port >= platform_->outputPorts() ||
+        (!anySequence && seqOf(stream.handle()) != current_)) {
+        return;
+    }
+    const auto value = static_cast<std::uint8_t>(v & 0x7f);
+    const auto ch = static_cast<unsigned>(channel);
+    if (param == sp::kPatch) {
+        const std::array<std::uint8_t, 2> m{static_cast<std::uint8_t>(0xc0U | ch), value};
+        send(port, m);
+    } else if (param == sp::kVolume || param == sp::kPan) {
+        const std::array<std::uint8_t, 3> m{static_cast<std::uint8_t>(0xb0U | ch),
+                                            static_cast<std::uint8_t>(param == sp::kVolume ? 7 : 10), value};
+        send(port, m);
+    }
+}
+
+void Engine::timer() {
+    player_->timer();
+}
+
+bool Engine::setPlayingSeq(const SeqHandle seq) {
+    if (seq != 0 && sequence(seq) == nullptr) {
+        return false;
+    }
+    playing_ = seq;
+    return true;
+}
+
+bool Engine::setStandbySeq(const SeqHandle seq) {
+    if (seq != 0 && sequence(seq) == nullptr) {
+        return false;
+    }
+    standby_ = seq;
+    return true;
+}
+
+Tick Sequence::end() const noexcept {
+    Tick end = 0;
+    for (const Stream* st : streams()) {
+        if (!st->events().empty()) {
+            end = std::max(end, st->events().back().time);
+        }
+    }
+    return end;
+}
+
+Tick Engine::setNow(const SeqHandle seq, const Tick tick) {
+    Sequence* s = sequence(seq);
+    if (s == nullptr) {
+        return 0;
+    }
+    if (player_->playing() && player_->sequence() == s) {
+        player_->jump(tick);
+    } else {
+        s->now = tick;
+    }
+    s->setParam(qp::kNowJumped, 1);
+    return tick;
+}
+
+bool Engine::playStart() {
+    Sequence* s = sequence(playing_);
+    return s != nullptr && player_->start(*s);
+}
+
+bool Engine::playStop() {
+    return player_->stop();
+}
+
+std::uint16_t Engine::idle() {
+    return player_->idle();
+}
+
+bool Engine::expired() const noexcept {
+    return !player_->playing();
+}
+
+void Engine::open() {
+    const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
+    for (int port = 0; port < ports; ++port) {
+        for (unsigned ch = 0; ch < 16; ++ch) {
+            const std::array<std::uint8_t, 3> localOff{static_cast<std::uint8_t>(0xb0U | ch), 122, 0};
+            send(port, localOff);
+        }
+    }
+}
+
 void Engine::close() {
     while (!sequences_.empty()) {
         destroySequence(sequences_.begin()->first);
+    }
+    const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
+    for (int port = 0; port < ports; ++port) {
+        for (unsigned ch = 0; ch < 16; ++ch) {
+            const auto status = static_cast<std::uint8_t>(0xb0U | ch);
+            const std::array<std::uint8_t, 3> soundOff{status, 120, 0};
+            const std::array<std::uint8_t, 3> sustainOff{status, 64, 0};
+            send(port, soundOff);
+            send(port, sustainOff);
+        }
     }
 }
 
@@ -649,9 +776,6 @@ std::uint8_t Engine::registerEventKind(std::string name, EventProc proc, const s
         if (!kinds_.contains(id)) {
             kindNames_[id] = name;
             kinds_[id] = EventKind{std::move(name), std::move(proc), value};
-            if (!firstKind_) {
-                firstKind_ = kinds_[id];
-            }
             return id;
         }
     }
@@ -674,38 +798,42 @@ const Engine::EventKind* Engine::kindOf(const std::uint8_t status) const noexcep
     return it == kinds_.end() ? nullptr : &it->second;
 }
 
+void Engine::playStringEvent(const Event& event) {
+    const EventKind* k = kindOf(event.status);
+    if (k != nullptr && k->proc && (k->value & kNoPlay) == 0) {
+        Event copy = event; // the procedure gets a copy of the event
+        k->proc(ek::kPlay, copy, 0);
+    }
+}
+
 std::uint32_t Engine::callEventProc(const std::uint16_t message, Event& event, const std::uint16_t length) {
     const EventKind* k = kindOf(event.status);
     return k == nullptr || !k->proc ? 0 : k->proc(message, event, length);
 }
 
-void Engine::freeStringEvents(Stream& stream, const bool failedLoad) {
-    const EventKind* one = kindOf(1);
+void Engine::freeStringEvents(Stream& stream) {
     for (Event& e : stream.events()) {
         const EventKind* k = kindOf(e.status);
-        if (k == nullptr || !k->proc) {
-            continue;
-        }
-        bool freed = one != nullptr && k->value == one->value;
-        if (failedLoad) {
-            // the first kind of the event's name, compared with the first kind ever registered
-            const auto named =
-                std::find_if(kinds_.begin(), kinds_.end(), [k](const auto& kv) { return kv.second.name == k->name; });
-            freed = firstKind_ && named != kinds_.end() && named->second.value == firstKind_->value;
-        }
-        if (freed) {
+        if (k != nullptr && k->proc && (k->value & kNoFree) == 0) {
             k->proc(ek::kFree, e, 0);
         }
     }
 }
 
-bool Engine::destroySequence(const SeqHandle handle, const bool failedLoad) {
+bool Engine::destroySequence(const SeqHandle handle) {
     Sequence* s = sequence(handle);
     if (s == nullptr) {
         return false;
     }
     for (Stream* st : s->streams()) {
-        freeStringEvents(*st, failedLoad);
+        freeStringEvents(*st);
+    }
+    player_->forget(*s);
+    if (playing_ == handle) {
+        playing_ = 0;
+    }
+    if (standby_ == handle) {
+        standby_ = 0;
     }
     sequences_.erase(handle);
     if (handle == current_) {

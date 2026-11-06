@@ -11,7 +11,8 @@
 //    track's name (03) and port (21), not muted, and the channel of its messages as the forced
 //    channel when they are all on one;
 //  - the track's first program change and first volume and pan controllers become the stream's
-//    patch, volume and pan, wherever they are, and leave the stream;
+//    patch, volume and pan, wherever they are, and leave the stream; one that comes after a
+//    message the stream keeps goes out at once (Engine::sendStreamParam);
 //  - a note off (or note on with velocity 0) ends the last note started of its key on its
 //    channel; other channel messages are kept, sysex and other meta events are not;
 //  - every message is read into the scratch event the writer uses too (Engine::midiScratch_): a
@@ -23,6 +24,7 @@
 #include "libseq/engine.hpp"
 
 #include <algorithm>
+#include <functional>
 
 namespace libseq {
 
@@ -48,6 +50,7 @@ public:
         }
         bool named = false;
         bool haveChannel = false;
+        int trackChannel = -1;
         bool havePatch = false;
         bool haveVolume = false;
         bool havePan = false;
@@ -100,13 +103,14 @@ public:
             if (st == nullptr) {
                 continue;
             }
-            // the channel all the track's messages are on, -1 when they are on several
+            // the channel all the track's messages are on, -1 when they are on several; it
+            // becomes the stream's when the track is read
             const int channel = status & 0x0f;
             if (!haveChannel) {
-                st->setParam(sp::kChannel, channel);
+                trackChannel = channel;
                 haveChannel = true;
-            } else if (st->param(sp::kChannel) != channel) {
-                st->setParam(sp::kChannel, -1);
+            } else if (trackChannel != channel) {
+                trackChannel = -1;
             }
             std::vector<Event>& events = st->events();
             if (kind == 0x80U || (kind == 0x90U && scratch_->data2 == 0)) {
@@ -122,16 +126,19 @@ public:
             }
             if (kind == 0xc0U && !havePatch) {
                 st->setParam(sp::kPatch, d1);
+                paramSet(*st, sp::kPatch);
                 havePatch = true;
                 continue;
             }
             if (kind == 0xb0U && d1 == 7 && !haveVolume) {
                 st->setParam(sp::kVolume, scratch_->data2);
+                paramSet(*st, sp::kVolume);
                 haveVolume = true;
                 continue;
             }
             if (kind == 0xb0U && d1 == 10 && !havePan) {
                 st->setParam(sp::kPan, scratch_->data2);
+                paramSet(*st, sp::kPan);
                 havePan = true;
                 continue;
             }
@@ -140,7 +147,14 @@ public:
             }
             events.push_back(*scratch_);
         }
+        if (st != nullptr) {
+            st->setParam(sp::kChannel, trackChannel);
+        }
     }
+
+    /// Called when a track sets a stream's patch, volume or pan (Engine::sendStreamParam): it goes
+    /// out when the stream already has a message to take the channel from.
+    std::function<void(const Stream&, int)> paramSet = [](const Stream&, int) {};
 
 private:
     void meta(const Tick now, const std::uint8_t type, const std::vector<std::uint8_t>& d) {
@@ -235,6 +249,7 @@ SeqHandle Engine::loadMidiFile(const std::filesystem::path& path) {
     Sequence& s = *sequence(h);
     s.ppq = division;
     Loader loader(s, midiScratch_);
+    loader.paramSet = [this](const Stream& st, const int param) { sendStreamParam(st, param); };
     try {
         for (std::size_t i = 0; i < tracks.size(); ++i) {
             loader.track(tracks[i], format == 1 && i == 0);

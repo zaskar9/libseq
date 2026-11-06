@@ -59,6 +59,7 @@ Release 1.1.0 (TTSSEQ 1.01) is being built one layer at a time, each with the or
 makes pass. Done: sequences and streams with the engine's handles and parameters, reading `.WRK`
 files into them, the time base (tempo and meter maps with their copy and paste, positions and
 timecode), the event cursor with the edit primitives, markers and sysex banks, saving `.WRK`
-files and reading and writing MIDI files byte for byte as 1.01 does, and string events with their
-kinds and the program's file callbacks. An earlier exploration
+files and reading and writing MIDI files byte for byte as 1.01 does, string events with their
+kinds and the program's file callbacks, and playback through a platform interface for the MIDI
+ports and the clock. An earlier exploration
 (versions 0.1.0 to 0.8.1) is kept on the branch `archive/0.x`.

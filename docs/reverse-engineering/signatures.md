@@ -47,10 +47,10 @@ established.
 | `SeqTemporalSort(stream)` | d | Shell's sort; the length |
 | `SeqInsertRange(dst, d index, src)` | d | inserts copies of all events of `src` before `index`, keeping their times, without sorting; `src` is unchanged; 1. An index past the end, or a `src` that is not a stream, crashes or fails. Not imported by any program |
 | `SeqMergeStreams(seq, a, seq b, b, flag, d offset)`; 3.00: `(seq, a, seq b, b, flag, d count, d offset)` | w | a new stream in `seq`: the events of stream `a`, and those of `b` moved later by `offset` (3.00: the first `count` events of `b`); at equal times `a` comes first. `a` is destroyed, `b` too when `flag` is not 0; `a` = 0 means no stream. Returns the new stream. The third word has no visible effect (the programs pass `b`'s sequence) |
-| `SeqRegisterEventKind(p name, p proc, d value)` | w | the kind: the lowest free number from 1; a name may be registered twice. The name is kept, not copied. The procedure is called as proc(message, p event, length) without the value |
+| `SeqRegisterEventKind(p name, p proc, d flags)` | w | the kind: the lowest free number from 1; a name may be registered twice. The name is kept, not copied. The procedure is called as proc(message, p event, length). Flags: 1 no message when the events play, 2 none when they are freed |
 | `SeqUnregisterEventKind(p name)` | w | 1; removes the first kind of that name |
 | `SeqCallEventProc(w message, p event, w length)` | w | calls the procedure of the event's kind (byte 3) with the same words and returns its result; 0 when no kind of that number is registered |
-| event procedure | | proc(message, p data, length): 4 while loading, 3 on a failed load, 1 while playing |
+| event procedure | | proc(message, p event, length): 4 load, 5 save, 7 MIDI file, 3 free, 1 play |
 
 ## Time base, tempo and ratios
 
