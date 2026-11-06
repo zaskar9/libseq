@@ -1,0 +1,99 @@
+#! input THRU.TXT
+#! secs 30
+@open
+sleep 700
+echo == no sequence yet
+sleep 500
+echo == the first sequence, no playing sequence set
+call.w SEQCREATESEQ 0000 0000
+call.w SEQCREATESEQ 0000 0000
+call.w SEQSETSEQPARAM 0001 0009 d:00000003
+call.w SEQSETSEQPARAM 0002 0009 d:00000007
+sleep 500
+echo == playing sequence 2 (thru channel 7)
+call.w SEQSETPLAYINGSEQ 0002
+sleep 500
+echo == playing sequence 1 (thru channel 3)
+call.w SEQSETPLAYINGSEQ 0001
+sleep 500
+echo == standby sequence 2: no change
+call.w SEQSETSTANDBYSEQ 0002
+sleep 500
+echo == mode 1 (manual)
+call.w SEQSETSEQPARAM 0001 0007 d:00000001
+sleep 500
+echo == mode 0: nothing
+call.w SEQSETSEQPARAM 0001 0007 d:00000000
+sleep 500
+echo == mode 2, Key+ 100 and Vel+ 100: the top octave, velocity 127
+call.w SEQSETSEQPARAM 0001 0007 d:00000002
+call.w SEQSETSEQPARAM 0001 000a d:00000064
+call.w SEQSETSEQPARAM 0001 000b d:00000064
+sleep 500
+echo == Key+ -100 and Vel+ -120: folded up by octaves, velocity 1
+call.w SEQSETSEQPARAM 0001 000a d:ffffff9c
+call.w SEQSETSEQPARAM 0001 000b d:ffffff88
+sleep 500
+echo == channel 16: ORed into the status (a program change becomes channel pressure, the wheel goes)
+call.w SEQSETSEQPARAM 0001 000a d:00000000
+call.w SEQSETSEQPARAM 0001 000b d:00000000
+call.w SEQSETSEQPARAM 0001 0009 d:00000010
+sleep 500
+echo == channel -1, port 1: no such port
+call.w SEQSETSEQPARAM 0001 0009 d:ffffffff
+call.w SEQSETSEQPARAM 0001 0008 d:00000001
+sleep 500
+echo == port 0, record filter 0, Local On port 0: no change
+call.w SEQSETSEQPARAM 0001 0008 d:00000000
+call.w SEQSETSEQPARAM 0001 001c d:00000000
+call.w SEQSETSEQPARAM 0001 000c d:00000000
+sleep 500
+echo == a note held into the next slot
+sleep 500
+echo == channel 5: the held note's note off goes to channel 5, where it is not on, and is dropped
+call.w SEQSETSEQPARAM 0001 0009 d:00000005
+sleep 500
+echo == Local On port 0 and input on channel 5, the thru channel
+sleep 500
+echo == Local On port 0, channel -1
+call.w SEQSETSEQPARAM 0001 0009 d:ffffffff
+sleep 500
+echo == Local On port 1, channel -1
+call.w SEQSETSEQPARAM 0001 000c d:00000001
+sleep 500
+echo == Local On port -1, channel 5
+call.w SEQSETSEQPARAM 0001 000c d:ffffffff
+call.w SEQSETSEQPARAM 0001 0009 d:00000005
+sleep 500
+echo == SeqTxMidiMsg and the thru share the notes: the input ends a note SeqTxMidiMsg started
+call.w SEQTXMIDIMSG 0000 0005 0090 0030 0050
+sleep 500
+echo == and SeqTxMidiMsg ends a note the input started; the input's note off is dropped
+call.w SEQTXMIDIMSG 0000 0005 0080 0031 0000
+sleep 500
+echo == no playing sequence: nothing
+call.w SEQSETPLAYINGSEQ 0000
+sleep 500
+echo == the playing sequence destroyed: its settings stay
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQDESTROYSEQ 0001
+sleep 500
+echo == a new sequence becomes the current one, but the thru keeps the settings
+call.w SEQCREATESEQ 0000 0000
+sleep 500
+echo == until one of them is set on it
+call.w SEQSETSEQPARAM 0001 000a d:00000001
+sleep 500
+sleep 300
+echo == stopping the playback ends the notes SeqTxMidiMsg started too
+call.w SEQTXMIDIMSG 0000 000f 0090 003c 0050
+call.w SEQTXMIDIMSG 0000 0000 0090 007c 0050
+@load ENG_ORDR.WRK
+let 1
+call.w SEQSETPLAYINGSEQ %1
+sleep 300
+@play
+idle 300
+@stop
+idle 300
+@close

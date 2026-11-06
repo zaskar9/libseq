@@ -248,17 +248,15 @@ std::set<int> Player::portsInUse() const {
 }
 
 void Player::noteOn(const Item& it) {
-    const NoteKey key{it.port, it.data[0], it.data[1]};
-    if (sounding_.contains(key)) {
+    if (!engine_->notes_.insert(Engine::NoteKey{it.port, it.data[0] & 0x0f, it.data[1]}).second) {
         send(it.port, {it.data[0], it.data[1], 0}); // the key is sounding: it ends first
     }
-    sounding_.insert(key);
     send(it.port, {it.data[0], it.data[1], it.data[2]});
     offs_.push({it.off, it.port, it.data[0], it.data[1]});
 }
 
 void Player::noteOff(const Off& off) {
-    if (sounding_.erase({off.port, off.status, off.key}) > 0) {
+    if (engine_->notes_.erase({off.port, off.status & 0x0f, off.key}) > 0) {
         send(off.port, {off.status, off.key, 0});
     }
 }
@@ -356,8 +354,8 @@ void Player::stopOutput(const bool zeroControllers) {
         clickOn_ = false;
     }
     std::map<int, std::array<std::set<std::uint8_t>, 16>> byChannel;
-    for (const auto& [port, status, key] : sounding_) {
-        byChannel[port].at(status & 0x0fU).insert(key);
+    for (const auto& [port, channel, key] : engine_->notes_) {
+        byChannel[port].at(static_cast<std::size_t>(channel)).insert(static_cast<std::uint8_t>(key));
         ports.insert(port);
     }
     for (const int port : ports) {
@@ -381,14 +379,14 @@ void Player::stopOutput(const bool zeroControllers) {
             }
         }
     }
-    sounding_.clear();
+    engine_->notes_.clear();
     offs_.clear();
 }
 
 void Player::silence() {
     std::map<int, std::array<std::set<std::uint8_t>, 16>> byChannel;
-    for (const auto& [port, status, key] : sounding_) {
-        byChannel[port].at(status & 0x0fU).insert(key);
+    for (const auto& [port, channel, key] : engine_->notes_) {
+        byChannel[port].at(static_cast<std::size_t>(channel)).insert(static_cast<std::uint8_t>(key));
     }
     if (clickOn_) {
         byChannel[click_.port].at(click_.status & 0x0fU).insert(click_.key);
@@ -401,7 +399,7 @@ void Player::silence() {
             }
         }
     }
-    sounding_.clear();
+    engine_->notes_.clear();
     offs_.clear();
 }
 
@@ -430,8 +428,8 @@ void Player::click(const bool downbeat) {
 }
 
 void Player::clicks(const double now, const Tick limit) {
-    const bool on =
-        seq_->param(qp::kMetroPlay) != 0 && seq_->param(qp::kMetroVelocity) > 0 && seq_->param(qp::kMetroDuration) > 0;
+    const bool on = seq_->param(recording_ ? qp::kMetroRecord : qp::kMetroPlay) != 0 &&
+                    seq_->param(qp::kMetroVelocity) > 0 && seq_->param(qp::kMetroDuration) > 0;
     const std::uint16_t ppq = seq_->ppq;
     for (;;) {
         // the click's end, when it comes before the next beat
@@ -456,16 +454,47 @@ void Player::clicks(const double now, const Tick limit) {
     }
 }
 
+/// The count-in: the measures before the start position, at the tempo there; it clicks on the
+/// beats of the meter at the start, counted back from the measure the start is in, so a start
+/// between beats has its first click late and its last one early (suite punch). A click ends as
+/// one does in playback, at the latest one clock before the next measure.
+void Player::countInClicks(const double now) {
+    const auto at = [&](const std::int64_t tick) {
+        return recordMs_ - static_cast<double>(static_cast<std::int64_t>(recordTick_) - tick) * msPerTick_;
+    };
+    const auto beat = static_cast<std::int64_t>(countInBeatTicks_);
+    const std::int64_t measure = beat * countInNumerator_;
+    for (;;) {
+        const std::int64_t g = countInFirst_ + beat * countInDone_;
+        const bool beatDue = countInDone_ < countInBeats_ && at(g) <= now;
+        if (clickOn_ && clickOffMs_ <= now && (!beatDue || clickOffMs_ <= at(g))) {
+            send(click_.port, {click_.status, click_.key, 0});
+            clickOn_ = false;
+            continue;
+        }
+        if (!beatDue) {
+            return;
+        }
+        ++countInDone_;
+        const std::int64_t intoMeasure = ((g - countInGrid_) % measure + measure) % measure;
+        const std::int64_t next = g - intoMeasure + measure - static_cast<std::int64_t>(seq_->ppq / 24);
+        click(intoMeasure == 0);
+        clickOffMs_ = std::min(at(g + static_cast<std::int64_t>(clickTicks())), at(next));
+    }
+}
+
 // ---- the transport
 
-bool Player::start(Sequence& sequence) {
-    if (playing_) {
+bool Player::start(Sequence& sequence, const bool recording, const Drive drive) {
+    if (playing_ || waiting_) {
         return false;
     }
     seq_ = &sequence;
+    recording_ = recording;
+    drive_ = drive;
     const std::uint16_t ppq = seq_->ppq;
     Tick tick = seq_->now;
-    const bool spp = seq_->param(qp::kSendSpp) != 0;
+    const bool spp = drive == Drive::Timer && seq_->param(qp::kSendSpp) != 0;
     if (spp && ppq >= 4) {
         tick -= tick % (ppq / 4U); // a start with Song Position begins on a MIDI beat
     }
@@ -494,13 +523,36 @@ bool Player::start(Sequence& sequence) {
     }
     anchorTick_ = tick;
     anchorMs_ = engine_->platform() != nullptr ? engine_->platform()->milliseconds() : 0;
+    // a recording's count-in: measures of the meter at the start, at the tempo there
+    countInBeats_ = 0;
+    countInDone_ = 0;
+    const MeterEntry& meter = seq_->meterMap.entries()[seq_->meterMap.indexAtTick(tick)];
+    countInNumerator_ = std::max<std::uint8_t>(meter.numerator, 1);
+    countInBeatTicks_ = MeterMap::beatTicks(meter, ppq);
+    msPerTick_ = 60'000.0 * 100.0 / std::max<double>(seq_->tempoMap.tempoAt(tick), 1.0) / ppq / speed_;
+    if (recording && seq_->param(qp::kCountIn) > 0 && countInBeatTicks_ > 0) {
+        // the beats of the count-in's span [start - length, start) on the grid of the start's measure
+        const auto beat = static_cast<std::int64_t>(countInBeatTicks_);
+        const auto length = static_cast<std::int64_t>(seq_->param(qp::kCountIn)) * countInNumerator_ * beat;
+        countInGrid_ =
+            static_cast<std::int64_t>(seq_->meterMap.toTick(seq_->meterMap.toMBT(tick, ppq).measure, 1, 0, ppq));
+        const std::int64_t from = static_cast<std::int64_t>(tick) - length;
+        const std::int64_t k = (from - countInGrid_ + (from >= countInGrid_ ? beat - 1 : 0)) / beat;
+        countInFirst_ = countInGrid_ + k * beat;
+        if (countInFirst_ < from) {
+            countInFirst_ += beat;
+        }
+        countInBeats_ = static_cast<std::uint16_t>((static_cast<std::int64_t>(tick) - countInFirst_ + beat - 1) / beat);
+        anchorMs_ += static_cast<double>(length) * msPerTick_;
+    }
+    recordTick_ = tick;
+    recordMs_ = anchorMs_;
     next_ = static_cast<std::size_t>(
         std::lower_bound(items_.begin(), items_.end(), tick, [](const Item& it, Tick t) { return it.tick < t; }) -
         items_.begin());
     clickTick_ = beatAtOrAfter(seq_->meterMap, tick, ppq).first;
     clickOn_ = false;
     ended_ = false;
-    sounding_.clear();
     offs_.clear();
     if (spp && ppq >= 4) {
         const Tick beats = tick / (ppq / 4U);
@@ -523,15 +575,135 @@ bool Player::start(Sequence& sequence) {
     if (seq_->param(qp::kSearchBack) != 0) {
         searchBack(tick);
     }
+    if (drive != Drive::Timer) {
+        waiting_ = true; // until the sync comes
+        return true;
+    }
     playing_ = true; // the timer plays the events from the start on
     return true;
+}
+
+// ---- external sync
+
+void Player::go(const Tick from) {
+    waiting_ = false;
+    seq_->now = from;
+    anchorTick_ = from;
+    anchorMs_ = engine_->platform() != nullptr ? engine_->platform()->milliseconds() : 0;
+    next_ = static_cast<std::size_t>(
+        std::lower_bound(items_.begin(), items_.end(), from, [](const Item& it, Tick t) { return it.tick < t; }) -
+        items_.begin());
+    clickTick_ = beatAtOrAfter(seq_->meterMap, from, seq_->ppq).first;
+    spanTick_ = from;
+    clocks_ = 0;
+    firstClock_ = true;
+    deadline_ = kNever;
+    ended_ = false;
+    playing_ = true;
+}
+
+void Player::cancel() {
+    if (waiting_) {
+        waiting_ = false;
+        stopOutput(seq_->param(qp::kZeroControllers) != 0);
+    }
+}
+
+void Player::lockOutput(const Tick at) {
+    for (const Stream* st : seq_->streams()) {
+        if (!st->events().empty() && audible(*st)) {
+            for (const int p : {sp::kPatch, sp::kVolume, sp::kPan}) {
+                engine_->sendStreamParam(*st, p, true);
+            }
+        }
+    }
+    if (seq_->param(qp::kSendSpp) != 0 && seq_->ppq >= 4) {
+        const Tick beats = at / (seq_->ppq / 4U);
+        send(0, {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
+    }
+    searchBackFor(at);
+}
+
+void Player::searchBackFor(const Tick at) {
+    if (seq_ != nullptr && seq_->param(qp::kSearchBack) != 0) {
+        searchBack(at);
+    }
+}
+
+void Player::clock() {
+    if (playing_ && !ended_ && drive_ == Drive::Clock) {
+        ++clocks_;
+    }
+}
+
+void Player::externalStop() {
+    if (playing_) {
+        ended_ = true;
+    }
+}
+
+void Player::follow(const Tick tick, const Tick deadline) {
+    if (!playing_ || ended_ || drive_ != Drive::Code || engine_->platform() == nullptr) {
+        return;
+    }
+    anchorTick_ = tick;
+    anchorMs_ = engine_->platform()->milliseconds();
+    deadline_ = deadline;
+}
+
+void Player::runOut(const Tick deadline) {
+    if (playing_ && drive_ == Drive::Code) {
+        deadline_ = deadline;
+    }
+}
+
+/// MIDI clock: each clock plays the ticks of its span, ppq / 24 of them; Now is then the tick of
+/// the last thing it played (a note's end too), or else ppq / 24 more than before, but the first
+/// clock after Start or Continue does not move it (suite sync).
+void Player::scheduleClock() {
+    const Tick span = std::max<Tick>(seq_->ppq / 24U, 1);
+    for (; clocks_ > 0 && !ended_; --clocks_) {
+        const Tick end = spanTick_ + span;
+        bool played = false;
+        Tick last = 0;
+        for (;;) {
+            const Tick itemTick = next_ < items_.size() ? items_[next_].tick : kNever;
+            const Tick offTick = offs_.empty() ? kNever : offs_.top().tick;
+            const Tick content = std::min(itemTick, offTick);
+            if (content >= end) {
+                break;
+            }
+            played = true;
+            last = content;
+            if (offTick <= itemTick) {
+                noteOff(offs_.pop());
+                continue;
+            }
+            if (items_[next_].audible) {
+                emit(items_[next_]);
+            }
+            ++next_;
+        }
+        if (played) {
+            seq_->now = last;
+        } else if (!firstClock_) {
+            seq_->now += span;
+        }
+        firstClock_ = false;
+        spanTick_ = end;
+    }
 }
 
 Tick Player::limit() const noexcept {
     if (loop_) {
         return loopThru_;
     }
-    return stopAt_ ? std::min(stopTick_, lastTick()) : lastTick();
+    // a recording, and a playback that follows time code, play on past the end
+    Tick end = recording_ || drive_ == Drive::Code ? kNever : lastTick();
+    if (drive_ == Drive::Code) {
+        end = std::min(end, deadline_);
+    }
+    return stopAt_ ? std::min(stopTick_, end) : end;
 }
 
 void Player::schedule(const double now) {
@@ -557,7 +729,21 @@ void Player::schedule(const double now) {
             clickTick_ = beatAtOrAfter(seq_->meterMap, loopFrom_, seq_->ppq).first;
             continue;
         }
+        if (drive_ == Drive::Code && content >= deadline_) {
+            // the code stopped or jumped: the playback runs on to where it said, and ends there
+            if (tickToMs(deadline_) <= now) {
+                ended_ = true;
+                seq_->now = deadline_;
+                return;
+            }
+            clicks(now, deadline_);
+            break;
+        }
         const Tick stop = stopAt_ ? stopTick_ : kNever;
+        if ((recording_ || drive_ == Drive::Code) && content == kNever && !stopAt_) {
+            clicks(now, kNever - 1);
+            break;
+        }
         if (content >= stop || content == kNever) {
             // the end, or the auto-stop time, whose events do not play
             const Tick at = content == kNever ? lastTick() : stopTick_;
@@ -590,7 +776,29 @@ void Player::timer() {
     if (!playing_ || ended_ || seq_ == nullptr || engine_->platform() == nullptr) {
         return;
     }
-    schedule(engine_->platform()->milliseconds());
+    const double now = engine_->platform()->milliseconds();
+    if (countingIn()) {
+        countInClicks(now);
+        return;
+    }
+    if (drive_ == Drive::Clock) {
+        scheduleClock();
+        return;
+    }
+    schedule(now);
+}
+
+bool Player::countingIn() const {
+    return playing_ && recording_ && engine_->platform() != nullptr && engine_->platform()->milliseconds() < recordMs_;
+}
+
+Tick Player::recordTick(const double ms) const {
+    if (ms <= recordMs_) {
+        return recordTick_;
+    }
+    const double elapsed = static_cast<double>(seq_->tempoMap.elapsedAt(recordTick_)) +
+                           (ms - recordMs_) * 1000.0 * speed_ * static_cast<double>(seq_->ppq);
+    return seq_->tempoMap.tickAt(static_cast<std::uint64_t>(elapsed), 0, 1, false);
 }
 
 std::uint16_t Player::idle() {
@@ -622,7 +830,7 @@ bool Player::stop() {
     if (!playing_) {
         return false;
     }
-    if (!ended_ && engine_->platform() != nullptr) {
+    if (!ended_ && drive_ != Drive::Clock && engine_->platform() != nullptr) {
         seq_->now = std::min(msToTick(engine_->platform()->milliseconds()), limit());
     }
     playing_ = false;
@@ -636,7 +844,6 @@ void Player::forget(const Sequence& sequence) noexcept {
         seq_ = nullptr;
         playing_ = false;
         ended_ = false;
-        sounding_.clear();
         offs_.clear();
     }
 }

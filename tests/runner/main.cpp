@@ -15,14 +15,24 @@
 // after (the start of a playback, say), and must lie within kSlackMs of the DLL's. Under Wine the
 // DLL's timer comes up to about 30 ms late now and then, and the auto-shuttle's wraps add such
 // delays up.
+//
+// The suite's header names its MIDI input ("#! input FILE", in tests/data/ttsseq/input): the
+// runner plays it to the engine from SeqOpen on, as the fake port does, with the timer in between.
+// The thru's echoes count from SeqOpen too. "#! slack N" lets recorded events (8-byte dumps)
+// differ by N ticks in their time and duration: when Wine hands the input to the DLL varies by a
+// few milliseconds. The probe's window gets the messages the engine posts (step recording) when
+// the script sleeps or idles.
 #include "api.hpp"
 
 #include "libseq/engine.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <sstream>
 
 namespace fs = std::filesystem;
@@ -56,25 +66,89 @@ struct Message {
     int port = 0;
     std::vector<std::uint8_t> bytes;
     unsigned long call = 0; // the call it came during or after
-    bool timer = false;     // sent by the engine's timer, not during a call
+    bool timer = false;     // sent by the engine's timer or for an input message, not during a call
+    bool input = false;     // sent for an input message (the thru)
 };
 
-/// The fake port of the runner: it keeps what the engine sends, with the script's time.
+/// A message of the script's MIDI input (`#! input FILE`): its time after SeqOpen.
+struct Input {
+    double time = 0;
+    std::vector<std::uint8_t> bytes;
+};
+
+/// The input script, as the fake port of tools/ttsprobe/wine/fakeseq.c reads it: "<ms> <hex
+/// bytes>" lines, # for comments.
+std::vector<Input> readInput(const fs::path& path) {
+    std::vector<Input> v;
+    std::ifstream in(path);
+    std::string l;
+    while (std::getline(in, l)) {
+        std::istringstream f(l);
+        Input m;
+        std::string tok;
+        if (l.empty() || l[0] == '#' || !(f >> m.time)) {
+            continue;
+        }
+        while (f >> tok) {
+            m.bytes.push_back(static_cast<std::uint8_t>(std::stoul(tok, nullptr, 16)));
+        }
+        v.push_back(m);
+    }
+    std::stable_sort(v.begin(), v.end(), [](const Input& a, const Input& b) { return a.time < b.time; });
+    return v;
+}
+
+/// The fake port of the runner: it keeps what the engine sends, with the script's time, and plays
+/// the input script from SeqOpen on.
 class Capture final : public libseq::Platform {
 public:
-    explicit Capture(const ttsrun::Probe& probe) : probe_(&probe) {}
+    explicit Capture(ttsrun::Probe& probe) : probe_(&probe) {}
     [[nodiscard]] int outputPorts() const override { return ports; }
     void send(const int port, const std::span<const std::uint8_t> message) override {
-        sent.push_back(
-            {static_cast<double>(probe_->clock), port, {message.begin(), message.end()}, probe_->calls, inTimer});
+        sent.push_back({static_cast<double>(probe_->clock) - base_,
+                        port,
+                        {message.begin(), message.end()},
+                        probe_->calls,
+                        inTimer || inInput_,
+                        inInput_});
     }
     bool inTimer = false;
     [[nodiscard]] std::uint32_t milliseconds() const override { return probe_->clock; }
+    void opened(libseq::Engine& engine) override {
+        engine_ = &engine;
+        base_ = probe_->clock;
+        next_ = 0;
+    }
+    void closed() override { engine_ = nullptr; }
+    /// The engine waits: a millisecond goes by.
+    void wait() override {
+        if (probe_->advance) {
+            probe_->advance(1);
+        }
+    }
+    /// The time of the next input message, if there is one.
+    [[nodiscard]] std::optional<std::uint32_t> nextInput() const {
+        if (engine_ == nullptr || next_ >= input.size()) {
+            return std::nullopt;
+        }
+        return base_ + static_cast<std::uint32_t>(input[next_].time);
+    }
+    /// Hands the next input message to the engine.
+    void deliver() {
+        inInput_ = true;
+        engine_->receive(input[next_++].bytes);
+        inInput_ = false;
+    }
     int ports = 1;
     std::vector<Message> sent;
+    std::vector<Input> input;
 
 private:
-    const ttsrun::Probe* probe_;
+    ttsrun::Probe* probe_;
+    libseq::Engine* engine_ = nullptr;
+    std::uint32_t base_ = 0; // SeqOpen: the time 0 of the input and of the capture
+    bool inInput_ = false;
+    std::size_t next_ = 0;
 };
 
 std::string bytesText(const Message& m) {
@@ -138,22 +212,65 @@ bool compareMidi(const std::vector<Message>& want, const std::vector<Message>& g
             }
             return false;
         }
-        if (i == 0 || got[i].call != got[i - 1].call) {
+        if (i == 0 || got[i].call != got[i - 1].call || (got[anchor].input && !got[i].input)) {
             anchor = i;
         }
         // during a call the DLL takes the time it takes (a load); only the timer's output has a time
         if (!got[i].timer) {
             continue;
         }
-        const double w = want[i].time - want[anchor].time;
-        const double g = got[i].time - got[anchor].time;
+        // the echo of an input message comes when the input does: both count from SeqOpen, as
+        // the input script and the fake port's log do; the timer's output counts from the first
+        // message of the call (or after it) it came during
+        const bool absolute = got[i].input;
+        const double w = want[i].time - (absolute ? 0 : want[anchor].time);
+        const double g = got[i].time - (absolute ? 0 : got[anchor].time);
         if (std::abs(w - g) > kSlackMs) {
             std::cout << "MIDI time differs at message " << i + 1 << " (" << bytesText(got[i]) << "): want +" << w
-                      << " ms, got +" << g << " ms after message " << anchor + 1 << '\n';
+                      << " ms, got +" << g << " ms after "
+                      << (absolute ? std::string("SeqOpen") : "message " + std::to_string(anchor + 1)) << '\n';
             return false;
         }
     }
     return true;
+}
+
+/// The bytes of a dump line ("  00 01 ..."), empty for another line.
+std::vector<unsigned> dumpBytes(const std::string& line) {
+    std::vector<unsigned> v;
+    if (!line.starts_with("  ")) {
+        return {};
+    }
+    std::istringstream f(line);
+    std::string tok;
+    while (f >> tok) {
+        if (tok.size() != 2 || std::isxdigit(static_cast<unsigned char>(tok[0])) == 0 ||
+            std::isxdigit(static_cast<unsigned char>(tok[1])) == 0) {
+            return {};
+        }
+        v.push_back(static_cast<unsigned>(std::stoul(tok, nullptr, 16)));
+    }
+    return v;
+}
+
+/// A recorded event's time depends on when Wine delivered the input to the DLL: with `slack`, two
+/// dumps of an 8-byte event agree when they differ only in the time (bytes 0 to 2) and the
+/// duration (6 and 7), by at most `slack` ticks each.
+bool closeEnough(const std::string& want, const std::string& got, const long slack) {
+    if (slack <= 0) {
+        return false;
+    }
+    const std::vector<unsigned> w = dumpBytes(want);
+    const std::vector<unsigned> g = dumpBytes(got);
+    if (w.size() != libseq::Event::kSize || g.size() != libseq::Event::kSize) {
+        return false;
+    }
+    const auto time = [](const std::vector<unsigned>& b) {
+        return static_cast<long>(b[0] | (b[1] << 8) | (b[2] << 16));
+    };
+    const auto dur = [](const std::vector<unsigned>& b) { return static_cast<long>(b[6] | (b[7] << 8)); };
+    return std::equal(w.begin() + 3, w.begin() + 6, g.begin() + 3) && std::abs(time(w) - time(g)) <= slack &&
+           std::abs(dur(w) - dur(g)) <= slack;
 }
 
 } // namespace
@@ -187,23 +304,47 @@ int main(int argc, char** argv) {
         std::cerr << "cannot open " << args[0] << '\n';
         return 2;
     }
+    // the suite's header: "#! input FILE" names the MIDI input, in tests/data/ttsseq/input;
+    // "#! slack N" lets the times of recorded events differ (closeEnough)
+    std::string inputName;
+    long slack = 0;
+    for (std::string l; std::getline(script, l) && (l.empty() || l[0] == '#' || l.starts_with("mode"));) {
+        if (l.starts_with("#! input ")) {
+            inputName = l.substr(9);
+        } else if (l.starts_with("#! slack ")) {
+            slack = std::stol(l.substr(9));
+        }
+    }
+    script.clear();
+    script.seekg(0);
     std::ostringstream out;
     ttsrun::Probe probe(out);
     libseq::Engine engine;
     Capture capture(probe);
     engine.setPlatform(&capture);
+    if (!inputName.empty()) {
+        capture.input = readInput(fs::path(args[0]).parent_path().parent_path() / "input" / inputName);
+    }
     // the engine's timer runs every period, on the script's clock, half a period out of step with
     // whole periods: the DLL's timer has no fixed phase to the script, and what it finds due waits
     // for it half a period on average
     std::uint32_t nextTimer = engine.timerPeriod() / 2;
     probe.advance = [&probe, &engine, &nextTimer, &capture](const std::uint32_t ms) {
         const std::uint32_t until = probe.clock + ms;
-        while (nextTimer <= until) {
-            probe.clock = nextTimer;
-            capture.inTimer = true;
-            engine.timer();
-            capture.inTimer = false;
-            nextTimer += engine.timerPeriod();
+        for (;;) {
+            const std::optional<std::uint32_t> in = capture.nextInput();
+            if (in && *in <= until && *in < nextTimer) {
+                probe.clock = std::max(probe.clock, *in);
+                capture.deliver();
+            } else if (nextTimer <= until) {
+                probe.clock = nextTimer;
+                capture.inTimer = true;
+                engine.timer();
+                capture.inTimer = false;
+                nextTimer += engine.timerPeriod();
+            } else {
+                break;
+            }
         }
         probe.clock = until;
     };
@@ -245,7 +386,7 @@ int main(int argc, char** argv) {
     for (std::size_t i = 0; i < std::max(got.size(), want.size()); ++i) {
         const std::string g = i < got.size() ? got[i] : "<end>";
         const std::string w = i < want.size() ? want[i] : "<end>";
-        if (g != w) {
+        if (g != w && !closeEnough(w, g, slack)) {
             if (diffs++ == 0) {
                 first = i;
             }

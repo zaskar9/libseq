@@ -3,9 +3,7 @@
 
 #include "probe.hpp"
 
-namespace libseq {
-class Engine;
-}
+#include "libseq/engine.hpp"
 
 #include <cstring>
 #include <string>
@@ -24,6 +22,10 @@ void defineTime101(Probe& p, libseq::Engine& e);
 void defineFiles101(Probe& p, libseq::Engine& e);
 /// Its transport (api101_play.cpp).
 void definePlay101(Probe& p, libseq::Engine& e);
+/// Recording.
+void defineRecord101(Probe& p, libseq::Engine& e);
+/// The program's StartProc as a libseq::StartProc (none for a null pointer).
+libseq::StartProc startProc(Probe& p, FarPtr fn);
 
 /// Writes a little-endian word or double word into the probe's memory, if the pointer leads there.
 inline void putWord(Probe& p, const FarPtr at, const std::uint16_t v) {

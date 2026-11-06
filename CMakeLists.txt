@@ -16,6 +16,10 @@ add_library(libseq
     src/playback.cpp
     src/smf_read.cpp
     src/smf_write.cpp
+    src/direct.cpp
+    src/input.cpp
+    src/record.cpp
+    src/sync.cpp
 )
 target_include_directories(libseq PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

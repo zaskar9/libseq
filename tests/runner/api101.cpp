@@ -40,10 +40,10 @@ void defineApi101(Probe& p, Engine& e) {
         return s == nullptr ? 0 : static_cast<std::uint32_t>(s->param(param));
     });
     p.define("SEQSETSEQPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = e.sequence(a.word());
+        const libseq::SeqHandle seq = a.word();
         const int param = a.word();
         const auto v = static_cast<std::int32_t>(a.dword());
-        return s != nullptr && s->setParam(param, v) ? 1 : 0;
+        return e.setSeqParam(seq, param, v) ? 1 : 0;
     });
     p.define("SEQGETFILEERROR",
              [&e](Args&, Probe&) -> std::uint32_t { return static_cast<std::uint32_t>(e.fileError()); });
@@ -139,6 +139,7 @@ void defineApi101(Probe& p, Engine& e) {
     defineTime101(p, e);
     defineFiles101(p, e);
     definePlay101(p, e);
+    defineRecord101(p, e);
 }
 
 } // namespace ttsrun

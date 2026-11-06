@@ -19,8 +19,11 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 namespace libseq {
@@ -260,6 +263,9 @@ public:
     [[nodiscard]] SysxBank* sysxBank(StreamHandle handle) noexcept;
     std::uint16_t fps = 30;
     std::uint32_t frameOffset = 0;
+    /// The clock source a `.WRK` file names (VARS 13); 1.01 has one source for the engine, which
+    /// the load sets from it (Engine::setSrcClock, so a value it does not take changes nothing).
+    std::uint8_t clockSource = 0;
     /// The three tempo ratios (SeqGetTempoRatio) in 64ths, and the one selected.
     std::array<std::uint16_t, 3> tempoRatios{0x20, 0x40, 0x80};
     std::uint16_t tempoRatio = 1;
@@ -298,6 +304,19 @@ inline constexpr std::uint16_t kVars = 3;     // the VARS chunk is done (the wor
 inline constexpr std::uint16_t kEnd = 0xff;   // the end; a save appends the program's chunks here
 inline constexpr std::uint16_t kFile = 7;     // the file word libseq passes (1.01's DOS handle)
 } // namespace fileproc
+
+/// The program's callback of a start that waits (`StartProc`): (code, value, value). 1 counting
+/// in (the beats left), 2 waiting for MIDI sync, 3 waiting for time code, 4 locking to it, 5
+/// still waiting. It returns 0 to go on; anything else gives up.
+using StartProc = std::function<std::uint32_t(std::uint16_t code, std::uint16_t a, std::uint16_t b)>;
+
+namespace startproc {
+inline constexpr std::uint16_t kCountIn = 1;
+inline constexpr std::uint16_t kWaitSync = 2;
+inline constexpr std::uint16_t kWaitCode = 3;
+inline constexpr std::uint16_t kLocking = 4;
+inline constexpr std::uint16_t kWaiting = 5;
+} // namespace startproc
 
 /// The engine: the sequences it holds.
 class Engine {
@@ -349,16 +368,41 @@ public:
     void sendStreamParam(const Stream& stream, int param, bool anySequence = false);
     /// The channel a stream's own messages go out on, -1 when it has none (sendStreamParam).
     [[nodiscard]] static int outputChannel(const Stream& stream) noexcept;
+    /// SeqTxMidiMsg: sends a channel message at once, the channel replacing the status's low
+    /// nibble; port 0xFFFF means every port, channel 0xFF every channel. The engine keeps the notes
+    /// it sent this way: a note off goes out only for a note that is on, a note on for a note that
+    /// is on first ends it with a note on of velocity 0. False, and nothing sent, for pitch wheel,
+    /// a status that is not a channel message, a channel above 15 or a data byte above 0x7F; true
+    /// otherwise, also when a port does not exist or the note off has nothing to end.
+    bool txMidiMsg(std::uint16_t port, std::uint16_t channel, std::uint16_t status, std::uint16_t data1,
+                   std::uint16_t data2);
+    /// MIDI input: the host calls it for every message that comes in, a short message of 1 to 3
+    /// bytes or a whole sysex message, when it comes in (Platform::milliseconds is its time).
+    void receive(std::span<const std::uint8_t> message);
     /// The timer: the host calls it every timerPeriod() milliseconds while the engine is open.
     void timer();
 
-    /// SeqSetPlayingSeq, SeqSetStandbySeq: the sequence the transport plays (0 for none).
+    /// SeqSetPlayingSeq: the sequence the transport plays (0 for none). It is 1.01's current
+    /// sequence: the one whose stream parameters go out when set, and whose thru settings the
+    /// input follows (thru_). A sequence created while there is none becomes it.
     bool setPlayingSeq(SeqHandle seq);
+    /// SeqSetSeqParam: sets the parameter; a thru setting (7 to 12) set on the current sequence
+    /// also goes to the thru.
+    bool setSeqParam(SeqHandle seq, int param, std::int32_t value);
+    /// SeqSetStandbySeq: kept; no effect found.
     bool setStandbySeq(SeqHandle seq);
-    [[nodiscard]] SeqHandle playingSeq() const noexcept { return playing_; }
+    [[nodiscard]] SeqHandle playingSeq() const noexcept { return current_; }
     /// SeqPlayStart: plays the playing sequence from its Now; false when it plays already or there
-    /// is no playing sequence.
-    bool playStart();
+    /// is no playing sequence. With MIDI sync or time code as the clock source it waits for it,
+    /// calling `callback` (2 and 5, or 3, 4 and 5; see StartProc), and gives up when that says so.
+    bool playStart(const StartProc& callback = {});
+    /// SeqSetSrcClock: 0 the internal clock, 1 MIDI sync, 3 MIDI Time Code; false for another value,
+    /// which changes nothing. One source for the engine in 1.01.
+    bool setSrcClock(std::uint16_t source);
+    [[nodiscard]] std::uint16_t srcClock() const noexcept { return clockSource_; }
+    static constexpr std::uint16_t kSourceInternal = 0;
+    static constexpr std::uint16_t kSourceMidi = 1;
+    static constexpr std::uint16_t kSourceCode = 3;
     /// SeqPlayStop: stops the playback; false when it does not play.
     bool playStop();
     /// SeqSetNow: moves Now (sets parameter 3); while playing, the playback goes on from there.
@@ -367,6 +411,48 @@ public:
     std::uint16_t idle();
     /// SeqExpired: true while the transport is stopped.
     [[nodiscard]] bool expired() const noexcept;
+    /// SeqRecordStart: records into a new take of the playing sequence from its Now, after the
+    /// count-in (parameter 16, measures), during which `callback` gets (1, beats left, 0) over and
+    /// over. A `target` stream punches: its events from `in` up to `out` leave it at once (an
+    /// `out` of 0 counts as 1). False when there is no playing sequence, it plays already, or
+    /// the callback gives up.
+    bool recordStart(StreamHandle target, Tick in, Tick out, const StartProc& callback = {});
+    /// SeqRecordStop: the notes held end at the take's last event; the stop output goes out. False
+    /// when nothing was recorded (or there is no recording).
+    bool recordStop();
+    /// SeqRecCount: the events of the take so far (also of a step recording).
+    [[nodiscard]] std::uint32_t recCount() const noexcept { return recCount_; }
+    /// SeqSetRecCount: keeps the first `count` events of the take; returns the count.
+    std::uint32_t setRecCount(std::uint32_t count);
+    /// What a step recording tells the program after each step: the number of events so far (1.01
+    /// posts message 0x464 to the window SeqStepRecSetup got, wParam 0x100).
+    using StepNotify = std::function<void(std::uint32_t count)>;
+    /// SeqStepRecSetup: starts a step recording into a new stream of `seq`, whose handle it returns
+    /// (0 when there is no such sequence).
+    StreamHandle stepRecSetup(SeqHandle seq, StepNotify notify);
+    /// SeqStepRecParams: where the next step goes, its notes' duration and velocity (0 keeps the
+    /// velocity played).
+    void stepRecParams(Tick position, std::uint16_t duration, std::uint16_t velocity);
+    /// SeqStepRecTerm: ends the step recording; returns the number of events.
+    std::uint32_t stepRecTerm();
+    /// SeqRecordEvent: adds an event to the take at Now (its time is ignored).
+    bool recordEvent(const Event& event);
+    /// SeqRecordCleanup: ends the take. `stream` is read and written: kept with 0 there, the
+    /// take becomes a new stream, whose handle goes there; kept with a stream there, the two are
+    /// merged into a new one (the stream's events first at equal times). After a punch only the
+    /// take's events with in <= time and time + 1 < out are kept, and discarding puts the cut
+    /// events back into the stream there.
+    bool recordCleanup(SeqHandle seq, bool keep, StreamHandle& stream);
+    /// The program's callback of a sysex receive: the bytes received so far and the free memory.
+    /// It returns 0 to go on receiving.
+    using SysxReceiveProc = std::function<std::uint32_t(std::uint32_t received, std::uint32_t free)>;
+    /// SeqReceiveSysxBank: appends every sysex message that comes in to the bank, but universal
+    /// ones (F0 7E, F0 7F), until the callback returns non-zero. 1, or -2 when the bank is still
+    /// empty; 0 for no such bank.
+    std::int16_t receiveSysxBank(StreamHandle bank, const SysxReceiveProc& callback);
+    /// SeqSendSysxBank: sends the bank's bytes at once, in packets of 1024 bytes cut anywhere,
+    /// with about 65 ms between packets (the call waits).
+    bool sendSysxBank(StreamHandle bank);
     /// `TimerPeriod` of TTSSEQ.INI (1.01: 10 ms).
     [[nodiscard]] unsigned timerPeriod() const noexcept { return timerPeriod_; }
 
@@ -437,7 +523,6 @@ private:
     OpenFile io_;
     Platform* platform_ = nullptr;
     std::unique_ptr<Player> player_;
-    SeqHandle playing_ = 0;
     SeqHandle standby_ = 0;
     unsigned timerPeriod_ = 10;
     int fileError_ = 0;
@@ -448,10 +533,97 @@ private:
     Event midiScratch_;
     /// The parameters all sequences share, as a new sequence starts them.
     std::array<std::int32_t, qp::kCount> shared_{};
-    /// 1.01's current sequence, as far as the probes show it: the sequence created while there is
-    /// none, until it is destroyed. A `.WRK` file sets the shared metronome note only when its
-    /// sequence becomes the current one (the midifiles suite).
+    /// 1.01's current sequence: the playing sequence (SeqSetPlayingSeq), or the sequence created
+    /// while there is none, until it is destroyed. A `.WRK` file sets the shared metronome note
+    /// only when its sequence becomes the current one (the midifiles suite).
     SeqHandle current_ = 0;
+    /// The thru settings the input follows, parameters 7 to 12 (suite thru): the defaults of a new
+    /// sequence at SeqOpen, all of them taken from the playing sequence by SeqSetPlayingSeq (mode 0
+    /// for none), and one of them when it is set on the current sequence. Nothing else changes
+    /// them: they stay when the current sequence is destroyed and another one becomes current.
+    std::array<std::int32_t, 6> thru_{2, 0, -1, 0, 0, -1};
+    /// Sends a channel message on a port, keeping the notes on (notes_) as SeqTxMidiMsg and the
+    /// thru do: a note off goes only for a note that is on, a second note on ends the first.
+    void sendTracked(int port, std::span<const std::uint8_t> message);
+    /// External sync (src/sync.cpp).
+    bool startOnClock(Sequence& s, const StartProc& callback);
+    bool startOnCode(Sequence& s, const StartProc& callback);
+    /// A system message that came in: MIDI sync or a quarter frame.
+    void syncInput(std::span<const std::uint8_t> message);
+    void quarterFrame(std::uint8_t data);
+    /// The time code's time in seconds, minus the sequence's SMPTE offset, in ticks (0 before it).
+    [[nodiscard]] static Tick codeTick(const Sequence& s, double seconds);
+    [[nodiscard]] static double offsetSeconds(const Sequence& s);
+    std::uint16_t clockSource_ = kSourceInternal;
+    /// MIDI sync: what came in while the start waits, and the Song Position kept for the next
+    /// Continue.
+    struct ClockSync {
+        bool waiting = false;
+        int go = 0; // 1 Start, 2 Continue
+        bool stopKept = false;
+        std::optional<Tick> position;
+    };
+    ClockSync clockSync_;
+    /// MIDI Time Code as it comes in: the quarter frames of the current two-frame group, the last
+    /// label read (the group after it should say two frames more), and the code's time at the
+    /// last quarter frame.
+    struct CodeSync {
+        std::array<std::uint8_t, 8> pieces{};
+        int expect = -1;     // the next quarter frame of the group, -1 before a group begins
+        bool known = false;  // a label was read
+        int run = 0;         // labels read one after the other, without a jump
+        int rate = -1;       // 0 24, 1 25, 2 30 drop frame, 3 30 fps
+        double label = 0;    // seconds: the last label read
+        double first = 0;    // the first label of the run
+        double time = 0;     // the code's time at the last quarter frame
+        bool jumped = false; // the last label was not the one expected
+        double jumpFrom = 0; // where the code should have been then
+        bool following = false;
+    };
+    CodeSync code_;
+    unsigned chaseDelay_ = 20; // ChaseDelay, tenths of a second
+    unsigned flywheel_ = 5;    // FlywheelAmount, tenths of a second
+    /// A sysex message that came in: for the bank being received, if any.
+    void receiveSysx(std::span<const std::uint8_t> message);
+    /// MIDI thru: echoes a channel message with the current sequence's thru settings.
+    void thru(std::span<const std::uint8_t> message);
+    /// A take: the stream that collects it (a stream of the sequence from the start on), and the
+    /// punch's cut events, kept in a stream of their own.
+    struct Take {
+        bool recording = false;
+        bool pending = false; // stopped, not cleaned up yet
+        SeqHandle seq = 0;
+        StreamHandle stream = 0;
+        StreamHandle cut = 0;
+        Tick in = 0;
+        Tick out = 0;
+        std::vector<std::size_t> open; // notes not ended yet, in the order they started
+    };
+    /// A step recording.
+    struct StepRecording {
+        bool on = false;
+        SeqHandle seq = 0;
+        StreamHandle stream = 0;
+        Tick position = 0;
+        std::uint16_t duration = 0;
+        std::uint16_t velocity = 0;
+        std::set<std::pair<unsigned, std::uint8_t>> held; // channel and key of the keys down
+        StepNotify notify;
+    };
+    void stepRecord(std::span<const std::uint8_t> message);
+    /// The bank a sysex receive fills (0 for none) and the bytes it took so far.
+    StreamHandle sysxReceive_ = 0;
+    std::uint32_t sysxReceived_ = 0;
+    StepRecording step_;
+    std::uint32_t recCount_ = 0;
+    /// An input message for the take.
+    void record(std::span<const std::uint8_t> message);
+    Take take_;
+    friend class Player;
+    using NoteKey = std::tuple<int, int, int>; // port, channel, key
+    /// The notes on, whoever sent them: the playback, SeqTxMidiMsg and the thru keep one table
+    /// (suites midiout and thru). Stopping ends them all; SeqClose forgets them.
+    std::set<NoteKey> notes_;
 };
 
 } // namespace libseq

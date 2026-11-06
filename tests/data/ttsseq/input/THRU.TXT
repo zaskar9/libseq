@@ -1,0 +1,159 @@
+# MIDI input for the thru suite (written by tools/ttsprobe/oracles/gen.py): times in ms from
+# the moment the engine connects to the input (SeqOpen); one slot of 500 ms per setting.
+# 0: no sequence yet
+900 92 3c 64
+930 82 3c 40
+960 92 3c 65
+990 92 3c 00
+# 1: the first sequence, no playing sequence set
+1400 92 3d 64
+1430 82 3d 40
+1460 92 3d 65
+1490 92 3d 00
+1520 a2 3d 20
+1540 b2 07 50
+1560 c2 05
+1580 d2 30
+1600 e2 00 40
+1620 f0 01 02 f7
+1640 f8
+# 2: playing sequence 2 (thru channel 7)
+1900 92 3e 64
+1930 82 3e 40
+1960 92 3e 65
+1990 92 3e 00
+2020 a2 3e 20
+2040 b2 07 50
+2060 c2 05
+2080 d2 30
+2100 e2 00 40
+2120 f0 01 02 f7
+2140 f8
+# 3: playing sequence 1 (thru channel 3)
+2400 92 3f 64
+2430 82 3f 40
+2460 92 3f 65
+2490 92 3f 00
+2520 a2 3f 20
+2540 b2 07 50
+2560 c2 05
+2580 d2 30
+2600 e2 00 40
+2620 f0 01 02 f7
+2640 f8
+# 4: standby sequence 2: no change
+2900 92 40 64
+2930 82 40 40
+2960 92 40 65
+2990 92 40 00
+# 5: mode 1 (manual)
+3400 92 41 64
+3430 82 41 40
+3460 92 41 65
+3490 92 41 00
+# 6: mode 0: nothing
+3900 92 42 64
+3930 82 42 40
+3960 92 42 65
+3990 92 42 00
+# 7: mode 2, Key+ 100 and Vel+ 100: the top octave, velocity 127
+4400 92 43 64
+4430 82 43 40
+4460 92 43 65
+4490 92 43 00
+4520 a2 43 20
+4540 b2 07 50
+4560 c2 05
+4580 d2 30
+4600 e2 00 40
+4620 f0 01 02 f7
+4640 f8
+# 8: Key+ -100 and Vel+ -120: folded up by octaves, velocity 1
+4900 92 44 64
+4930 82 44 40
+4960 92 44 65
+4990 92 44 00
+# 9: channel 16: ORed into the status (a program change becomes channel pressure, the wheel goes)
+5400 92 45 64
+5430 82 45 40
+5460 92 45 65
+5490 92 45 00
+5520 a2 45 20
+5540 b2 07 50
+5560 c2 05
+5580 d2 30
+5600 e2 00 40
+5620 f0 01 02 f7
+5640 f8
+# 10: channel -1, port 1: no such port
+5900 92 46 64
+5930 82 46 40
+5960 92 46 65
+5990 92 46 00
+# 11: port 0, record filter 0, Local On port 0: no change
+6400 92 47 64
+6430 82 47 40
+6460 92 47 65
+6490 92 47 00
+6520 a2 47 20
+6540 b2 07 50
+6560 c2 05
+6580 d2 30
+6600 e2 00 40
+6620 f0 01 02 f7
+6640 f8
+# 12: a note held into the next slot
+6900 92 2f 64
+7000 92 2e 64
+7050 82 2e 00
+# 13: channel 5: the held note's note off goes to channel 5, where it is not on, and is dropped
+7350 82 2f 00
+7400 92 49 64
+7430 82 49 40
+7460 92 49 65
+7490 92 49 00
+# 14: Local On port 0 and input on channel 5, the thru channel
+7900 95 4a 64
+7930 85 4a 40
+7960 95 4a 65
+7990 95 4a 00
+# 15: Local On port 0, channel -1
+8400 92 4b 64
+8430 82 4b 40
+8460 92 4b 65
+8490 92 4b 00
+# 16: Local On port 1, channel -1
+8900 92 4c 64
+8930 82 4c 40
+8960 92 4c 65
+8990 92 4c 00
+# 17: Local On port -1, channel 5
+9400 92 4d 64
+9430 82 4d 40
+9460 92 4d 65
+9490 92 4d 00
+# 18: SeqTxMidiMsg and the thru share the notes: the input ends a note SeqTxMidiMsg started
+9900 82 30 00
+9950 92 31 64
+# 19: and SeqTxMidiMsg ends a note the input started; the input's note off is dropped
+10400 82 31 00
+# 20: no playing sequence: nothing
+10900 92 50 64
+10930 82 50 40
+10960 92 50 65
+10990 92 50 00
+# 21: the playing sequence destroyed: its settings stay
+11400 92 51 64
+11430 82 51 40
+11460 92 51 65
+11490 92 51 00
+# 22: a new sequence becomes the current one, but the thru keeps the settings
+11900 92 52 64
+11930 82 52 40
+11960 92 52 65
+11990 92 52 00
+# 23: until one of them is set on it
+12400 92 53 64
+12430 82 53 40
+12460 92 53 65
+12490 92 53 00

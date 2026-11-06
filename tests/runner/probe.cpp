@@ -129,6 +129,10 @@ std::uint32_t Probe::callback(const FarPtr fn, const std::vector<std::uint16_t>&
     if (fn.seg != Memory::kCallbackSeg) {
         return 0;
     }
+    if (cbswitching_ && clock >= cbswitch_) {
+        cbret_ = cbret2_;
+        cbswitching_ = false;
+    }
     CbRec r;
     r.id = fn.off;
     r.n = static_cast<int>(words.size());
@@ -196,8 +200,23 @@ std::uint32_t Probe::callback(const FarPtr fn, const std::vector<std::uint16_t>&
     return cbret_;
 }
 
+void Probe::post(const std::array<std::uint16_t, 4>& message) {
+    posted_.push_back(message);
+}
+
+void Probe::dispatchPosted() {
+    while (!posted_.empty()) {
+        const std::array<std::uint16_t, 4> m = posted_.front();
+        posted_.pop_front();
+        callback({Memory::kCallbackSeg, kMessage}, {m[0], m[1], m[2], m[3]});
+    }
+    flushCallbacks();
+}
+
 void Probe::printHead(const int id, const int n, const std::array<std::uint16_t, 8>& w) {
-    if (id >= 10) {
+    if (id == kMessage) {
+        out_ << "message(";
+    } else if (id >= 10) {
         out_ << "callback cc" << id - 10 << '(';
     } else {
         out_ << "callback cb" << id << '(';
@@ -211,7 +230,9 @@ void Probe::printHead(const int id, const int n, const std::array<std::uint16_t,
 
 void Probe::flushCallbacks() {
     for (const CbRec& r : cbs_) {
-        if (r.id >= 10) {
+        if (r.id == kMessage) {
+            out_ << "message(";
+        } else if (r.id >= 10) {
             out_ << "callback cc" << r.id - 10 << '(';
         } else {
             out_ << "callback cb" << r.id << '(';
@@ -254,10 +275,19 @@ void Probe::run(const std::string& line) {
     if (cmd == "echo") {
         out_ << rest(line) << '\n';
     } else if (cmd == "sleep") {
-        if (advance) {
-            advance(static_cast<std::uint32_t>(num(arg(1), 0)));
+        // the probe dispatches window messages while it sleeps
+        for (auto ms = static_cast<std::uint32_t>(num(arg(1), 0)); ms > 0; --ms) {
+            if (advance) {
+                advance(1);
+            }
+            dispatchPosted();
         }
-    } else if (cmd == "dxs" || cmd == "cbyield" || cmd == "win" || cmd == "cbretafter") {
+    } else if (cmd == "cbretafter") {
+        // from MS ms after this command on, the callbacks return HEX
+        cbswitch_ = clock + static_cast<std::uint32_t>(num(arg(1), 10));
+        cbret2_ = static_cast<std::uint32_t>(num(arg(2), 16));
+        cbswitching_ = true;
+    } else if (cmd == "dxs" || cmd == "cbyield" || cmd == "win") {
         // no effect without a real DLL
     } else if (cmd == "idle") {
         // SeqIdle between messages, as Cakewalk's message loop calls it, once a millisecond
@@ -274,6 +304,7 @@ void Probe::run(const std::string& line) {
                     out_ << "SEQIDLE() -> " << hex(r & 0xffffU, 4) << '\n';
                 }
             }
+            dispatchPosted();
             flushCallbacks();
         }
     } else if (cmd == "let") {
@@ -295,7 +326,12 @@ void Probe::run(const std::string& line) {
         } else if (cbdo_.size() < 32) {
             const std::string& c = arg(1);
             CbDo d;
-            d.id = c.size() == 3 ? c[2] - '0' + (c[1] == 'c' ? 10 : 0) : -1;
+            d.id = -1;
+            if (c == "msg") {
+                d.id = kMessage;
+            } else if (c.size() == 3) {
+                d.id = c[2] - '0' + (c[1] == 'c' ? 10 : 0);
+            }
             d.match = arg(2) == "*" ? -1L : static_cast<long>(num(arg(2), 16) & 0xffffU);
             // the rest of the line after the callback and the word
             std::size_t k = 0;

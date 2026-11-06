@@ -262,6 +262,36 @@ values 0 to 4 showed why: the registration value is a set of flags, bit 0 for no
 bit 1 for no free message. The values tried before (0x11, 0x22, ...) had only made it look like
 a rule about kind 1.
 
+### 16. Input, recording and sync (2026-11-06)
+
+The suites for recording and sync had been recorded weeks before, with scripted input on the
+fake port. To use them the runner had to play that input to libseq at the same moments, counted
+from `SeqOpen` as the fake port counts them, and let time pass inside the calls that wait: the
+count-in, the waits for MIDI sync and time code, a sysex receive. The engine now calls
+`Platform::wait` on every turn of such a loop, and the runner moves its clock on by a
+millisecond there.
+
+No suite covered the thru, so a new one does (`thru`). Its first runs seemed to show note-offs of
+one key vanishing; the filter that hid the sustain-offs of `SeqClose` from the listing hid them
+too. With that fixed the rules were plain. The engine keeps a copy of the thru settings, which only
+`SeqSetPlayingSeq` and a parameter set on the current sequence change, and one table of the notes
+on for the thru, `SeqTxMidiMsg` and the playback: a note `SeqTxMidiMsg` started ends when the
+playback stops. The same runs showed that the playing sequence is the current sequence of chapter
+15.
+
+Recording passed after one surprise. The DLL's first count-in click came late whenever the start
+did not sit on a beat: the count-in clicks on the beats of the start's measure counted back,
+not on beats counted from the start. The ticks recorded after a count-in depend on when Wine
+delivers the input, so the runner compares them with a slack of 8 ticks.
+
+MIDI clock followed the documented rules. Time code needed two finds. Now at the lock is always a
+multiple of 30 ticks at 120 ppq, a sixteenth note: with Song Position on, the start rounds down
+to a MIDI beat here too, which explains values that had looked like 0.25 s past the chase. And
+the DLL, like libseq, locked once to the tail of the previous case's code before its own came:
+code that jumps during the chase is locked to again, which the MIDI capture shows as a second
+lock output. A repeated quarter frame 0 at the join of two pieces of code is what makes a jump of
+two frames visible.
+
 ## In this folder
 
 | File | Content |

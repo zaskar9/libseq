@@ -31,6 +31,7 @@ std::int32_t u32At(const std::vector<std::uint8_t>& v, const std::size_t off) {
 void applyVars(Sequence& s, const std::vector<std::uint8_t>& v) {
     // bytes 4 to 11 are the program's From and Thru; 1.01 does not keep them and writes 0
     s.now = static_cast<Tick>(u32At(v, 0));
+    s.clockSource = v[13];
     s.setParam(qp::kZeroControllers, v[17]);
     s.setParam(qp::kSendSpp, v[18]);
     s.setParam(qp::kUseContinue, v[19]);
@@ -428,6 +429,7 @@ SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path, const File
     io_ = OpenFile{};
     s.setParam(qp::kNowJumped, 1);
     s.setParam(qp::kMetroSpeaker, 0); // a loaded sequence clicks on MIDI only
+    setSrcClock(s.clockSource);       // the engine's one clock source, through SeqSetSrcClock's check
     fileError_ = 0;
     return h;
 }

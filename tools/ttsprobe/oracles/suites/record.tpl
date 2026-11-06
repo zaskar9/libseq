@@ -1,5 +1,6 @@
 #! input IN3.TXT
 #! secs 40
+#! slack 8
 @open
 call.w SEQCREATESEQ 0000 0000
 call.w SEQSETSEQPARAM 0001 0010 d:00000001

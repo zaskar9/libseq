@@ -622,8 +622,10 @@ def _():
 
 @suite('record')
 def _():
-    # input script IN3.TXT: times from the moment the engine connects to the input (SeqOpen)
-    L = ['#! input IN3.TXT', '#! secs 40', '@open', 'call.w SEQCREATESEQ 0000 0000',
+    # input script IN3.TXT: times from the moment the engine connects to the input (SeqOpen). The
+    # ticks of what comes in after the count-in depend on when Wine delivers it: the script runner
+    # lets them differ by 8 ticks (40 ms at 100 bpm and 120 ppq).
+    L = ['#! input IN3.TXT', '#! secs 40', '#! slack 8', '@open', 'call.w SEQCREATESEQ 0000 0000',
          'call.w SEQSETSEQPARAM 0001 0010 d:00000001', 'sleep 800',
          'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'cbret 0', 'cbyield 1']
     L += ['?101,210 call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3',
@@ -1113,6 +1115,96 @@ def _():
     return L
 
 
+THRU_SLOTS = [
+    # (what the slot shows, the calls at its start, its input: (ms into the slot, message))
+    ('no sequence yet', [], 'notes'),
+    ('the first sequence, no playing sequence set', ['call.w SEQCREATESEQ 0000 0000', 'call.w SEQCREATESEQ 0000 0000',
+     'call.w SEQSETSEQPARAM 0001 0009 d:00000003', 'call.w SEQSETSEQPARAM 0002 0009 d:00000007'], 'all'),
+    ('playing sequence 2 (thru channel 7)', ['call.w SEQSETPLAYINGSEQ 0002'], 'all'),
+    ('playing sequence 1 (thru channel 3)', ['call.w SEQSETPLAYINGSEQ 0001'], 'all'),
+    ('standby sequence 2: no change', ['call.w SEQSETSTANDBYSEQ 0002'], 'notes'),
+    ('mode 1 (manual)', ['call.w SEQSETSEQPARAM 0001 0007 d:00000001'], 'notes'),
+    ('mode 0: nothing', ['call.w SEQSETSEQPARAM 0001 0007 d:00000000'], 'notes'),
+    ('mode 2, Key+ 100 and Vel+ 100: the top octave, velocity 127', ['call.w SEQSETSEQPARAM 0001 0007 d:00000002',
+     'call.w SEQSETSEQPARAM 0001 000a d:00000064', 'call.w SEQSETSEQPARAM 0001 000b d:00000064'], 'all'),
+    ('Key+ -100 and Vel+ -120: folded up by octaves, velocity 1', ['call.w SEQSETSEQPARAM 0001 000a d:ffffff9c',
+     'call.w SEQSETSEQPARAM 0001 000b d:ffffff88'], 'notes'),
+    ('channel 16: ORed into the status (a program change becomes channel pressure, the wheel goes)',
+     ['call.w SEQSETSEQPARAM 0001 000a d:00000000', 'call.w SEQSETSEQPARAM 0001 000b d:00000000',
+      'call.w SEQSETSEQPARAM 0001 0009 d:00000010'], 'all'),
+    ('channel -1, port 1: no such port', ['call.w SEQSETSEQPARAM 0001 0009 d:ffffffff',
+     'call.w SEQSETSEQPARAM 0001 0008 d:00000001'], 'notes'),
+    ('port 0, record filter 0, Local On port 0: no change', ['call.w SEQSETSEQPARAM 0001 0008 d:00000000',
+     'call.w SEQSETSEQPARAM 0001 001c d:00000000', 'call.w SEQSETSEQPARAM 0001 000c d:00000000'], 'all'),
+    ('a note held into the next slot', [], 'held'),
+    ('channel 5: the held note\'s note off goes to channel 5, where it is not on, and is dropped',
+     ['call.w SEQSETSEQPARAM 0001 0009 d:00000005'], 'release'),
+    ('Local On port 0 and input on channel 5, the thru channel', [], 'ch5'),
+    ('Local On port 0, channel -1', ['call.w SEQSETSEQPARAM 0001 0009 d:ffffffff'], 'notes'),
+    ('Local On port 1, channel -1', ['call.w SEQSETSEQPARAM 0001 000c d:00000001'], 'notes'),
+    ('Local On port -1, channel 5', ['call.w SEQSETSEQPARAM 0001 000c d:ffffffff',
+     'call.w SEQSETSEQPARAM 0001 0009 d:00000005'], 'notes'),
+    ('SeqTxMidiMsg and the thru share the notes: the input ends a note SeqTxMidiMsg started',
+     ['call.w SEQTXMIDIMSG 0000 0005 0090 0030 0050'], 'tx'),
+    ('and SeqTxMidiMsg ends a note the input started; the input\'s note off is dropped',
+     ['call.w SEQTXMIDIMSG 0000 0005 0080 0031 0000'], 'txoff'),
+    ('no playing sequence: nothing', ['call.w SEQSETPLAYINGSEQ 0000'], 'notes'),
+    ('the playing sequence destroyed: its settings stay', ['call.w SEQSETPLAYINGSEQ 0001',
+     'call.w SEQDESTROYSEQ 0001'], 'notes'),
+    ('a new sequence becomes the current one, but the thru keeps the settings', ['call.w SEQCREATESEQ 0000 0000'],
+     'notes'),
+    ('until one of them is set on it', ['call.w SEQSETSEQPARAM 0001 000a d:00000001'], 'notes'),
+]
+THRU_START, THRU_SLOT = 700, 500
+
+
+def thru_messages(kind, k):
+    """The input of one thru slot: (ms into the slot, message); the channel is 2."""
+    notes = [(200, f'92 {k:02x} 64'), (230, f'82 {k:02x} 40'), (260, f'92 {k:02x} 65'), (290, f'92 {k:02x} 00')]
+    if kind == 'notes':
+        return notes
+    if kind == 'all':
+        return notes + [(320, f'a2 {k:02x} 20'), (340, 'b2 07 50'), (360, 'c2 05'), (380, 'd2 30'), (400, 'e2 00 40'),
+                        (420, 'f0 01 02 f7'), (440, 'f8')]
+    if kind == 'held':
+        return [(200, '92 2f 64'), (300, '92 2e 64'), (350, '82 2e 00')]
+    if kind == 'release':
+        return [(150, '82 2f 00')] + notes
+    if kind == 'tx':
+        return [(200, '82 30 00'), (250, '92 31 64')]
+    if kind == 'txoff':
+        return [(200, '82 31 00')]
+    if kind == 'ch5':
+        return [(ms, '9' + m[1:].replace('2', '5', 1) if m.startswith('9') else '8' + m[1:].replace('2', '5', 1))
+                for ms, m in notes]
+    raise ValueError(kind)
+
+
+@suite('thru')
+def _():
+    # MIDI thru (sequence parameters 7 to 12) with scripted input (THRU.TXT): each slot sets
+    # something, then input comes in on channel 2, a few hundred milliseconds later.
+    L = ['#! input THRU.TXT', '#! secs 30', '@open', f'sleep {THRU_START}']
+    for i, (what, calls, _) in enumerate(THRU_SLOTS):
+        L += [f'echo == {what}'] + calls + [f'sleep {THRU_SLOT}']
+    # the playback keeps its notes in the same table: stopping ends the notes SeqTxMidiMsg started
+    L += ['sleep 300', 'echo == stopping the playback ends the notes SeqTxMidiMsg started too',
+          'call.w SEQTXMIDIMSG 0000 000f 0090 003c 0050', 'call.w SEQTXMIDIMSG 0000 0000 0090 007c 0050',
+          '@load ENG_ORDR.WRK', 'let 1', 'call.w SEQSETPLAYINGSEQ %1', 'sleep 300', '@play', 'idle 300', '@stop', 'idle 300',
+          '@close']
+    return L
+
+
+def thru_input():
+    L = ['# MIDI input for the thru suite (written by tools/ttsprobe/oracles/gen.py): times in ms from',
+         '# the moment the engine connects to the input (SeqOpen); one slot of 500 ms per setting.']
+    for i, (what, _, kind) in enumerate(THRU_SLOTS):
+        t = THRU_START + THRU_SLOT * i
+        L.append(f'# {i}: {what}')
+        L += [f'{t + ms} {m}' for ms, m in thru_messages(kind, 0x3c + i)]
+    return L
+
+
 def sync_input():
     """The scripted MIDI input of the sync suite (tests/data/ttsseq/input/SYNC.TXT)."""
     L = ['# MIDI sync for the sync suite (written by tools/ttsprobe/oracles/gen.py): times in ms from the',
@@ -1415,7 +1507,7 @@ def main():
     for name, lines, nl in [('SYNC.TXT', sync_input(), '\n'), ('OPTS1.TXT', opts_input(), '\n'),
                             ('OPTS2.TXT', ['# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)',
                                           '2000 f0 7d 01 02 03 f7'], '\n'),
-                            ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'), ('MTC.TXT', mtc_input(), '\n'),
+                            ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'), ('THRU.TXT', thru_input(), '\n'), ('MTC.TXT', mtc_input(), '\n'),
                             ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
         with open(os.path.join(inputs, name), 'w', newline='') as f:
             f.write(nl.join(lines) + nl)

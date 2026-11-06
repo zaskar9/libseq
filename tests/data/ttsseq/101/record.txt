@@ -1,6 +1,7 @@
 mode oracle
 #! input IN3.TXT
 #! secs 40
+#! slack 8
 load TTSSEQ.DLL
 call.w SEQOPEN 0000 0000
 call.w SEQCREATESEQ 0000 0000

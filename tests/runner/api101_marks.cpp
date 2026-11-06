@@ -237,6 +237,17 @@ void defineMarks101(Probe& p, Engine& e) {
         b->data.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
         return 1;
     });
+    p.define("SEQRECEIVESYSXBANK", [&e](Args& a, Probe& pr) -> std::uint32_t {
+        const libseq::StreamHandle h = a.word();
+        const FarPtr fn = a.ptr();
+        const auto r = e.receiveSysxBank(h, [&pr, fn](const std::uint32_t received, const std::uint32_t free) {
+            return pr.callback(
+                fn, {static_cast<std::uint16_t>(received >> 16), static_cast<std::uint16_t>(received & 0xffffU),
+                     static_cast<std::uint16_t>(free >> 16), static_cast<std::uint16_t>(free & 0xffffU)});
+        });
+        return static_cast<std::uint16_t>(r);
+    });
+    p.define("SEQSENDSYSXBANK", [&e](Args& a, Probe&) -> std::uint32_t { return e.sendSysxBank(a.word()) ? 1 : 0; });
 }
 
 } // namespace ttsrun

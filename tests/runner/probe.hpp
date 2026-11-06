@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <map>
 #include <optional>
@@ -105,6 +106,11 @@ public:
     Memory mem;
     /// Calls a callback the way the engine would; returns what the probe's callback returns.
     std::uint32_t callback(FarPtr fn, const std::vector<std::uint16_t>& words);
+    /// The probe's window (`win`, the argument `hwnd`): a message posted to it, (message, wParam,
+    /// lParam high, lParam low), which the probe gets when it next sleeps or idles, printed like
+    /// a callback ("message(...)", answered with "cbdo msg MSG LINE").
+    void post(const std::array<std::uint16_t, 4>& message);
+    static constexpr std::uint16_t kMessage = 9; // the window procedure, as a callback id
     /// The functions called that the Api does not have, by name.
     std::map<std::string, int> missing;
     /// The script's time in milliseconds: calls take none, `sleep` and `idle` move it on.
@@ -130,6 +136,8 @@ private:
         std::string line;
     };
     void flushCallbacks();
+    void dispatchPosted();
+    std::deque<std::array<std::uint16_t, 4>> posted_;
     void printHead(int id, int n, const std::array<std::uint16_t, 8>& w);
     /// The calls of a call command: prints and runs it.
     void call(const std::vector<std::string>& t, const std::string& cmd);
@@ -139,6 +147,10 @@ private:
     std::uint32_t r_ = 0;
     std::uint32_t var_[10]{};
     std::uint32_t cbret_ = 1;
+    // cbretafter: from cbswitch_ on, the callbacks return cbret2_
+    bool cbswitching_ = false;
+    std::uint32_t cbswitch_ = 0;
+    std::uint32_t cbret2_ = 0;
     unsigned cbmask_ = 0;
     bool cbmerge_ = false;
     std::vector<CbRec> cbs_;

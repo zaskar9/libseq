@@ -44,3 +44,12 @@ play_ENG_SYSX
 play_ENG_TMPO
 play_FURELISE
 transport
+midiout
+thru
+record
+punch
+param3
+steprec
+sysexin
+sync
+mtc

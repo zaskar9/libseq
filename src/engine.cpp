@@ -691,7 +691,22 @@ bool Engine::setPlayingSeq(const SeqHandle seq) {
     if (seq != 0 && sequence(seq) == nullptr) {
         return false;
     }
-    playing_ = seq;
+    current_ = seq;
+    const Sequence* s = sequence(seq);
+    for (int p = qp::kThruMode; p <= qp::kLocalOnPort; ++p) {
+        thru_[static_cast<std::size_t>(p - qp::kThruMode)] = s != nullptr ? s->param(p) : 0;
+    }
+    return true;
+}
+
+bool Engine::setSeqParam(const SeqHandle seq, const int param, const std::int32_t value) {
+    Sequence* s = sequence(seq);
+    if (s == nullptr || !s->setParam(param, value)) {
+        return false;
+    }
+    if (seq == current_ && param >= qp::kThruMode && param <= qp::kLocalOnPort) {
+        thru_[static_cast<std::size_t>(param - qp::kThruMode)] = s->param(param);
+    }
     return true;
 }
 
@@ -727,9 +742,18 @@ Tick Engine::setNow(const SeqHandle seq, const Tick tick) {
     return tick;
 }
 
-bool Engine::playStart() {
-    Sequence* s = sequence(playing_);
-    return s != nullptr && player_->start(*s);
+bool Engine::playStart(const StartProc& callback) {
+    Sequence* s = sequence(current_);
+    if (s == nullptr) {
+        return false;
+    }
+    if (clockSource_ == kSourceMidi) {
+        return startOnClock(*s, callback);
+    }
+    if (clockSource_ == kSourceCode) {
+        return startOnCode(*s, callback);
+    }
+    return player_->start(*s);
 }
 
 bool Engine::playStop() {
@@ -745,6 +769,10 @@ bool Engine::expired() const noexcept {
 }
 
 void Engine::open() {
+    thru_ = {2, 0, -1, 0, 0, -1};
+    if (platform_ != nullptr) {
+        platform_->opened(*this);
+    }
     const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
     for (int port = 0; port < ports; ++port) {
         for (unsigned ch = 0; ch < 16; ++ch) {
@@ -758,6 +786,7 @@ void Engine::close() {
     while (!sequences_.empty()) {
         destroySequence(sequences_.begin()->first);
     }
+    notes_.clear();
     const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
     for (int port = 0; port < ports; ++port) {
         for (unsigned ch = 0; ch < 16; ++ch) {
@@ -767,6 +796,9 @@ void Engine::close() {
             send(port, soundOff);
             send(port, sustainOff);
         }
+    }
+    if (platform_ != nullptr) {
+        platform_->closed();
     }
 }
 
@@ -829,16 +861,13 @@ bool Engine::destroySequence(const SeqHandle handle) {
         freeStringEvents(*st);
     }
     player_->forget(*s);
-    if (playing_ == handle) {
-        playing_ = 0;
-    }
     if (standby_ == handle) {
         standby_ = 0;
     }
-    sequences_.erase(handle);
     if (handle == current_) {
         current_ = 0;
     }
+    sequences_.erase(handle);
     return true;
 }
 

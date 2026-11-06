@@ -4,6 +4,7 @@
 #include "libseq/engine.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <set>
 #include <tuple>
@@ -17,8 +18,39 @@ class Player {
 public:
     explicit Player(Engine& engine) : engine_(&engine) {}
 
-    /// SeqPlayStart: false when already playing or there is nothing to play.
-    bool start(Sequence& sequence);
+    /// What moves the playback on: the timer (the internal clock), MIDI clock or MIDI Time Code.
+    enum class Drive : std::uint8_t { Timer, Clock, Code };
+    /// SeqPlayStart, and the start of a recording (SeqRecordStart): false when already playing.
+    /// A recording first counts in (parameter 16, measures of clicks before the start position)
+    /// and plays on past the end. With external sync the start sends the streams' parameters and
+    /// the search-back, but no Song Position, and waits (playing() is false) until go().
+    bool start(Sequence& sequence, bool recording = false, Drive drive = Drive::Timer);
+    /// External sync: the playback runs from `from` on.
+    void go(Tick from);
+    /// A start that waits gives up: the stop output goes out.
+    void cancel();
+    [[nodiscard]] bool waiting() const noexcept { return waiting_; }
+    /// The output of an MIDI Time Code lock: the streams' parameters, the Song Position (when it
+    /// is on) and the search-back for `at`.
+    void lockOutput(Tick at);
+    /// The search-back output for a position (parameter 1).
+    void searchBackFor(Tick at);
+    /// A MIDI clock: the next ppq / 24 ticks play at the timer's next run.
+    void clock();
+    /// MIDI Stop, or the end of the code: the playback ends where it is; SeqIdle reports it.
+    void externalStop();
+    /// MIDI Time Code: Now is `tick` at this moment; the playback runs on at most to `deadline`.
+    void follow(Tick tick, Tick deadline);
+    /// MIDI Time Code that jumped: the playback runs on to `deadline` and ends there.
+    void runOut(Tick deadline);
+    /// The count-in's beats that have not clicked yet, while it lasts (0 at its last beat).
+    [[nodiscard]] std::uint16_t countInLeft() const noexcept { return countInBeats_ - countInDone_; }
+    /// True from the start of a recording until the count-in is over.
+    [[nodiscard]] bool countingIn() const;
+    [[nodiscard]] bool recording() const noexcept { return playing_ && recording_; }
+    /// The tick of the take at a time: the start position until the count-in is over, then the
+    /// time since then through the tempo map, on past a loop's wrap.
+    [[nodiscard]] Tick recordTick(double ms) const;
     /// SeqPlayStop: false when not playing.
     bool stop();
     /// The engine's timer.
@@ -71,7 +103,6 @@ private:
     private:
         std::vector<Off> heap_;
     };
-    using NoteKey = std::tuple<int, std::uint8_t, std::uint8_t>; // port, status (0x9n), key
 
     void build();
     [[nodiscard]] double tickToMs(Tick tick) const;
@@ -90,32 +121,49 @@ private:
     void silence();
     void click(bool downbeat);
     void clicks(double now, Tick limit);
+    void countInClicks(double now);
+    void scheduleClock();
     [[nodiscard]] Tick clickTicks() const;
     void send(int port, std::initializer_list<std::uint8_t> bytes);
 
+    // (ordered by size, for the padding)
     Engine* engine_;
     Sequence* seq_ = nullptr;
-    std::vector<Item> items_;
-    Tick end_ = 0; // the last tick anything happens, the ends of notes included
-    bool playing_ = false;
-    bool ended_ = false; // reached the end; SeqIdle reports it
     double anchorMs_ = 0;
-    Tick anchorTick_ = 0;
     double speed_ = 1;
     std::size_t next_ = 0;
+    double clickOffMs_ = 0;         // the metronome: when the click sounding ends
+    double recordMs_ = 0;           // recording: when the take starts (the end of the count-in)
+    double msPerTick_ = 0;          // at the start, for the count-in
+    std::int64_t countInGrid_ = 0;  // the start of the start's measure: the count-in's beats count from it
+    std::int64_t countInFirst_ = 0; // the count-in's first beat, a tick before the start (maybe negative)
+    std::vector<Item> items_;
     OffHeap offs_;
-    std::set<NoteKey> sounding_;
-    // the metronome
-    Tick clickTick_ = 0;
-    bool clickOn_ = false;
-    Off click_{}; // the click sounding
-    double clickOffMs_ = 0;
+    Tick end_ = 0; // the last tick anything happens, the ends of notes included
+    Tick anchorTick_ = 0;
+    Tick clickTick_ = 0;  // the metronome's next beat
+    unsigned clocks_ = 0; // MIDI clock: clocks that came in and have not played yet
+    Tick spanTick_ = 0;   // MIDI clock: where the next clock's span begins
+    Tick deadline_ = 0;   // MIDI Time Code: the playback goes no further
+    Tick recordTick_ = 0; // recording: where the take starts
+    Tick countInBeatTicks_ = 0;
     // the auto-shuttle
-    bool loop_ = false;
     Tick loopFrom_ = 0;
     Tick loopThru_ = 0;
-    bool stopAt_ = false;
     Tick stopTick_ = 0;
+    Off click_{}; // the click sounding
+    std::uint16_t countInBeats_ = 0;
+    std::uint16_t countInDone_ = 0;
+    bool playing_ = false;
+    bool ended_ = false; // reached the end; SeqIdle reports it
+    bool clickOn_ = false;
+    Drive drive_ = Drive::Timer;
+    bool waiting_ = false;    // external sync: the start waits for it
+    bool firstClock_ = false; // MIDI clock: the next clock is the first after Start or Continue
+    bool recording_ = false;
+    std::uint8_t countInNumerator_ = 4;
+    bool loop_ = false;
+    bool stopAt_ = false;
 };
 
 } // namespace libseq

@@ -298,6 +298,43 @@ unless noted [probe]:
   wheel reset never goes out.
 - Port 1, which does not exist with one output port: 1.01 and 2.10 send nothing (result 1), 3.00
   sends on port 0.
+- The notes on are one table for the whole engine: `SeqTxMidiMsg`, the MIDI thru (below) and
+  the playback all keep their notes in it. The input can end a note `SeqTxMidiMsg` started and
+  the other way round, and stopping the playback also ends the notes `SeqTxMidiMsg` started
+  (1.01) [probe, suite `thru`].
+
+## MIDI thru
+
+What comes in is echoed to the output, with the scripted input of the fake port [probe, suite
+`thru`]. In 1.01:
+
+- The engine keeps its own copy of the thru settings, sequence parameters 7 to 12. It starts with
+  those of a new sequence (mode 2, port 0, channel -1, Local On port -1) at `SeqOpen`, so the input
+  is echoed before any sequence exists. `SeqSetPlayingSeq(seq)` copies all of them from `seq`
+  (`SeqSetPlayingSeq(0)` turns the echo off), and `SeqSetSeqParam` on the current sequence copies
+  the one it sets. Nothing else changes the copy: it stays when that sequence is destroyed and
+  when a new one becomes current, and a sequence that is not current has no effect.
+- The current sequence is the playing sequence: the one `SeqSetPlayingSeq` names, or else the
+  first sequence created while there is none. Its streams' patch, volume and pan go out when set
+  (Transport); those of other sequences do not.
+- Mode 0 echoes nothing; 1 (manual) and 2 (auto) echo every channel message, whether a sequence
+  plays or not; no difference between them was found. Sysex and system messages are not echoed,
+  and the record filter (parameter 28) does not apply.
+- Port: parameter 8 (a port that does not exist gets nothing). Channel: with parameter 9 at 0 or
+  more it is ORed into the status's high nibble, so 16 turns a program change (C2) into channel
+  pressure (D0), key pressure into a controller and pitch wheel into F0, which is not sent; -1
+  keeps the channel.
+- Key+ (10) moves the keys of notes and key pressure, folded into 0 to 127 by octaves (0x43 - 100
+  gives 3). Vel+ (11) moves the velocity of note-ons and keeps it within 1 to 127; note-offs keep
+  theirs.
+- Nothing goes to the Local On port (parameter 12) on the channel the message came in on: that
+  keyboard plays itself. With a thru channel other than the input's, the echo goes there.
+- The notes go through the table of notes on, as `SeqTxMidiMsg`'s do: a note-off for a note that
+  is not on is dropped (so a note held while the thru channel or Key+ changes is not ended), and a
+  second note-on first sends a note-on with velocity 0.
+
+2.10 and 3.00 differ: 2.10 echoes to the Local On port on the input's channel too, and 3.00 does
+not take `SeqSetPlayingSeq(0)` (it answers 0) and goes on echoing.
 
 ## Transport
 
@@ -319,6 +356,9 @@ unless noted [probe]:
   volume or pan it takes from a track after the track's first other message. Neither happens
   for a sequence other than the current one (loaded or created while another one is), nor for a
   stream with no channel [probe, the load output of the `files` suite].
+- The playing sequence is 1.01's current sequence: `SeqSetPlayingSeq` makes a sequence the one
+  whose stream parameters go out when set, and a sequence created while there is none (none
+  created yet, or the current one destroyed) becomes it [probe, suite `thru`].
 - `SeqGetNow(seq)` is polled constantly by all three programs [trace].
 - Song Position Pointer: when playback starts, every version sends `F2` with the start position
   in MIDI beats (tick / (ppq / 4)), before Start or Continue, also when MIDI sync is off; 1.01,
@@ -449,6 +489,19 @@ single runs of `tools/ttsprobe/sweep/mtcexp.py`]:
   does not chase the new time. 1.01 and 2.10 stop at any jump, even of 2 frames forward or back.
   3.00 follows a jump of 2 frames (one code word skipped or repeated) and stops at 4 frames or
   more, a little later than the others (Now 3215 against 3180 for a jump at 13 s).
+- The details, as libseq reproduces suite `mtc` and the time code of suites `sync` and
+  `options1` (1.01): the engine takes code once it has read two labels one after the other (the
+  lock output goes out at the second, about 145 ms after the code begins). Now at the lock is the
+  run's first label plus `ChaseDelay` plus 0.25 to 0.37 s, rounded down to a MIDI beat while Song
+  Position is on (as every start): 12.25 s for code from 10 s, and 125.375 s for code from
+  2:03:04 at 30 fps. The 4096 quarter notes are counted at the same time. After a jump the
+  playback runs on to where the code should have been plus the same 0.25 to 0.37 s, again
+  rounded (13.25 s for a jump at 13 s), and ends there; when the code stops it runs on
+  `FlywheelAmount` past the last quarter frame. A jump is a label that is not two frames after
+  the last one, also when a group starts again with a quarter frame 0 before its eighth came.
+  Code that jumps during the chase is locked to again: the lock output goes out once more, and
+  the callback goes on with (4, ...). A start that gives up (the callback returns non-zero, with
+  MIDI sync or time code) sends the stop output.
 - Cakewalk Professional for Windows (the demo, 1.01) sets these from its Time format dialog:
   `SeqSetFPS(seq, rate)`, then `SeqHMSF2Frame(seq, h, m, s, f, 0)` and `SeqSetFrameOfs(seq,
   frames)` for the offset [trace].
@@ -525,6 +578,20 @@ order, at times within 40 ms of the DLL's, counted from the call they follow. Th
 
 The engine's timer runs every 10 ms (`TimerPeriod`) and sends what has become due. Under Wine the
 DLL's timer comes up to about 30 ms late now and then; the comparison allows for that.
+
+## Input, recording and sync in libseq (1.01)
+
+The platform interface hands every message that comes in to the engine (`Engine::receive`), as
+1.01's MIDI input callback gets it, and the engine waits in loops (the count-in, the waits for MIDI
+sync and time code, a sysex receive, the gap between sysex packets) by calling `Platform::wait`
+on every turn, where the host lets time pass and its timer and input run. The runner plays the
+suite's input script from `SeqOpen` on and lets one millisecond pass per turn. The suites
+`thru`, `midiout`, `record`, `punch`, `param3`, `steprec`, `sysexin`, `sync` and `mtc` pass with
+their MIDI.
+
+The ticks of what is recorded after a count-in depend on when Wine handed the input to the DLL,
+some 15 to 35 ms off; the runner lets them differ by 8 ticks (the record suite's `#! slack 8`).
+The echoes of the thru are compared from `SeqOpen` on, as the input script counts.
 
 ## Locate delay
 
@@ -881,6 +948,13 @@ Under Wine it must also yield (`PeekMessage`), or the timer that ends the count-
 (the probe's `cbyield 1`). With no count-in the callback is not called; that is why playback never
 called it [probe].
 
+The count-in is the measures before the start position, at the tempo there, and it clicks on
+the beats of the start's meter counted back from the measure the start is in, not from the
+start. From Now 100 at 120 ppq the count-in runs from tick -380 and clicks at -360, -240, -120
+and 0: the first click comes 100 ms after the call, the last one 500 ms before the take begins;
+from Now 30 (Song Position on, Now 45 rounded down) the first click comes 450 ms after the call
+[probe, suite `punch`]. A count-in click ends as a playback click does.
+
 The take, the same in all three versions for the same input (one count-in measure, 100 bpm,
 120 ppq, so 5 ms per tick) [probe]:
 
@@ -888,7 +962,12 @@ The take, the same in all three versions for the same input (one count-in measur
   beginning); a note whose note-off also came during the count-in gets duration 0.
 - After the count-in, times are the arrival time in ticks; a note's duration is note-off minus
   note-on; Note On with velocity 0 ends a note like Note Off. A drum note held 10 ms got duration 2.
-- A note still held when recording stops keeps duration 0; the engine sends its note-off then.
+- A note still held when recording stops ends at the take's last event: it keeps duration 0 when
+  it is the last event, and ten notes played without note-offs all end where the last one starts.
+  The engine sends their note-offs then, with the stop output (they are in the table of notes
+  on).
+- `SeqRecordStop` answers 1 when the take has events and 0 when it is empty [probe, suite
+  `param3`].
 - The filter (parameter 28) applies: with the new sequence's 0xDB, Key and Channel Aftertouch are
   not recorded. Controllers, wheel and patch changes are recorded with duration 0.
 - Every message is echoed to the output within about 5 ms (MIDI thru), the filtered ones too.
@@ -928,6 +1007,10 @@ Punch-in (1.01 and 2.10; suite `punch`) [probe, trace]. The first three argument
   comes out empty.
 - The engine keeps the cut events in a stream of its own until the take ends, so a take kept
   without merging gets the handle after the next one (0x0102 instead of 0x0101).
+- The take itself is a stream of the sequence from the start on: kept with 0 at the pointer it
+  keeps that handle, and sound on sound into the stream 0x0100 makes 0x0102 (the take is 0x0101
+  while they merge). After a punch the stream of cut events goes first, so merging into the
+  target then makes 0x0101 [probe, suite `punch`].
 - Thru is not affected: input is echoed during the punch range as before.
 
 Cakewalk Apprentice 1.04 has no punch-in (its help lists it among the Professional features).
@@ -974,6 +1057,8 @@ From Cakewalk Apprentice 1.04's Step Record dialog (Professional 2.00's makes th
   track with `SeqMergeStreams(seq, 0, seq, take, 1, 0)`: stream 0 as the first stream means none,
   so the new stream holds the take, which is destroyed. Then it sets sequence parameter 3 to 1,
   as after a real-time take.
+- In 1.01 `SeqRecordEvent` adds nothing during step recording: it answers 0 [probe, suite
+  `steprec`]. `SeqSetRecCount` answers the new count.
 - 3.00 differs [probe]: `SeqRecordEvent` also adds an event during step recording (at the step
   position); `SeqStepRecTerm` sets the count back to 0; `SeqGetRecordBuffer()` returns the take's
   stream.
@@ -1124,6 +1209,11 @@ function the oracle suites call, found by trying layouts through the probe. Note
   ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
+- MIDI Time Code: where exactly the 0.25 to 0.37 s past `ChaseDelay` at the lock, and past a jump,
+  come from (libseq takes 0.3 s).
+- MIDI thru: what tells mode 1 (manual) from mode 2 (auto); both echo everything in the probes.
+- Recording: which note a note-off ends when the same key is held twice (libseq: the last one
+  started, as in MIDI files); what the third word of `SeqRecordCleanup` does.
 - The word that comes with code 3 in the file callbacks; how 3.00 reads string events without a
   load callback.
 - Wine 9.0's ALSA driver passes Song Position Pointer and other system common messages to ALSA
