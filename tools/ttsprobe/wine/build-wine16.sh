@@ -6,6 +6,15 @@
 #   MIDI input (midiInPrepareHeader, midiInAddBuffer and midiInUnprepareHeader return an error), so
 #   a 16-bit program cannot receive system exclusive messages. The patch maps them the way Wine
 #   already maps those of MIDI output. TTSSEQ needs it for SeqReceiveSysxBank (the sysexin suite).
+# - and mmsystem16-vtime.patch on top: virtual time (WINE_VTIME=1). The module's multimedia timer,
+#   clock and MIDI devices then run on a millisecond clock that moves only where the probe waits
+#   (VTIMEADVANCE, MMSYSTEM.2000), MIDI input comes from a script at its virtual time, and what
+#   goes out is logged in the fake port's format. A run gives the same output to the millisecond
+#   every time, which is what the timing of libseq is checked against (docs/ttsseq-api.md,
+#   Timing). VTIME_WATCHDOG moves the clock on in waits that call nothing (needs the irq patch).
+#   Unset, the module behaves as before. One known gap: TTSSEQ's sysex receive (SeqReceiveSysxBank)
+#   hangs in virtual time after a midiInReset inside the receive; the sysexin suite runs on the
+#   host's clock ("#! realtime").
 # - krnl386.exe16 with krnl386-irq.patch. Windows 3.1 runs the callbacks of multimedia timers and
 #   MIDI drivers at interrupt time, while the program runs; Wine runs them only when no thread is in
 #   16-bit code. A program that waits in a loop for such a callback (TTSSEQ 1.01 waiting for MIDI
@@ -30,7 +39,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 ver=$(wine --version | sed 's/^wine-\([0-9.]*\).*/\1/')
 work=$out/wine-build; mkdir -p "$work"; cd "$work"
 [ -d src ] || git clone --depth 1 --branch "wine-$ver" https://github.com/wine-mirror/wine.git src
-for p in mmsystem16-midiin.patch krnl386-irq.patch user32-dlgproc.patch; do
+for p in mmsystem16-midiin.patch mmsystem16-vtime.patch krnl386-irq.patch user32-dlgproc.patch; do
   git -C src apply --check "$here/$p" 2>/dev/null && git -C src apply "$here/$p"
 done
 mkdir -p build; cd build

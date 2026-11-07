@@ -29,7 +29,7 @@
  *   echo TEXT                 copy TEXT to the output
  *   sleep MS                  wait MS milliseconds, dispatching window messages meanwhile
  *   idle MS                   the same, calling SEQIDLE() in between (prints non-zero results)
- *   time                      print GetTickCount()
+ *   time                      print GetTickCount() (the virtual clock under Wine's WINE_VTIME)
  *   cbret HEX                 what the callbacks cb0..cb8 return (default 1)
  *   cbretafter MS HEX         from MS ms after this command on, the callbacks return HEX instead (for
  *                             an engine loop that runs until its callback says stop)
@@ -107,11 +107,32 @@ static void printcbhead(int id, int n, WORD far* w);
 static void flushcb(void);
 static int g_cbptr = -1, g_cblen = -1; /* "cbptr K L": words K,K+1 are a far pointer, word L its length */
 
+/* virtual time (Wine's MMSYSTEM with WINE_VTIME): the clock moves on only where the probe waits,
+ * one millisecond at a time; a call into the DLL takes none */
+typedef void (FAR PASCAL* VtAdvance)(WORD ms);
+typedef DWORD (FAR PASCAL* VtNow)(void);
+static VtAdvance g_vtadvance = NULL;
+static VtNow g_vtnow = NULL;
+static void vtinit(void) {
+    HINSTANCE mm = LoadLibrary("MMSYSTEM.DLL");
+    if ((UINT)mm < 32) return;
+    g_vtnow = (VtNow)GetProcAddress(mm, "VTIMENOW");
+    g_vtadvance = (VtAdvance)GetProcAddress(mm, "VTIMEADVANCE");
+    if (!g_vtnow || !g_vtadvance || g_vtnow() == 0xffffffffUL) g_vtnow = NULL, g_vtadvance = NULL;
+}
+/* the clock: virtual, or GetTickCount */
+static DWORD nowms(void) { return g_vtnow ? g_vtnow() : GetTickCount(); }
+/* where the probe waits: a millisecond of virtual time, or a Yield */
+static void waitms(void) { if (g_vtadvance) g_vtadvance(1); else Yield(); }
+
 static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4, WORD w5, WORD w6, WORD w7) {
     int next = (g_cbhead + 1) % MAXCB;
     int last = (g_cbhead + MAXCB - 1) % MAXCB;
-    if (g_cbyield) { MSG m; PeekMessage(&m, NULL, 0, 0, PM_NOREMOVE); } /* lets other tasks and timers run */
-    if (g_cbswitch && GetCurrentTime() >= g_cbswitch) { g_cbret = g_cbret2; g_cbswitch = 0; }
+    if (g_cbyield) { /* lets other tasks and timers run: in virtual time, a millisecond goes by */
+        MSG m;
+        if (g_vtadvance) g_vtadvance(1); else PeekMessage(&m, NULL, 0, 0, PM_NOREMOVE);
+    }
+    if (g_cbswitch && nowms() >= g_cbswitch) { g_cbret = g_cbret2; g_cbswitch = 0; }
     if (g_ndo && g_dodepth < 4) {
         int i, any = 0;
         WORD wv[8];
@@ -170,7 +191,7 @@ static DWORD cbrecord(int id, int n, WORD w0, WORD w1, WORD w2, WORD w3, WORD w4
         for (k = 0; k < len; ++k) g_cb[g_cbhead].data[k] = q[k];
         g_cb[g_cbhead].dlen = q == NULL ? -2 : len;
     }
-    g_cb[g_cbhead].id = id; g_cb[g_cbhead].n = n; g_cb[g_cbhead].at = GetCurrentTime();
+    g_cb[g_cbhead].id = id; g_cb[g_cbhead].n = n; g_cb[g_cbhead].at = nowms();
     g_cb[g_cbhead].w[0] = w0; g_cb[g_cbhead].w[1] = w1; g_cb[g_cbhead].w[2] = w2; g_cb[g_cbhead].w[3] = w3;
     g_cb[g_cbhead].w[4] = w4; g_cb[g_cbhead].w[5] = w5; g_cb[g_cbhead].w[6] = w6; g_cb[g_cbhead].w[7] = w7;
     g_cbhead = next;
@@ -327,24 +348,24 @@ static void run(char* line) {
         fprintf(g_out, "%s\n", p);
     } else if (strcmp(cmd, "sleep") == 0) {
         /* sleep MS: wait while dispatching messages (the engine's timer and window messages run) */
-        DWORD until = GetTickCount() + strtoul(nexttok(&p), NULL, 0);
+        DWORD until = nowms() + strtoul(nexttok(&p), NULL, 0);
         MSG msg;
-        while (GetTickCount() < until) {
+        while (nowms() < until) {
             while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
             flushcb();
-            Yield();
+            waitms();
         }
     } else if (strcmp(cmd, "idle") == 0) {
         /* idle MS: like sleep, but calls SEQIDLE() between messages, as Cakewalk's message loop
          * does; prints each non-zero result with the time since the command started */
-        DWORD start = GetTickCount();
+        DWORD start = nowms();
         DWORD until = start + strtoul(nexttok(&p), NULL, 0);
         FARPROC idle = g_dll ? GetProcAddress(g_dll, "SEQIDLE") : NULL;
         MSG msg;
-        while (GetTickCount() < until) {
+        while (nowms() < until) {
             while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
@@ -352,10 +373,10 @@ static void run(char* line) {
             if (idle) {
                 DWORD r = callfar(idle, 0, (WORD far*)&r);
                 if (LOWORD(r) && g_oracle) fprintf(g_out, "SEQIDLE() -> %04x\n", LOWORD(r));
-                else if (LOWORD(r)) fprintf(g_out, "SEQIDLE() -> %04x:%04x at +%lu ms\n", HIWORD(r), LOWORD(r), GetTickCount() - start);
+                else if (LOWORD(r)) fprintf(g_out, "SEQIDLE() -> %04x:%04x at +%lu ms\n", HIWORD(r), LOWORD(r), nowms() - start);
             }
             flushcb();
-            Yield();
+            waitms();
         }
     } else if (strcmp(cmd, "dxs") == 0) {
         /* dxs HEX: the value DX holds when a function is called (default 0); a DX that comes back
@@ -418,13 +439,13 @@ static void run(char* line) {
         /* cbretafter MS HEX: MS ms from now on, the callbacks return HEX */
         DWORD ms = strtoul(nexttok(&p), NULL, 10);
         g_cbret2 = strtoul(nexttok(&p), NULL, 16);
-        g_cbswitch = GetCurrentTime() + ms;
+        g_cbswitch = nowms() + ms;
         if (!g_cbswitch) g_cbswitch = 1;
     } else if (strcmp(cmd, "cbret") == 0) {
         /* cbret HEX: what the callbacks return from now on (default 1) */
         g_cbret = strtoul(nexttok(&p), NULL, 16);
     } else if (strcmp(cmd, "time") == 0) {
-        if (!g_oracle) fprintf(g_out, "time %lu\n", GetTickCount());
+        if (!g_oracle) fprintf(g_out, "time %lu\n", nowms());
     } else if (strcmp(cmd, "load") == 0) {
         char* name = nexttok(&p);
         g_dll = LoadLibrary(name);
@@ -573,6 +594,7 @@ int PASCAL WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show) {
     FILE* in;
     g_inst = inst;
     makecallbacks(inst);
+    vtinit();
     _fstrcpy(args, cmdline);
     p = args;
     script = nexttok(&p);

@@ -117,7 +117,9 @@ public:
     std::uint32_t clock = 0;
     /// Moves the clock on by that many milliseconds, running the engine's timer on the way.
     std::function<void(std::uint32_t)> advance;
-    /// Counts the top-level calls; output is anchored at the call it came during or after.
+    /// A callback yielded (cbyield 1) since the engine last waited: that wait takes no more time.
+    bool yielded = false;
+    /// Counts the top-level calls (the runner names the call a message came during or after).
     unsigned long calls = 0;
 
 private:
@@ -147,6 +149,8 @@ private:
     std::uint32_t r_ = 0;
     std::uint32_t var_[10]{};
     std::uint32_t cbret_ = 1;
+    std::uint32_t callbackBody(FarPtr fn, const std::vector<std::uint16_t>& words);
+    bool cbyield_ = false;
     // cbretafter: from cbswitch_ on, the callbacks return cbret2_
     bool cbswitching_ = false;
     std::uint32_t cbswitch_ = 0;

@@ -10,18 +10,18 @@
 // where the suite saves; FILES holds what the DLL saved there (tests/data/ttsseq/101/SUITE/), and
 // each of its files must come out the same.
 //
-// MIDI is what the DLL sent to the fake port (SUITE.midi: milliseconds and bytes). libseq's output
-// must be the same messages in the same order; their times count from the call they came during or
-// after (the start of a playback, say), and must lie within kSlackMs of the DLL's. Under Wine the
-// DLL's timer comes up to about 30 ms late now and then, and the auto-shuttle's wraps add such
-// delays up.
+// The runner keeps time as the probe does in virtual time (tools/ttsprobe/wine/mmsystem16-vtime.
+// patch): a millisecond clock that calls do not move; `sleep`, `idle` and every turn of a wait in
+// the engine move it on one millisecond at a time. At each millisecond the engine's timer runs
+// when due (every period from the moment the engine last started it), then the input due is
+// handed over. The suite's header names its MIDI input ("#! input FILE", in tests/data/ttsseq/
+// input), times counted from SeqOpen, as the probe's input. The probe's window gets the messages
+// the engine posts (step recording) when the script sleeps or idles.
 //
-// The suite's header names its MIDI input ("#! input FILE", in tests/data/ttsseq/input): the
-// runner plays it to the engine from SeqOpen on, as the fake port does, with the timer in between.
-// The thru's echoes count from SeqOpen too. "#! slack N" lets recorded events (8-byte dumps)
-// differ by N ticks in their time and duration: when Wine hands the input to the DLL varies by a
-// few milliseconds. The probe's window gets the messages the engine posts (step recording) when
-// the script sleeps or idles.
+// MIDI is what the DLL sent (SUITE.midi: milliseconds and bytes, recorded in virtual time).
+// libseq's output must be the same messages at the same milliseconds. A suite marked
+// "#! realtime" was recorded on the host's clock (sysexin: the DLL's sysex receive waits hang in
+// virtual time); its messages are compared in order, without their times.
 #include "api.hpp"
 
 #include "libseq/engine.hpp"
@@ -29,9 +29,12 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <sstream>
 
@@ -59,15 +62,11 @@ std::vector<std::string> lines(const std::string& text) {
     return v;
 }
 
-constexpr double kSlackMs = 40;
-
 struct Message {
     double time = 0;
     int port = 0;
     std::vector<std::uint8_t> bytes;
     unsigned long call = 0; // the call it came during or after
-    bool timer = false;     // sent by the engine's timer or for an input message, not during a call
-    bool input = false;     // sent for an input message (the thru)
 };
 
 /// A message of the script's MIDI input (`#! input FILE`): its time after SeqOpen.
@@ -98,21 +97,15 @@ std::vector<Input> readInput(const fs::path& path) {
     return v;
 }
 
-/// The fake port of the runner: it keeps what the engine sends, with the script's time, and plays
-/// the input script from SeqOpen on.
+/// The runner's MIDI port and timer, in virtual time: it keeps what the engine sends, with the
+/// clock's time, and plays the input script from SeqOpen on.
 class Capture final : public libseq::Platform {
 public:
     explicit Capture(ttsrun::Probe& probe) : probe_(&probe) {}
     [[nodiscard]] int outputPorts() const override { return ports; }
     void send(const int port, const std::span<const std::uint8_t> message) override {
-        sent.push_back({static_cast<double>(probe_->clock) - base_,
-                        port,
-                        {message.begin(), message.end()},
-                        probe_->calls,
-                        inTimer || inInput_,
-                        inInput_});
+        sent.push_back({static_cast<double>(probe_->clock), port, {message.begin(), message.end()}, probe_->calls});
     }
-    bool inTimer = false;
     [[nodiscard]] std::uint32_t milliseconds() const override { return probe_->clock; }
     void opened(libseq::Engine& engine) override {
         engine_ = &engine;
@@ -120,24 +113,31 @@ public:
         next_ = 0;
     }
     void closed() override { engine_ = nullptr; }
-    /// The engine waits: a millisecond goes by.
+    void startTimer(const unsigned periodMs) override {
+        period_ = periodMs;
+        nextRun_ = probe_->clock + periodMs;
+        timer_ = true;
+    }
+    void stopTimer() override { timer_ = false; }
+    /// The engine waits: a millisecond goes by, unless a callback took it already.
     void wait() override {
-        if (probe_->advance) {
+        if (probe_->yielded) {
+            probe_->yielded = false;
+        } else if (probe_->advance) {
             probe_->advance(1);
         }
     }
-    /// The time of the next input message, if there is one.
-    [[nodiscard]] std::optional<std::uint32_t> nextInput() const {
-        if (engine_ == nullptr || next_ >= input.size()) {
-            return std::nullopt;
+    /// One millisecond on: the timer when due, then the input due.
+    void step() {
+        ++probe_->clock;
+        if (timer_ && engine_ != nullptr && probe_->clock >= nextRun_) {
+            nextRun_ += period_;
+            engine_->timer();
         }
-        return base_ + static_cast<std::uint32_t>(input[next_].time);
-    }
-    /// Hands the next input message to the engine.
-    void deliver() {
-        inInput_ = true;
-        engine_->receive(input[next_++].bytes);
-        inInput_ = false;
+        while (engine_ != nullptr && next_ < input.size() &&
+               static_cast<double>(base_) + input[next_].time <= static_cast<double>(probe_->clock)) {
+            engine_->receive(input[next_++].bytes);
+        }
     }
     int ports = 1;
     std::vector<Message> sent;
@@ -146,8 +146,10 @@ public:
 private:
     ttsrun::Probe* probe_;
     libseq::Engine* engine_ = nullptr;
-    std::uint32_t base_ = 0; // SeqOpen: the time 0 of the input and of the capture
-    bool inInput_ = false;
+    std::uint32_t base_ = 0; // SeqOpen: the time 0 of the input
+    std::uint32_t nextRun_ = 0;
+    unsigned period_ = 10;
+    bool timer_ = false;
     std::size_t next_ = 0;
 };
 
@@ -162,8 +164,15 @@ std::string bytesText(const Message& m) {
     return t;
 }
 
-std::vector<Message> readCapture(const fs::path& path) {
-    std::vector<Message> v;
+/// A capture of the fake port: what the DLL sent, and the input the fake port delivered to it
+/// ("ms < bytes"), on one clock.
+struct CaptureFile {
+    std::vector<Message> sent;
+    std::vector<Input> input;
+};
+
+CaptureFile readCapture(const fs::path& path) {
+    CaptureFile c;
     std::ifstream in(path);
     std::string l;
     while (std::getline(in, l)) {
@@ -173,124 +182,123 @@ std::vector<Message> readCapture(const fs::path& path) {
         if (!(f >> m.time)) {
             continue;
         }
+        bool input = false;
         while (f >> tok) {
-            if (tok[0] == '@') {
+            if (tok == "<") {
+                input = true;
+            } else if (tok[0] == '@') {
                 m.port = std::stoi(tok.substr(1));
             } else {
                 m.bytes.push_back(static_cast<std::uint8_t>(std::stoul(tok, nullptr, 16)));
             }
         }
-        v.push_back(m);
+        if (input) {
+            c.input.push_back({m.time, m.bytes});
+        } else {
+            c.sent.push_back(m);
+        }
     }
-    return v;
+    return c;
 }
 
-/// Wine's ALSA driver loses the bytes of system common messages (the Song Position Pointer): the
-/// fake port logs them as 00 00 00.
-bool sameBytes(const Message& want, const Message& got) {
-    if (want.port != got.port) {
-        return false;
-    }
-    if (want.bytes == std::vector<std::uint8_t>{0, 0, 0}) {
-        return !got.bytes.empty() && got.bytes[0] >= 0xf1 && got.bytes[0] <= 0xf6;
-    }
-    return want.bytes == got.bytes;
-}
-
-/// Compares libseq's MIDI with the DLL's; prints the first difference. True when they agree.
-bool compareMidi(const std::vector<Message>& want, const std::vector<Message>& got) {
-    std::size_t anchor = 0;
+/// Compares libseq's MIDI with the DLL's, message by message: the same bytes on the same port at
+/// the same millisecond. Prints the first difference; true when they agree.
+bool compareMidi(const std::vector<Message>& want, const std::vector<Message>& got, const bool times) {
     for (std::size_t i = 0; i < std::max(want.size(), got.size()); ++i) {
-        if (i >= want.size() || i >= got.size() || !sameBytes(want[i], got[i])) {
-            std::cout << "MIDI differs at message " << i + 1 << " of " << want.size() << ":\n";
-            for (std::size_t k = i >= 3 ? i - 3 : 0; k < i + 3; ++k) {
-                std::cout << "  want: "
-                          << (k < want.size() ? std::to_string(want[k].time) + " " + bytesText(want[k]) : "<end>")
-                          << '\n'
-                          << "  got:  "
-                          << (k < got.size() ? std::to_string(got[k].time) + " " + bytesText(got[k]) : "<end>") << '\n';
-            }
-            return false;
-        }
-        if (i == 0 || got[i].call != got[i - 1].call || (got[anchor].input && !got[i].input)) {
-            anchor = i;
-        }
-        // during a call the DLL takes the time it takes (a load); only the timer's output has a time
-        if (!got[i].timer) {
+        if (i < want.size() && i < got.size() && want[i].port == got[i].port && want[i].bytes == got[i].bytes &&
+            (!times || want[i].time == got[i].time)) {
             continue;
         }
-        // the echo of an input message comes when the input does: both count from SeqOpen, as
-        // the input script and the fake port's log do; the timer's output counts from the first
-        // message of the call (or after it) it came during
-        const bool absolute = got[i].input;
-        const double w = want[i].time - (absolute ? 0 : want[anchor].time);
-        const double g = got[i].time - (absolute ? 0 : got[anchor].time);
-        if (std::abs(w - g) > kSlackMs) {
-            std::cout << "MIDI time differs at message " << i + 1 << " (" << bytesText(got[i]) << "): want +" << w
-                      << " ms, got +" << g << " ms after "
-                      << (absolute ? std::string("SeqOpen") : "message " + std::to_string(anchor + 1)) << '\n';
-            return false;
+        std::cout << "MIDI differs at message " << i + 1 << " of " << want.size() << ":\n";
+        for (std::size_t k = i >= 3 ? i - 3 : 0; k < i + 3; ++k) {
+            std::cout << "  want: "
+                      << (k < want.size() ? std::to_string(want[k].time) + " " + bytesText(want[k]) : "<end>")
+                      << "\n  got:  "
+                      << (k < got.size() ? std::to_string(got[k].time) + " " + bytesText(got[k]) + " (call " +
+                                               std::to_string(got[k].call) + ")"
+                                         : "<end>")
+                      << '\n';
         }
+        return false;
     }
     return true;
 }
 
-/// The bytes of a dump line ("  00 01 ..."), empty for another line.
-std::vector<unsigned> dumpBytes(const std::string& line) {
-    std::vector<unsigned> v;
-    if (!line.starts_with("  ")) {
-        return {};
-    }
-    std::istringstream f(line);
-    std::string tok;
-    while (f >> tok) {
-        if (tok.size() != 2 || std::isxdigit(static_cast<unsigned char>(tok[0])) == 0 ||
-            std::isxdigit(static_cast<unsigned char>(tok[1])) == 0) {
-            return {};
-        }
-        v.push_back(static_cast<unsigned>(std::stoul(tok, nullptr, 16)));
-    }
-    return v;
-}
+struct Setup {
+    fs::path script;
+    fs::path songs;
+    fs::path outDir;
+    std::string inputName;
+    bool realtime = false; // "#! realtime": the DLL's MIDI was recorded on the host's clock
+};
 
-/// A recorded event's time depends on when Wine delivered the input to the DLL: with `slack`, two
-/// dumps of an 8-byte event agree when they differ only in the time (bytes 0 to 2) and the
-/// duration (6 and 7), by at most `slack` ticks each.
-bool closeEnough(const std::string& want, const std::string& got, const long slack) {
-    if (slack <= 0) {
-        return false;
+struct Pass {
+    std::string out;
+    std::vector<Message> sent;
+    std::map<std::string, int> missing;
+};
+
+Pass runPass(const Setup& setup) {
+    std::ifstream script(setup.script);
+    std::ostringstream out;
+    ttsrun::Probe probe(out);
+    libseq::Engine engine;
+    Capture capture(probe);
+    engine.setPlatform(&capture);
+    if (!setup.inputName.empty()) {
+        capture.input = readInput(setup.script.parent_path().parent_path() / "input" / setup.inputName);
     }
-    const std::vector<unsigned> w = dumpBytes(want);
-    const std::vector<unsigned> g = dumpBytes(got);
-    if (w.size() != libseq::Event::kSize || g.size() != libseq::Event::kSize) {
-        return false;
-    }
-    const auto time = [](const std::vector<unsigned>& b) {
-        return static_cast<long>(b[0] | (b[1] << 8) | (b[2] << 16));
+    probe.advance = [&capture](std::uint32_t ms) {
+        while (ms-- > 0) {
+            capture.step();
+        }
     };
-    const auto dur = [](const std::vector<unsigned>& b) { return static_cast<long>(b[6] | (b[7] << 8)); };
-    return std::equal(w.begin() + 3, w.begin() + 6, g.begin() + 3) && std::abs(time(w) - time(g)) <= slack &&
-           std::abs(dur(w) - dur(g)) <= slack;
+    ttsrun::defineApi101(probe, engine);
+    if (!setup.outDir.empty()) {
+        fs::remove_all(setup.outDir);
+        fs::create_directories(setup.outDir);
+    }
+    probe.mapPath = [&setup](const std::string& p) -> std::string {
+        const std::string prefix = R"(C:\PROBE\ORC\)";
+        const std::string outPrefix = R"(C:\PROBE\ORC\OUT\)";
+        if (!setup.outDir.empty() && upper(p).starts_with(outPrefix)) {
+            return (setup.outDir / upper(p.substr(outPrefix.size()))).string();
+        }
+        if (!upper(p).starts_with(prefix) || setup.songs.empty()) {
+            return p;
+        }
+        const std::string name = upper(p.substr(prefix.size()));
+        for (const auto& f : fs::recursive_directory_iterator(setup.songs)) {
+            if (f.is_regular_file() && upper(f.path().filename().string()) == name) {
+                return f.path().string();
+            }
+        }
+        return p;
+    };
+    probe.runScript(script);
+    return {out.str(), capture.sent, probe.missing};
 }
 
 } // namespace
 
 int main(int argc, char** argv) {
-    fs::path songs;
-    fs::path outDir;
+    Setup setup;
     fs::path files;
     fs::path midi;
+    fs::path dumpMidi; // where libseq's MIDI goes, in the capture format
     std::vector<std::string> args;
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
         if (a == "--songs" && i + 1 < argc) {
-            songs = argv[++i];
+            setup.songs = argv[++i];
         } else if (a == "--out" && i + 1 < argc) {
-            outDir = argv[++i];
+            setup.outDir = argv[++i];
         } else if (a == "--files" && i + 1 < argc) {
             files = argv[++i];
         } else if (a == "--midi" && i + 1 < argc) {
             midi = argv[++i];
+        } else if (a == "--dump-midi" && i + 1 < argc) {
+            dumpMidi = argv[++i];
         } else {
             args.push_back(a);
         }
@@ -299,94 +307,66 @@ int main(int argc, char** argv) {
         std::cerr << "usage: ttsrun --songs DIR SCRIPT [EXPECTED]\n";
         return 2;
     }
-    std::ifstream script(args[0]);
+    setup.script = args[0];
+    std::ifstream script(setup.script);
     if (!script) {
         std::cerr << "cannot open " << args[0] << '\n';
         return 2;
     }
-    // the suite's header: "#! input FILE" names the MIDI input, in tests/data/ttsseq/input;
-    // "#! slack N" lets the times of recorded events differ (closeEnough)
-    std::string inputName;
-    long slack = 0;
+    // the suite's header: "#! input FILE" names the MIDI input, in tests/data/ttsseq/input
     for (std::string l; std::getline(script, l) && (l.empty() || l[0] == '#' || l.starts_with("mode"));) {
         if (l.starts_with("#! input ")) {
-            inputName = l.substr(9);
-        } else if (l.starts_with("#! slack ")) {
-            slack = std::stol(l.substr(9));
+            setup.inputName = l.substr(9);
+        }
+        if (l.starts_with("#! realtime")) {
+            setup.realtime = true;
         }
     }
-    script.clear();
-    script.seekg(0);
-    std::ostringstream out;
-    ttsrun::Probe probe(out);
-    libseq::Engine engine;
-    Capture capture(probe);
-    engine.setPlatform(&capture);
-    if (!inputName.empty()) {
-        capture.input = readInput(fs::path(args[0]).parent_path().parent_path() / "input" / inputName);
-    }
-    // the engine's timer runs every period, on the script's clock, half a period out of step with
-    // whole periods: the DLL's timer has no fixed phase to the script, and what it finds due waits
-    // for it half a period on average
-    std::uint32_t nextTimer = engine.timerPeriod() / 2;
-    probe.advance = [&probe, &engine, &nextTimer, &capture](const std::uint32_t ms) {
-        const std::uint32_t until = probe.clock + ms;
-        for (;;) {
-            const std::optional<std::uint32_t> in = capture.nextInput();
-            if (in && *in <= until && *in < nextTimer) {
-                probe.clock = std::max(probe.clock, *in);
-                capture.deliver();
-            } else if (nextTimer <= until) {
-                probe.clock = nextTimer;
-                capture.inTimer = true;
-                engine.timer();
-                capture.inTimer = false;
-                nextTimer += engine.timerPeriod();
-            } else {
-                break;
+    const Pass pass = runPass(setup);
+    bool midiOk = true;
+    if (!midi.empty()) {
+        CaptureFile capture = fs::exists(midi) ? readCapture(midi) : CaptureFile{};
+        if (setup.realtime) {
+            // on the host's clock the MIDI went through Wine's driver, whose midiOutReset at
+            // SeqClose adds All Sound Off and sustain off on every channel (not the DLL's)
+            const auto reset = [](const Message& m) {
+                return m.bytes.size() == 3 && (m.bytes[0] & 0xf0U) == 0xb0U &&
+                       (m.bytes[1] == 0x78 || m.bytes[1] == 0x40) && m.bytes[2] == 0;
+            };
+            auto& v = capture.sent;
+            std::size_t n = 0;
+            while (n < v.size() && reset(v[v.size() - 1 - n])) {
+                ++n;
+            }
+            if (n == 32) {
+                v.resize(v.size() - n);
             }
         }
-        probe.clock = until;
-    };
-    ttsrun::defineApi101(probe, engine);
-    if (!outDir.empty()) {
-        fs::remove_all(outDir);
-        fs::create_directories(outDir);
+        // a suite recorded on the host's clock (its waits hang in virtual time) is compared
+        // message by message, without the times
+        midiOk = compareMidi(capture.sent, pass.sent, !setup.realtime);
     }
-    probe.mapPath = [&songs, &outDir](const std::string& p) -> std::string {
-        const std::string prefix = R"(C:\PROBE\ORC\)";
-        const std::string outPrefix = R"(C:\PROBE\ORC\OUT\)";
-        if (!outDir.empty() && upper(p).starts_with(outPrefix)) {
-            return (outDir / upper(p.substr(outPrefix.size()))).string();
+    if (!dumpMidi.empty()) {
+        std::ofstream d(dumpMidi);
+        for (const Message& m : pass.sent) {
+            d << std::fixed << std::setprecision(3) << m.time << ' ' << bytesText(m) << " #" << m.call << '\n';
         }
-        if (!upper(p).starts_with(prefix) || songs.empty()) {
-            return p;
-        }
-        const std::string name = upper(p.substr(prefix.size()));
-        for (const auto& f : fs::recursive_directory_iterator(songs)) {
-            if (f.is_regular_file() && upper(f.path().filename().string()) == name) {
-                return f.path().string();
-            }
-        }
-        return p;
-    };
-    probe.runScript(script);
-
+    }
     if (args.size() < 2) {
-        std::cout << out.str();
+        std::cout << pass.out;
         return 0;
     }
     std::ifstream exp(args[1], std::ios::binary);
     std::stringstream e;
     e << exp.rdbuf();
-    const auto got = lines(out.str());
+    const auto got = lines(pass.out);
     const auto want = lines(e.str());
     std::size_t diffs = 0;
     std::size_t first = 0;
     for (std::size_t i = 0; i < std::max(got.size(), want.size()); ++i) {
         const std::string g = i < got.size() ? got[i] : "<end>";
         const std::string w = i < want.size() ? want[i] : "<end>";
-        if (g != w && !closeEnough(w, g, slack)) {
+        if (g != w) {
             if (diffs++ == 0) {
                 first = i;
             }
@@ -396,7 +376,7 @@ int main(int argc, char** argv) {
     std::size_t fileDiffs = 0;
     if (!files.empty() && fs::is_directory(files)) {
         for (const auto& f : fs::directory_iterator(files)) {
-            const fs::path mine = outDir / upper(f.path().filename().string());
+            const fs::path mine = setup.outDir / upper(f.path().filename().string());
             std::ifstream a(f.path(), std::ios::binary);
             std::ifstream b(mine, std::ios::binary);
             const std::string wantBytes((std::istreambuf_iterator<char>(a)), std::istreambuf_iterator<char>());
@@ -407,16 +387,12 @@ int main(int argc, char** argv) {
             }
         }
     }
-    bool midiOk = true;
-    if (!midi.empty()) {
-        midiOk = compareMidi(fs::exists(midi) ? readCapture(midi) : std::vector<Message>{}, capture.sent);
-    }
-    for (const auto& [name, n] : probe.missing) {
+    for (const auto& [name, n] : pass.missing) {
         std::cout << "not implemented: " << name << " (" << n << " calls)\n";
     }
     if (diffs == 0 && fileDiffs == 0 && midiOk) {
         std::cout << "ok: " << got.size() << " lines"
-                  << (midi.empty() ? "" : ", " + std::to_string(capture.sent.size()) + " MIDI") << '\n';
+                  << (midi.empty() ? "" : ", " + std::to_string(pass.sent.size()) + " MIDI") << '\n';
         return 0;
     }
     if (diffs == 0) {

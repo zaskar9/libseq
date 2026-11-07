@@ -33,6 +33,11 @@ public:
     /// timer here).
     virtual void opened(Engine& engine) { static_cast<void>(engine); }
     virtual void closed() {}
+    /// The engine (re)starts its timer: from now on the host calls Engine::timer every
+    /// `periodMs` milliseconds, the first time `periodMs` from now (1.01 restarts it at SeqOpen,
+    /// SeqSetPlayingSeq and every load). stopTimer: at SeqClose.
+    virtual void startTimer(unsigned periodMs) { static_cast<void>(periodMs); }
+    virtual void stopTimer() {}
     /// The engine waits in a loop (the count-in, the wait for MIDI sync, a sysex receive) and
     /// calls this on every turn: the host lets a little time pass, during which its timer and
     /// input run.

@@ -4,15 +4,18 @@
 // Found with the probe and scripted input (suites record and punch; ttsseq-api.md, Recording):
 //  - the start plays the sequence from Now (rounded down to a MIDI beat while Song Position is
 //    on) after the count-in, and plays on past the end; parameter 3 is set;
-//  - messages that come in during the count-in are recorded at the start tick, later ones at
-//    the tick of their arrival; a note's duration is its note off's tick minus its own, a note
-//    held when the recording stops ends at the take's last event (the engine sends its note off);
+//  - messages are taken at the timer's next run (virtual time, ttsseq-api.md, Timing): during
+//    the count-in they are recorded at the start tick, later ones at the take's position at that
+//    run (the clock from -1 after the count-in, plus the start); a note's duration is its note off's tick minus its
+//    own, a note held when the recording stops ends at the take's last event (the engine sends its note off);
 //  - the record filter (28) applies, bit (status >> 4) - 8; sysex is not recorded; a message with
 //    one data byte keeps 0 as the second;
 //  - the take is a stream of the sequence from the start on (a take kept with nothing to merge
 //    into keeps that handle); a punch that cuts events first makes a stream for them, so the
 //    take's handle is the one after;
 //  - SeqRecordStop answers 0 when nothing was recorded;
+//  - with 256 streams in the sequence there is none for the take: SeqRecordStart answers 0 after
+//    sending the Song Position (suite countins);
 //  - SeqRecordCleanup: see Engine::recordCleanup.
 //
 // Step recording (suite steprec): SeqStepRecSetup makes the stream that collects the take. A note
@@ -36,6 +39,11 @@ bool Engine::recordStart(const StreamHandle target, const Tick in, const Tick ou
     Stream* punch = target != 0 ? stream(target) : nullptr;
     if (target != 0 && punch == nullptr) {
         return false; // 1.01 crashes
+    }
+    if (s->streams().size() >= 256) {
+        // no stream left for the take (256 takes without a cleanup): only the Song Position goes out
+        player_->songPositionOnly(*s);
+        return false;
     }
     take_ = Take{};
     recCount_ = 0;
@@ -87,7 +95,7 @@ void Engine::record(const std::span<const std::uint8_t> message) {
     if ((static_cast<unsigned>(s->param(qp::kFilter)) & (1U << bit)) == 0) {
         return;
     }
-    const Tick now = player_->recordTick(platform_ != nullptr ? platform_->milliseconds() : 0);
+    const Tick now = player_->recordTick();
     std::vector<Event>& events = st->events();
     const std::uint8_t d2 = message.size() > 2 ? message[2] : 0;
     if (kind == 0x80U || (kind == 0x90U && d2 == 0)) {

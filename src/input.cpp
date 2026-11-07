@@ -42,6 +42,36 @@ void Engine::receive(const std::span<const std::uint8_t> message) {
     if (message.empty() || message[0] < 0x80) {
         return;
     }
+    // 1.01 takes the input at its timer's next run: the thru's echoes all lie on the runs, 3 to
+    // 13 ms after the input, and a take's ticks move in steps of a period (the probes)
+    const std::lock_guard<std::mutex> lock(inboxMutex_);
+    inbox_.emplace_back(message.begin(), message.end());
+}
+
+void Engine::takeInput() {
+    std::vector<std::vector<std::uint8_t>> in;
+    {
+        const std::lock_guard<std::mutex> lock(inboxMutex_);
+        in.swap(inbox_);
+    }
+    for (std::vector<std::uint8_t>& m : in) {
+        if (!m.empty() && m[0] < 0xf0) {
+            channelIn_.push_back(std::move(m)); // after the run's playback (takeChannelInput)
+        } else if (!m.empty()) {
+            input(m);
+        }
+    }
+}
+
+void Engine::takeChannelInput() {
+    std::vector<std::vector<std::uint8_t>> in;
+    in.swap(channelIn_);
+    for (const std::vector<std::uint8_t>& m : in) {
+        input(m);
+    }
+}
+
+void Engine::input(const std::span<const std::uint8_t> message) {
     if (message[0] == 0xf0) {
         receiveSysx(message);
         return;
@@ -119,6 +149,11 @@ void Engine::thru(const std::span<const std::uint8_t> message) {
     if (const int ch = param(qp::kThruChannel); ch >= 0) {
         const unsigned status = kind | static_cast<unsigned>(ch);
         if (status >= 0xf0) {
+            // channel 16 turns pitch wheel into F0: 1.01 hands that to the driver as a short
+            // message, which logs only its status byte (seen in virtual time; Wine's ALSA driver
+            // drops it)
+            const std::array<std::uint8_t, 1> f{static_cast<std::uint8_t>(status)};
+            send(param(qp::kThruPort), f);
             return;
         }
         m[0] = static_cast<std::uint8_t>(status);

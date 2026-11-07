@@ -1,6 +1,7 @@
 mode oracle
 #! input SYSX.TXT
 #! secs 45
+#! realtime
 load TTSSEQ.DLL
 call.w SEQOPEN 0000 0000
 buf 0 192

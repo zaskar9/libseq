@@ -126,6 +126,15 @@ void Probe::runScript(std::istream& in) {
 }
 
 std::uint32_t Probe::callback(const FarPtr fn, const std::vector<std::uint16_t>& words) {
+    if (cbyield_ && advance && fn.seg == Memory::kCallbackSeg) {
+        // the probe's callbacks yield first (then look at the time): in virtual time a millisecond goes by
+        advance(1);
+        yielded = true;
+    }
+    return callbackBody(fn, words);
+}
+
+std::uint32_t Probe::callbackBody(const FarPtr fn, const std::vector<std::uint16_t>& words) {
     if (fn.seg != Memory::kCallbackSeg) {
         return 0;
     }
@@ -276,27 +285,29 @@ void Probe::run(const std::string& line) {
         out_ << rest(line) << '\n';
     } else if (cmd == "sleep") {
         // the probe dispatches window messages while it sleeps
+        // (as the probe's loop: the messages first, then a millisecond)
         for (auto ms = static_cast<std::uint32_t>(num(arg(1), 0)); ms > 0; --ms) {
+            dispatchPosted();
             if (advance) {
                 advance(1);
             }
-            dispatchPosted();
         }
     } else if (cmd == "cbretafter") {
         // from MS ms after this command on, the callbacks return HEX
         cbswitch_ = clock + static_cast<std::uint32_t>(num(arg(1), 10));
         cbret2_ = static_cast<std::uint32_t>(num(arg(2), 16));
         cbswitching_ = true;
-    } else if (cmd == "dxs" || cmd == "cbyield" || cmd == "win") {
+    } else if (cmd == "cbyield") {
+        cbyield_ = num(arg(1), 10) != 0;
+    } else if (cmd == "dxs" || cmd == "win") {
         // no effect without a real DLL
     } else if (cmd == "idle") {
         // SeqIdle between messages, as Cakewalk's message loop calls it, once a millisecond
         const auto ms = static_cast<std::uint32_t>(num(arg(1), 0));
         const auto it = functions_.find("SEQIDLE");
-        for (std::uint32_t i = 0; i < std::max<std::uint32_t>(ms, 1); ++i) {
-            if (advance && ms != 0) {
-                advance(1);
-            }
+        // (as the probe's loop: the messages, SeqIdle, the callbacks' output, then a millisecond)
+        for (std::uint32_t i = 0; i < ms; ++i) {
+            dispatchPosted();
             if (it != functions_.end()) {
                 Args a({});
                 const std::uint32_t r = it->second(a, *this);
@@ -304,8 +315,10 @@ void Probe::run(const std::string& line) {
                     out_ << "SEQIDLE() -> " << hex(r & 0xffffU, 4) << '\n';
                 }
             }
-            dispatchPosted();
             flushCallbacks();
+            if (advance) {
+                advance(1);
+            }
         }
     } else if (cmd == "let") {
         var_[num(arg(1), 10) % 10] = r_;
@@ -435,6 +448,7 @@ void Probe::run(const std::string& line) {
 void Probe::call(const std::vector<std::string>& t, const std::string& cmd) {
     if (depth_ == 0) {
         ++calls;
+        yielded = false;
     }
     const auto arg = [&](const std::size_t i) { return i < t.size() ? t[i] : std::string(); };
     const char type = cmd.size() > 5 ? cmd[5] : 'r';

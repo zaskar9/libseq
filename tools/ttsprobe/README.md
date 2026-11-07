@@ -95,6 +95,26 @@ leave the engines deaf to the clock in about one run in five (see `ttsseq-api.md
 `sweep/syncexp.py VER SONG SPEC...` runs one sync experiment from the command line: input
 messages, clocks and probe steps in one list, and a time line of what came back.
 
+Virtual time takes the host's clock out of the measurements. On the host's clock the engine's
+timer and the MIDI input under Wine came a few milliseconds early or late, differently on every
+run. `wine/mmsystem16-vtime.patch` (on top of the MIDI input patch; `build-wine16.sh` applies
+both) adds `WINE_VTIME=1`: the 16-bit multimedia timer, `timeGetTime` and the MIDI devices then
+run on a millisecond clock that moves only when the program calls `VTIMEADVANCE` (MMSYSTEM.2000).
+The probe calls it where it waits: once per millisecond of `sleep` and `idle`, and once in each
+callback with `cbyield 1`. A call into the DLL takes no time; at each millisecond the timers due
+run first, then the input due. MIDI input comes from `$VTIME_INPUT` (the fake port's script
+format, times from `midiInOpen`), and what goes out, and the input delivered, is written to
+`$VTIME_LOG` in the fake port's log format. The probe's `time` prints the virtual clock. Every
+run gives the same output to the millisecond, so an experiment can place a call or an input at
+any millisecond. A wait that calls nothing (the wait for MIDI Start without a callback) would
+stop the clock; `VTIME_WATCHDOG=MS` moves it on from a thread of its own while the program has
+not touched it for MS ms of real time (with `WINE_WIN16_IRQ_CALLBACKS=serial`).
+`oracles/mkoracles.sh` runs every suite in virtual time (`VTIME=0` for the host's clock); `#! irq`
+and `#! watchdog` turn the watchdog on, and `#! realtime` keeps a suite on the host's clock:
+`sysexin`, because `SeqReceiveSysxBank` hangs in virtual time after a `midiInReset` inside the
+receive. The script runner (`tests/runner`) keeps time the same way, so libseq is compared with
+the DLL at the exact millisecond (`ttsseq-api.md`, Timing).
+
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
 probe's `cbretafter MS HEX` switches the callbacks' result after MS milliseconds, and `cbmask HEX`
 hides callback words that differ from run to run (the free memory the engine reports); with

@@ -1,0 +1,631 @@
+diff --git a/dlls/mmsystem.dll16/Makefile.in b/dlls/mmsystem.dll16/Makefile.in
+index 08334cb..b80ecb1 100644
+--- a/dlls/mmsystem.dll16/Makefile.in
++++ b/dlls/mmsystem.dll16/Makefile.in
+@@ -8,4 +8,5 @@ SOURCES = \
+ 	mci16.c \
+ 	message16.c \
+ 	mmio16.c \
+-	mmsystem.c
++	mmsystem.c \
++	vtime.c
+diff --git a/dlls/mmsystem.dll16/mmsystem.c b/dlls/mmsystem.dll16/mmsystem.c
+index fc3b6f4..f29bb57 100644
+--- a/dlls/mmsystem.dll16/mmsystem.c
++++ b/dlls/mmsystem.dll16/mmsystem.c
+@@ -152,6 +152,8 @@ MMRESULT16 WINAPI timeSetEvent16(UINT16 wDelay, UINT16 wResol, LPTIMECALLBACK16
+     MMRESULT16          id;
+     struct timer_entry* te;
+ 
++    if (VTIME_On() && !(wFlags & (TIME_CALLBACK_EVENT_SET|TIME_CALLBACK_EVENT_PULSE)))
++        return VTIME_SetEvent(wDelay, lpFunc, dwUser, wFlags);
+     switch (wFlags & (TIME_CALLBACK_EVENT_SET|TIME_CALLBACK_EVENT_PULSE))
+     {
+     case TIME_CALLBACK_EVENT_SET:
+@@ -184,9 +186,12 @@ MMRESULT16 WINAPI timeSetEvent16(UINT16 wDelay, UINT16 wResol, LPTIMECALLBACK16
+  */
+ MMRESULT16 WINAPI timeKillEvent16(UINT16 wID)
+ {
+-    MMRESULT16  ret = timeKillEvent(wID);
++    MMRESULT16  ret;
+     struct timer_entry* te;
+ 
++    if (VTIME_On()) return VTIME_KillEvent(wID);
++    ret = timeKillEvent(wID);
++
+     if (ret == TIMERR_NOERROR)
+     {
+         EnterCriticalSection(&mmdrv_cs);
+@@ -250,6 +255,7 @@ MMRESULT16 WINAPI timeEndPeriod16(UINT16 wPeriod)
+  */
+ DWORD WINAPI timeGetTime16(void)
+ {
++    if (VTIME_On()) return VTIME_GetTime();
+     return timeGetTime();
+ }
+ 
+@@ -738,6 +744,7 @@ UINT16 WINAPI midiOutOpen16(HMIDIOUT16* lphMidiOut, UINT16 uDeviceID,
+     {
+         if (lphMidiOut != NULL) *lphMidiOut = HMIDIOUT_16(hmo);
+         MMSYSTDRV_SetHandle(thunk, (void*)hmo);
++        if (VTIME_On()) VTIME_MidiOutOpened(HMIDIOUT_16(hmo), uDeviceID);
+     }
+     else MMSYSTDRV_DeleteThunk(thunk);
+     return ret;
+@@ -790,6 +797,7 @@ UINT16 WINAPI midiOutUnprepareHeader16(HMIDIOUT16 hMidiOut,         /* [in] */
+  */
+ UINT16 WINAPI midiOutShortMsg16(HMIDIOUT16 hMidiOut, DWORD dwMsg)
+ {
++    if (VTIME_On()) VTIME_MidiOutShort(hMidiOut, dwMsg);
+     return midiOutShortMsg(HMIDIOUT_32(hMidiOut), dwMsg);
+ }
+ 
+@@ -802,6 +810,7 @@ UINT16 WINAPI midiOutLongMsg16(HMIDIOUT16 hMidiOut,          /* [in] */
+ {
+     TRACE("(%04X, %08lx, %d)\n", hMidiOut, lpsegMidiOutHdr, uSize);
+ 
++    if (VTIME_On()) VTIME_MidiOutLong(hMidiOut, lpsegMidiOutHdr);
+     return MMSYSTDRV_Message(HMIDIOUT_32(hMidiOut), MODM_LONGDATA, lpsegMidiOutHdr, uSize);
+ }
+ 
+@@ -941,6 +950,7 @@ UINT16 WINAPI midiInOpen16(HMIDIIN16* lphMidiIn, UINT16 uDeviceID,
+     {
+         if (lphMidiIn) *lphMidiIn = HMIDIIN_16(hmid);
+         MMSYSTDRV_SetHandle(thunk, (void*)hmid);
++        if (VTIME_On()) VTIME_MidiInOpened(HMIDIIN_16(hmid), dwCallback, dwInstance);
+     }
+     else MMSYSTDRV_DeleteThunk(thunk);
+     return ret;
+@@ -951,7 +961,10 @@ UINT16 WINAPI midiInOpen16(HMIDIIN16* lphMidiIn, UINT16 uDeviceID,
+  */
+ UINT16 WINAPI midiInClose16(HMIDIIN16 hMidiIn)
+ {
+-    UINT        ret = midiInClose(HMIDIIN_32(hMidiIn));
++    UINT        ret;
++
++    if (VTIME_On()) { VTIME_MidiInReset(hMidiIn); VTIME_MidiInClosed(hMidiIn); }
++    ret = midiInClose(HMIDIIN_32(hMidiIn));
+ 
+     if (ret == MMSYSERR_NOERROR)
+         MMSYSTDRV_CloseHandle((void*)HMIDIIN_32(hMidiIn));
+@@ -997,6 +1010,7 @@ UINT16 WINAPI midiInAddBuffer16(HMIDIIN16 hMidiIn,         /* [in] */
+ {
+     TRACE("(%04X, %08lx, %d)\n", hMidiIn, lpsegMidiInHdr, uSize);
+ 
++    if (VTIME_On()) { VTIME_MidiInAddBuffer(hMidiIn, lpsegMidiInHdr); return MMSYSERR_NOERROR; }
+     return MMSYSTDRV_Message(HMIDIIN_32(hMidiIn), MIDM_ADDBUFFER, lpsegMidiInHdr, uSize);
+ }
+ 
+@@ -1005,6 +1019,7 @@ UINT16 WINAPI midiInAddBuffer16(HMIDIIN16 hMidiIn,         /* [in] */
+  */
+ UINT16 WINAPI midiInStart16(HMIDIIN16 hMidiIn)
+ {
++    if (VTIME_On()) VTIME_MidiInStarted(hMidiIn, TRUE);
+     return midiInStart(HMIDIIN_32(hMidiIn));
+ }
+ 
+@@ -1013,6 +1028,7 @@ UINT16 WINAPI midiInStart16(HMIDIIN16 hMidiIn)
+  */
+ UINT16 WINAPI midiInStop16(HMIDIIN16 hMidiIn)
+ {
++    if (VTIME_On()) VTIME_MidiInStarted(hMidiIn, FALSE);
+     return midiInStop(HMIDIIN_32(hMidiIn));
+ }
+ 
+@@ -1021,6 +1037,7 @@ UINT16 WINAPI midiInStop16(HMIDIIN16 hMidiIn)
+  */
+ UINT16 WINAPI midiInReset16(HMIDIIN16 hMidiIn)
+ {
++    if (VTIME_On()) VTIME_MidiInReset(hMidiIn);
+     return midiInReset(HMIDIIN_32(hMidiIn));
+ }
+ 
+diff --git a/dlls/mmsystem.dll16/mmsystem.dll16.spec b/dlls/mmsystem.dll16/mmsystem.dll16.spec
+index 66d1e9b..26ceaf8 100644
+--- a/dlls/mmsystem.dll16/mmsystem.dll16.spec
++++ b/dlls/mmsystem.dll16/mmsystem.dll16.spec
+@@ -174,3 +174,7 @@
+ 
+ # these are Wine only exported functions. Is there another way to do it ?
+ 2047   pascal  __wine_mmThreadEntryPoint(long) WINE_mmThreadEntryPoint
++
++# virtual time (vtime.c, WINE_VTIME)
++2000   pascal  VTIMEADVANCE(word) VTIMEADVANCE16
++2001   pascal  VTIMENOW() VTIMENOW16
+diff --git a/dlls/mmsystem.dll16/vtime.c b/dlls/mmsystem.dll16/vtime.c
+new file mode 100644
+index 0000000..2cffd70
+--- /dev/null
++++ b/dlls/mmsystem.dll16/vtime.c
+@@ -0,0 +1,465 @@
++/*
++ * Virtual time for 16-bit programs (the probe's WINE_VTIME mode)
++ *
++ * With WINE_VTIME=1 the 16-bit multimedia timer, the clock and the MIDI devices of this module run
++ * on a virtual millisecond clock instead of the host's, so that a program's timing is exact and
++ * the same on every run:
++ *  - timeGetTime() reads the virtual clock;
++ *  - timeSetEvent() callbacks run on it, in the program's thread;
++ *  - MIDI input comes from the script in $VTIME_INPUT ("<ms> <hex bytes...>" lines, '#' comments,
++ *    the times counted from midiInOpen), delivered to the 16-bit callback at its virtual time;
++ *  - MIDI output and the input delivered go to $VTIME_LOG, one line each, in the fake MIDI port's
++ *    format ("<ms> short|sysex|in <bytes...>").
++ * The clock moves on only when the program says so: VTIMEADVANCE(ms) [MMSYSTEM.2000] moves it on
++ * one millisecond at a time and runs what falls due, the timers first, then the input. The probe
++ * calls it where it waits; a call into a DLL takes no virtual time. VTIMENOW() [MMSYSTEM.2001]
++ * reads the clock, or answers 0xFFFFFFFF when virtual time is off.
++ * Some waits of a program call nothing at all (a loop on a flag that only its timer or MIDI
++ * callback sets, as at interrupt time on Windows 3.1). With VTIME_WATCHDOG=MS the clock also moves
++ * on, from a thread of its own, while the program has not touched it for MS milliseconds of real
++ * time; the callbacks then run on that thread (needs WINE_WIN16_IRQ_CALLBACKS, see
++ * krnl386-irq.patch). A program that computes for that long between waits would see its timer run
++ * at a moment that depends on the host, so the watchdog is only for the suites that need it.
++ *
++ * Copyright 2026 Michael Grossniklaus
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ */
++
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "wine/winbase16.h"
++#include "windef.h"
++#include "winbase.h"
++#include "mmsystem.h"
++#include "wownt32.h"
++#include "winemm16.h"
++#include "wine/debug.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(mmsys);
++
++#define VT_MAX_TIMERS 16
++#define VT_MAX_BUFFERS 64
++
++struct vt_timer
++{
++    BOOL             live;
++    UINT16           id;
++    DWORD            delay;
++    BOOL             periodic;
++    DWORD            next;
++    LPTIMECALLBACK16 func;
++    DWORD            user;
++};
++
++struct vt_input
++{
++    double   time;
++    unsigned len;
++    BYTE     bytes[1024];
++};
++
++static int               vt_state = -1; /* -1 not read yet, 0 off, 1 on */
++static DWORD             vt_now;
++static HANDLE            vt_log = INVALID_HANDLE_VALUE;
++static struct vt_timer   vt_timers[VT_MAX_TIMERS];
++static UINT16            vt_next_id = 0x100;
++static int               vt_depth; /* in a callback: the clock does not move */
++static unsigned          vt_polls; /* timeGetTime calls at the same time */
++/* MIDI input */
++static struct vt_input  *vt_inputs;
++static unsigned          vt_ninputs, vt_next_input;
++static HMIDIIN16         vt_in_handle;
++static DWORD             vt_in_callback, vt_in_instance;
++static BOOL              vt_in_open, vt_in_started;
++static DWORD             vt_in_opened, vt_in_start;
++static SEGPTR            vt_in_buffers[VT_MAX_BUFFERS];
++static unsigned          vt_in_nbuffers;
++/* MIDI output: the device of each handle, for the port in the log */
++static HMIDIOUT16        vt_out_handles[8];
++static UINT16            vt_out_devices[8];
++static BOOL              vt_two_outputs;
++/* the watchdog */
++static CRITICAL_SECTION  vt_cs;
++static volatile DWORD    vt_touched; /* real time of the program's last use of the clock */
++static DWORD             vt_stall;   /* VTIME_WATCHDOG, 0 for none */
++
++static HANDLE open_unix(const char *path, BOOL write)
++{
++    char dos[MAX_PATH];
++    snprintf(dos, sizeof(dos), "Z:%s", path);
++    for (char *c = dos; *c; c++) if (*c == '/') *c = '\\';
++    return CreateFileA(dos, write ? GENERIC_WRITE : GENERIC_READ, FILE_SHARE_READ, NULL,
++                       write ? CREATE_ALWAYS : OPEN_EXISTING, 0, NULL);
++}
++
++static void vt_write(const char *line)
++{
++    DWORD written;
++    if (vt_log != INVALID_HANDLE_VALUE) WriteFile(vt_log, line, strlen(line), &written, NULL);
++}
++
++static void vt_step(void);
++
++static void vt_touch(void)
++{
++    vt_touched = GetTickCount();
++}
++
++static DWORD WINAPI vt_watchdog(void *arg)
++{
++    for (;;)
++    {
++        Sleep(1);
++        if (GetTickCount() - vt_touched < vt_stall) continue;
++        EnterCriticalSection(&vt_cs);
++        if (vt_depth == 0) vt_step();
++        LeaveCriticalSection(&vt_cs);
++    }
++    return 0;
++}
++
++static void vt_load_input(const char *path)
++{
++    HANDLE f = open_unix(path, FALSE);
++    DWORD size, got;
++    char *text, *line, *next;
++
++    if (f == INVALID_HANDLE_VALUE) { ERR("cannot open %s\n", path); return; }
++    size = GetFileSize(f, NULL);
++    text = HeapAlloc(GetProcessHeap(), 0, size + 1);
++    ReadFile(f, text, size, &got, NULL);
++    CloseHandle(f);
++    text[got] = 0;
++    vt_inputs = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(*vt_inputs) * (got / 4 + 1));
++    for (line = text; line && *line; line = next)
++    {
++        struct vt_input *in = &vt_inputs[vt_ninputs];
++        char *p, *end;
++        next = strchr(line, '\n');
++        if (next) *next++ = 0;
++        if ((p = strchr(line, '#'))) *p = 0;
++        in->time = strtod(line, &end);
++        if (end == line) continue;
++        p = end;
++        while (in->len < sizeof(in->bytes))
++        {
++            unsigned long v = strtoul(p, &end, 16);
++            if (end == p) break;
++            in->bytes[in->len++] = (BYTE)v;
++            p = end;
++        }
++        if (in->len) vt_ninputs++;
++    }
++    HeapFree(GetProcessHeap(), 0, text);
++    /* in time order, keeping the order of equal times */
++    for (unsigned i = 1; i < vt_ninputs; i++)
++        for (unsigned j = i; j > 0 && vt_inputs[j - 1].time > vt_inputs[j].time; j--)
++        {
++            struct vt_input t = vt_inputs[j];
++            vt_inputs[j] = vt_inputs[j - 1];
++            vt_inputs[j - 1] = t;
++        }
++}
++
++BOOL VTIME_On(void)
++{
++    if (vt_state < 0)
++    {
++        const char *on = getenv("WINE_VTIME"), *log = getenv("VTIME_LOG"), *in = getenv("VTIME_INPUT");
++        const char *outs = getenv("FAKESEQ_OUTPUTS");
++        vt_state = on && *on && *on != '0';
++        if (vt_state)
++        {
++            if (log && *log) vt_log = open_unix(log, TRUE);
++            if (in && *in) vt_load_input(in);
++            vt_two_outputs = outs && atoi(outs) == 2;
++            InitializeCriticalSection(&vt_cs);
++            vt_touch();
++            if ((vt_stall = getenv("VTIME_WATCHDOG") ? atoi(getenv("VTIME_WATCHDOG")) : 0))
++                CloseHandle(CreateThread(NULL, 0, vt_watchdog, NULL, 0, NULL));
++        }
++    }
++    return vt_state > 0;
++}
++
++DWORD VTIME_Now(void)
++{
++    return vt_now;
++}
++
++/* ---- the timers ---- */
++
++UINT16 VTIME_SetEvent(UINT16 delay, LPTIMECALLBACK16 func, DWORD user, UINT16 flags)
++{
++    char line[96];
++    for (int i = 0; i < VT_MAX_TIMERS; i++)
++    {
++        struct vt_timer *t = &vt_timers[i];
++        if (t->live) continue;
++        t->live = TRUE;
++        t->id = vt_next_id++;
++        t->delay = delay ? delay : 1;
++        t->periodic = (flags & TIME_PERIODIC) != 0;
++        t->next = vt_now + t->delay;
++        t->func = func;
++        t->user = user;
++        snprintf(line, sizeof(line), "%lu.000 timer set %u %lu %s\n", vt_now, t->id, t->delay,
++                 t->periodic ? "periodic" : "once");
++        vt_write(line);
++        return t->id;
++    }
++    return 0;
++}
++
++UINT16 VTIME_KillEvent(UINT16 id)
++{
++    char line[64];
++    for (int i = 0; i < VT_MAX_TIMERS; i++)
++        if (vt_timers[i].live && vt_timers[i].id == id)
++        {
++            vt_timers[i].live = FALSE;
++            snprintf(line, sizeof(line), "%lu.000 timer kill %u\n", vt_now, id);
++            vt_write(line);
++            return TIMERR_NOERROR;
++        }
++    return MMSYSERR_INVALPARAM;
++}
++
++static void vt_fire(struct vt_timer *t)
++{
++    WORD args[8];
++    DWORD ret;
++    UINT16 id = t->id;
++    LPTIMECALLBACK16 func = t->func;
++    DWORD user = t->user;
++
++    if (t->periodic) t->next += t->delay;
++    else t->live = FALSE;
++    args[7] = id;
++    args[6] = 0;
++    args[5] = HIWORD(user);
++    args[4] = LOWORD(user);
++    args[3] = 0;
++    args[2] = 0;
++    args[1] = 0;
++    args[0] = 0;
++    vt_depth++;
++    WOWCallback16Ex((DWORD)func, WCB16_PASCAL, sizeof(args), args, &ret);
++    vt_depth--;
++}
++
++/* ---- MIDI input ---- */
++
++void VTIME_MidiInOpened(HMIDIIN16 h, DWORD callback, DWORD instance)
++{
++    vt_in_handle = h;
++    vt_in_callback = callback;
++    vt_in_instance = instance;
++    vt_in_open = TRUE;
++    vt_in_started = FALSE;
++    vt_in_opened = vt_now;
++    vt_in_nbuffers = 0;
++    vt_next_input = 0;
++}
++
++void VTIME_MidiInClosed(HMIDIIN16 h)
++{
++    if (h == vt_in_handle) vt_in_open = vt_in_started = FALSE;
++}
++
++void VTIME_MidiInStarted(HMIDIIN16 h, BOOL started)
++{
++    if (h != vt_in_handle) return;
++    if (started && !vt_in_started) vt_in_start = vt_now;
++    vt_in_started = started;
++}
++
++static void vt_in_callback16(UINT16 msg, DWORD p1, DWORD p2)
++{
++    WORD args[8];
++    args[7] = vt_in_handle;
++    args[6] = msg;
++    args[5] = HIWORD(vt_in_instance);
++    args[4] = LOWORD(vt_in_instance);
++    args[3] = HIWORD(p1);
++    args[2] = LOWORD(p1);
++    args[1] = HIWORD(p2);
++    args[0] = LOWORD(p2);
++    vt_depth++;
++    WOWCallback16Ex(vt_in_callback, WCB16_PASCAL, sizeof(args), args, NULL);
++    vt_depth--;
++}
++
++/* a buffer given back to the program, with what it holds */
++static void vt_buffer_done(DWORD recorded)
++{
++    SEGPTR seg = vt_in_buffers[0];
++    LPMIDIHDR16 hdr = MapSL(seg);
++    memmove(vt_in_buffers, vt_in_buffers + 1, --vt_in_nbuffers * sizeof(SEGPTR));
++    hdr->dwBytesRecorded = recorded;
++    hdr->dwFlags = (hdr->dwFlags & ~MHDR_INQUEUE) | MHDR_DONE;
++    vt_in_callback16(MIM_LONGDATA, seg, vt_now - vt_in_start);
++}
++
++void VTIME_MidiInAddBuffer(HMIDIIN16 h, SEGPTR seg)
++{
++    LPMIDIHDR16 hdr = MapSL(seg);
++    if (h != vt_in_handle || vt_in_nbuffers >= VT_MAX_BUFFERS) return;
++    hdr->dwFlags = (hdr->dwFlags & ~MHDR_DONE) | MHDR_INQUEUE;
++    hdr->dwBytesRecorded = 0;
++    vt_in_buffers[vt_in_nbuffers++] = seg;
++}
++
++/* midiInReset: every buffer comes back, empty */
++void VTIME_MidiInReset(HMIDIIN16 h)
++{
++    if (h != vt_in_handle) return;
++    vt_in_started = FALSE;
++    while (vt_in_nbuffers) vt_buffer_done(0);
++}
++
++static void vt_deliver(const struct vt_input *in)
++{
++    char line[64 + 3 * sizeof(in->bytes)];
++    int n = snprintf(line, sizeof(line), "%lu.000 in", vt_now);
++    for (unsigned i = 0; i < in->len; i++) n += snprintf(line + n, sizeof(line) - n, " %02x", in->bytes[i]);
++    snprintf(line + n, sizeof(line) - n, "\n");
++    vt_write(line);
++    if (!vt_in_started) return;
++    if (in->bytes[0] == 0xf0)
++    {
++        /* system exclusive: as much as each buffer holds, in the order they were added */
++        unsigned at = 0;
++        while (at < in->len && vt_in_nbuffers)
++        {
++            LPMIDIHDR16 hdr = MapSL(vt_in_buffers[0]);
++            BYTE *data = MapSL((SEGPTR)hdr->lpData);
++            unsigned n = min(in->len - at, (unsigned)hdr->dwBufferLength);
++            memcpy(data, in->bytes + at, n);
++            at += n;
++            vt_buffer_done(n);
++        }
++        return;
++    }
++    vt_in_callback16(MIM_DATA, in->bytes[0] | (in->len > 1 ? in->bytes[1] << 8 : 0) |
++                                   (in->len > 2 ? in->bytes[2] << 16 : 0),
++                     vt_now - vt_in_start);
++}
++
++/* ---- MIDI output ---- */
++
++void VTIME_MidiOutOpened(HMIDIOUT16 h, UINT16 device)
++{
++    for (int i = 0; i < 8; i++)
++        if (!vt_out_handles[i] || vt_out_handles[i] == h)
++        {
++            vt_out_handles[i] = h;
++            vt_out_devices[i] = device;
++            return;
++        }
++}
++
++static const char *vt_port(HMIDIOUT16 h)
++{
++    if (!vt_two_outputs) return "";
++    for (int i = 0; i < 8; i++)
++        if (vt_out_handles[i] == h) return vt_out_devices[i] ? "@2" : "@0"; /* the fake's port numbers */
++    return "";
++}
++
++void VTIME_MidiOutShort(HMIDIOUT16 h, DWORD msg)
++{
++    char line[96];
++    BYTE status = LOBYTE(msg);
++    unsigned len = 3;
++    if (status >= 0xf0) len = (status == 0xf1 || status == 0xf3) ? 2 : status == 0xf2 ? 3 : 1;
++    else if ((status & 0xe0) == 0xc0) len = 2;
++    if (len == 1) snprintf(line, sizeof(line), "%lu.000 short%s %02x\n", vt_now, vt_port(h), status);
++    else if (len == 2) snprintf(line, sizeof(line), "%lu.000 short%s %02x %02lx\n", vt_now, vt_port(h), status, (msg >> 8) & 0xff);
++    else snprintf(line, sizeof(line), "%lu.000 short%s %02x %02lx %02lx\n", vt_now, vt_port(h), status, (msg >> 8) & 0xff, (msg >> 16) & 0xff);
++    vt_write(line);
++}
++
++void VTIME_MidiOutLong(HMIDIOUT16 h, SEGPTR seg)
++{
++    LPMIDIHDR16 hdr = MapSL(seg);
++    BYTE *data = MapSL((SEGPTR)hdr->lpData);
++    DWORD len = hdr->dwBufferLength;
++    char *line = HeapAlloc(GetProcessHeap(), 0, 64 + 3 * len);
++    int n = snprintf(line, 64, "%lu.000 sysex%s", vt_now, vt_port(h));
++    for (DWORD i = 0; i < len; i++) n += sprintf(line + n, " %02x", data[i]);
++    strcpy(line + n, "\n");
++    vt_write(line);
++    HeapFree(GetProcessHeap(), 0, line);
++}
++
++/* ---- the clock ---- */
++
++/* one millisecond on: the timers due, then the input due */
++static void vt_step(void)
++{
++    vt_now++;
++    vt_polls = 0;
++    for (;;)
++    {
++        struct vt_timer *due = NULL;
++        for (int i = 0; i < VT_MAX_TIMERS; i++)
++            if (vt_timers[i].live && vt_timers[i].next <= vt_now &&
++                (!due || vt_timers[i].next < due->next || (vt_timers[i].next == due->next && vt_timers[i].id < due->id)))
++                due = &vt_timers[i];
++        if (!due) break;
++        vt_fire(due);
++    }
++    while (vt_in_open && vt_next_input < vt_ninputs &&
++           vt_in_opened + vt_inputs[vt_next_input].time <= (double)vt_now)
++        vt_deliver(&vt_inputs[vt_next_input++]);
++}
++
++/* timeGetTime: a program that waits in a loop on the clock alone, without the probe's waits,
++ * moves it on after many reads (none of TTSSEQ's waits do so; they call the program back) */
++DWORD VTIME_GetTime(void)
++{
++    DWORD now;
++    EnterCriticalSection(&vt_cs);
++    if (vt_depth == 0)
++    {
++        vt_touch();
++        if (++vt_polls > 100000) vt_step();
++    }
++    now = vt_now;
++    LeaveCriticalSection(&vt_cs);
++    return now;
++}
++
++/**************************************************************************
++ *                              VTIMEADVANCE    [MMSYSTEM.2000]
++ */
++void WINAPI VTIMEADVANCE16(UINT16 ms)
++{
++    if (!VTIME_On()) return;
++    EnterCriticalSection(&vt_cs);
++    if (vt_depth == 0) /* in a callback: an interrupt does not wait */
++    {
++        vt_touch();
++        while (ms--) vt_step();
++        vt_touch();
++    }
++    LeaveCriticalSection(&vt_cs);
++}
++
++/**************************************************************************
++ *                              VTIMENOW        [MMSYSTEM.2001]
++ */
++DWORD WINAPI VTIMENOW16(void)
++{
++    if (!VTIME_On()) return 0xffffffff;
++    if (vt_depth == 0) vt_touch();
++    return vt_now;
++}
+diff --git a/dlls/mmsystem.dll16/winemm16.h b/dlls/mmsystem.dll16/winemm16.h
+index e76ee34..657a4a4 100644
+--- a/dlls/mmsystem.dll16/winemm16.h
++++ b/dlls/mmsystem.dll16/winemm16.h
+@@ -79,6 +79,21 @@ extern  void                    MMSYSTDRV_SetHandle(struct mmsystdrv_thunk* thun
+ extern  void                    MMSYSTDRV_CloseHandle(void* h);
+ extern  DWORD                   MMSYSTDRV_Message(void* h, UINT msg, DWORD_PTR param1, DWORD_PTR param2);
+ 
++/* vtime.c: virtual time (WINE_VTIME) */
++extern  BOOL                    VTIME_On(void);
++extern  DWORD                   VTIME_Now(void);
++extern  DWORD                   VTIME_GetTime(void);
++extern  UINT16                  VTIME_SetEvent(UINT16 delay, LPTIMECALLBACK16 func, DWORD user, UINT16 flags);
++extern  UINT16                  VTIME_KillEvent(UINT16 id);
++extern  void                    VTIME_MidiInOpened(HMIDIIN16 h, DWORD callback, DWORD instance);
++extern  void                    VTIME_MidiInClosed(HMIDIIN16 h);
++extern  void                    VTIME_MidiInStarted(HMIDIIN16 h, BOOL started);
++extern  void                    VTIME_MidiInAddBuffer(HMIDIIN16 h, SEGPTR seg);
++extern  void                    VTIME_MidiInReset(HMIDIIN16 h);
++extern  void                    VTIME_MidiOutOpened(HMIDIOUT16 h, UINT16 device);
++extern  void                    VTIME_MidiOutShort(HMIDIOUT16 h, DWORD msg);
++extern  void                    VTIME_MidiOutLong(HMIDIOUT16 h, SEGPTR seg);
++
+ #define WINE_MMTHREAD_CREATED	0x4153494C	/* "BSIL" */
+ #define WINE_MMTHREAD_DELETED	0xDEADDEAD
+ 

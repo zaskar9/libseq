@@ -59,7 +59,7 @@ names table, next to the exports) reads "Twelve Tone Systems Seqencer Engine", w
 | `SeqWire(1)` | 2.10 opens the MIDI port only when called before `SeqOpen` (Cakewalk Apprentice 1.04 does) [probe] |
 | `SeqOpen(0, 0)` | opens the configured ports; returns 1 on 1.01 and 0 on 2.10/3.00 when it works [probe] |
 | `SeqIdle()` | called from the program's message loop; returns 1 once when playback has reached the end, and the engine sends its stop output then [trace, probe] |
-| `SeqClose()` | sends All Sound Off (CC 120) and sustain off (CC 64 = 0) on every channel [probe] |
+| `SeqClose()` | sends nothing itself in 1.01. The All Sound Off (CC 120) and sustain off (CC 64 = 0) on every channel seen on the host's clock come from Wine's ALSA driver resetting the port (`midiOutReset`); in virtual time they are gone [probe, virtual time] |
 
 On opening its port each engine sends Local Control Off (CC 122 = 0) on all 16 channels
 [probe]. 2.10 and 3.00 skip a port whose manufacturer ID is 255; 1.01 does not [probe].
@@ -292,7 +292,8 @@ unless noted [probe]:
 - The engine knows which notes are on. A note-off (0x8n, or 0x9n with velocity 0) goes out only
   for a note that is on; for a note that is not on nothing is sent, but the result is still 1.
   A second note-on for a note that is on first sends a note-on with velocity 0. A note left on is
-  not turned off by `SeqClose`, which sends "all sound off" (controller 120) instead.
+  not turned off by `SeqClose` (on the host's clock Wine's driver sends "all sound off",
+  controller 120, when the port closes).
 - Result 1 when sent; 0, and nothing sent, for pitch wheel (0xEn, whatever the data), statuses
   below 0x80 or above 0xEF, channels above 15, and data bytes above 0x7F. So the panic's pitch
   wheel reset never goes out.
@@ -322,8 +323,9 @@ What comes in is echoed to the output, with the scripted input of the fake port 
   and the record filter (parameter 28) does not apply.
 - Port: parameter 8 (a port that does not exist gets nothing). Channel: with parameter 9 at 0 or
   more it is ORed into the status's high nibble, so 16 turns a program change (C2) into channel
-  pressure (D0), key pressure into a controller and pitch wheel into F0, which is not sent; -1
-  keeps the channel.
+  pressure (D0), key pressure into a controller and pitch wheel into F0. The F0 goes to
+  `midiOutShortMsg` as it is; Wine's ALSA driver drops it, and virtual time logs its status byte
+  [virtual time, suite `thru`]. -1 keeps the channel.
 - Key+ (10) moves the keys of notes and key pressure, folded into 0 to 127 by octaves (0x43 - 100
   gives 3). Vel+ (11) moves the velocity of note-ons and keeps it within 1 to 127; note-offs keep
   theirs.
@@ -489,19 +491,12 @@ single runs of `tools/ttsprobe/sweep/mtcexp.py`]:
   does not chase the new time. 1.01 and 2.10 stop at any jump, even of 2 frames forward or back.
   3.00 follows a jump of 2 frames (one code word skipped or repeated) and stops at 4 frames or
   more, a little later than the others (Now 3215 against 3180 for a jump at 13 s).
-- The details, as libseq reproduces suite `mtc` and the time code of suites `sync` and
-  `options1` (1.01): the engine takes code once it has read two labels one after the other (the
-  lock output goes out at the second, about 145 ms after the code begins). Now at the lock is the
-  run's first label plus `ChaseDelay` plus 0.25 to 0.37 s, rounded down to a MIDI beat while Song
-  Position is on (as every start): 12.25 s for code from 10 s, and 125.375 s for code from
-  2:03:04 at 30 fps. The 4096 quarter notes are counted at the same time. After a jump the
-  playback runs on to where the code should have been plus the same 0.25 to 0.37 s, again
-  rounded (13.25 s for a jump at 13 s), and ends there; when the code stops it runs on
-  `FlywheelAmount` past the last quarter frame. A jump is a label that is not two frames after
-  the last one, also when a group starts again with a quarter frame 0 before its eighth came.
-  Code that jumps during the chase is locked to again: the lock output goes out once more, and
-  the callback goes on with (4, ...). A start that gives up (the callback returns non-zero, with
-  MIDI sync or time code) sends the stop output.
+- The details of 1.01, to the millisecond, are under "Timing" below: how the decoder counts the
+  code, when the lock output goes out, when the chase ends, Now at the start (a MIDI beat past
+  the code), the position while following, the flywheel and the stop after a jump. Code that
+  jumps during the chase is locked to again: the lock output goes out once more, and the
+  callback goes on with (4, ...). A start that gives up (the callback returns non-zero, with MIDI
+  sync or time code) sends the stop output.
 - Cakewalk Professional for Windows (the demo, 1.01) sets these from its Time format dialog:
   `SeqSetFPS(seq, rate)`, then `SeqHMSF2Frame(seq, h, m, s, f, 0)` and `SeqSetFrameOfs(seq,
   frames)` for the offset [trace].
@@ -549,7 +544,7 @@ So the probe can replace the manual 86Box captures for engine questions, on all 
 libseq's player (`src/playback.cpp`) carries over the rules of libseq 0.8.1's engine, which came
 from the 86Box captures and matched the probe for every test song. The suites check it against
 1.01: each `play_*` suite, `transport` and `eventkinds` must give the same MIDI messages in the same
-order, at times within 40 ms of the DLL's, counted from the call they follow. The rules:
+order at the same milliseconds (Timing, below). The rules:
 
 - Start: the Song Position Pointer (with parameter 4, after rounding the start down to a MIDI
   beat); the patch, volume and pan of every stream that is not muted or archived and has events,
@@ -576,8 +571,9 @@ order, at times within 40 ms of the DLL's, counted from the call they follow. Th
   controller 121 on every channel.
 - Ports that do not exist get nothing.
 
-The engine's timer runs every 10 ms (`TimerPeriod`) and sends what has become due. Under Wine the
-DLL's timer comes up to about 30 ms late now and then; the comparison allows for that.
+The engine's timer runs every 10 ms (`TimerPeriod`) and sends what has become due; when exactly
+is under "Timing" below. (On the host's clock the DLL's timer came up to about 30 ms late now and
+then, and the suites had to allow for that; in virtual time they do not.)
 
 ## Input, recording and sync in libseq (1.01)
 
@@ -586,12 +582,168 @@ The platform interface hands every message that comes in to the engine (`Engine:
 sync and time code, a sysex receive, the gap between sysex packets) by calling `Platform::wait`
 on every turn, where the host lets time pass and its timer and input run. The runner plays the
 suite's input script from `SeqOpen` on and lets one millisecond pass per turn. The suites
-`thru`, `midiout`, `record`, `punch`, `param3`, `steprec`, `sysexin`, `sync` and `mtc` pass with
-their MIDI.
+`thru`, `midiout`, `record`, `punch`, `param3`, `steprec`, `sync`, `mtc`, `mtcbreaks` and
+`countins` pass with their MIDI, and `sysexin` with its MIDI compared without times (it runs on
+the host's clock; see Timing).
 
-The ticks of what is recorded after a count-in depend on when Wine handed the input to the DLL,
-some 15 to 35 ms off; the runner lets them differ by 8 ticks (the record suite's `#! slack 8`).
-The echoes of the thru are compared from `SeqOpen` on, as the input script counts.
+In virtual time the input reaches the DLL at its scripted millisecond, so the ticks recorded
+after a count-in and the echoes of the thru are compared exactly, counted from `SeqOpen` as the
+input script counts. (On the host's clock they had been some 15 to 35 ms off, and the runner had
+let the ticks differ by 8.)
+
+## Timing (1.01, in virtual time)
+
+Under Wine the DLL's timer and MIDI input ran on the host's clock, a few milliseconds off from
+run to run, so the suites could only compare times within a margin. With Wine's 16-bit MMSYSTEM
+in virtual time (`tools/ttsprobe/wine/mmsystem16-vtime.patch`, `WINE_VTIME=1`) the DLL's timer,
+its clock (`timeGetTime`) and the MIDI devices run on a millisecond clock that moves only where
+the probe waits (`sleep`, `idle`, and a callback that yields moves it one millisecond). A call
+into the DLL takes no time. At each millisecond the timers that are due run first, then the
+input that is due is delivered. Every run then gives the same output to the millisecond, and an
+experiment can put a call or an input at any millisecond it likes.
+
+The rules below are a reconstruction of the DLL's timing algorithm from such experiments. Each
+reproduces the DLL in every case tried; for each rule the experiments that force it are named,
+with the obvious alternatives they rule out. libseq implements them (`src/clock.hpp`,
+`src/playback.cpp`, `src/sync.cpp`, `src/record.cpp`), and its runner reproduces every 1.01
+suite at the exact millisecond, plus 198 experiment runs made while finding the rules (one input
+per millisecond over 500 ms, event grids of 1, 7, 23 and 30 ticks, every millisecond phase of
+calls and code). Ticks below are at 120 ppq; a MIDI clock (`clk`) is ppq / 24 ticks.
+
+### The clock
+
+- The engine keeps one tick counter, E: the playback position while playing, a free running
+  clock while stopped. Its timer runs every `TimerPeriod` ms (10). At each run E moves on by the
+  whole ticks since the last run and keeps the rest.
+- A tick lasts the microseconds of a quarter note at the tempo there, rounded as the tempo map
+  rounds them, divided by ppq: exact ticks (60,000,000 / bpm / ppq) put FURELISE 10 ms off.
+  Across a tempo change the time past the change counts at the new tick (ENG_TMPO); counting the
+  time since the last run at one tempo does not fit.
+- When the timer starts (`SeqOpen`, `SeqSetPlayingSeq`, every load) the next run counts from one
+  tick before that moment. Seen in 2.10's MIDI clock output, which follows E (F8 at every run
+  where E / clk grows: periods 7, 10, 13 and 20 ms, 100 and 120 bpm), and in every count-in.
+- E starts at 0 at the first `SeqOpen` and carries over `SeqClose` and the next `SeqOpen` (a
+  hundred close and open cycles at every millisecond phase; suite `countins`). Starting again at
+  every `SeqOpen` puts the second cycle's first click 10 ms early.
+- A playback start sets E to the start and counts from the last run. A stop (playback or
+  recording) counts on from one tick before the last run; when no run came since the start, the
+  clock stays as the start set it. Seen through the count-ins that follow plays of 1 to 60 ms
+  (246 count-ins, and suite `countins`): with the plain rule, the click after a play of 1 ms ends
+  10 ms early.
+- Within a run: E moves on, the run's sync input is taken (MIDI clock, Start, Stop, Song
+  Position, time code), what is due goes out (events, metronome, count-in), and then the run's
+  channel messages are taken (the thru echo and the take). A click and an echo at the same run
+  come in that order (recordings from Now 0, 7 and 1000).
+- Input that arrives at a millisecond is taken at the next run after it; input at the same
+  millisecond as a run waits for the following one.
+
+### Playback
+
+- At each run every event at a tick up to E goes out (event grids of 1, 7, 23 and 30 ticks,
+  starts at every millisecond, 100 and 120 bpm). The start call itself sends no events.
+- `SeqGetNow`: the tick of the last event played; while nothing plays it moves on in whole MIDI
+  clocks, Now + clk × floor((E - Now) / clk), also past the end until `SeqIdle` reports the end
+  (a one-event song played 26 ms gives Now 5).
+- The auto-shuttle wraps at its stop: E goes back by the loop's length and one tick more, keeping
+  the rest, and the events after the rewind time play in the same run (E3_SHTL).
+- `SeqClose` sends nothing itself. The All Sound Off and sustain off on every channel seen before
+  came from Wine's ALSA driver (`midiOutReset`), which virtual time leaves out.
+
+### The count-in (parameter 16)
+
+- A second counter, P, decides the end: P = E plus an offset. The first `SeqCreateSeq` sets the
+  offset so that P is -1; a count-in's end and a playback start set P to E. The offset carries
+  over `SeqClose` and `SeqOpen` like E.
+- At the call the target is (trunc(P / clk) + 1) × clk + the count-in's length - clk, with C's
+  truncation toward zero (P = -1 gives clk, not 0).
+- The count-in begins at the first run after the call where E / clk (rounded down) is greater
+  than at the end of the run before; a playback start in between does not change that value.
+- Clicks: at the begin when trunc(Now / clk) is a multiple of a beat's clocks; then at every run
+  where E / clk grows and (E / clk - begin + trunc(Now / clk)) is a multiple of them. So the
+  clicks fall on Now's beats (Now 0 to 500, 37 values; and Now after a play). A click ends 23
+  clocks after it began.
+- The callback's beats left count down from the begin, one per beat, whatever Now does to the
+  clicks: with Now one clock off a beat the last click comes at the end, and (1, 0) is still
+  called before it. Counting the clicks instead loses that call.
+- It ends at the first run where P reaches the target. Then E and P start again at -1, counting
+  from one tick before that run, and the take's position is E plus the start (Now, rounded down to
+  a MIDI beat with Song Position). Seen in the stamps of input after the count-in: from Now 1000
+  with Song Position the take begins at 990, without it at 1000, and the stamps after the start
+  are the same as from Now 0 (suite `countins`). Setting E to the start - 1 gives the same stamps
+  but begins the next count-in one run late and ends its clicks 10 ms early (Now 2 to 500, 38
+  count-ins).
+- A click still sounding at the end goes off in the take, as many MIDI clocks after its start as
+  it had left, less one (Now 1000).
+- 3,568 count-ins at 100 and 120 bpm, after plays and stops at every phase, reproduce at the
+  millisecond with these rules.
+
+### Recording
+
+- Input is taken at the next run and stamped with the take's position at that run; during the
+  count-in with the start (1,002 of 1,002 inputs, one per millisecond).
+- The take needs a stream of its own. With 256 streams in the sequence (256 takes without a
+  cleanup) `SeqRecordStart` answers 0, sends the Song Position all the same, and records nothing.
+
+### Following MIDI clock (source 1)
+
+- Input is taken at runs, as above. Start or Continue: the start call returns after that run;
+  the position is 0, or the last Song Position received while stopped. Clocks taken in the same
+  run as the Start are held for the next clock.
+- Each clock, one by one: the position moves on ppq / 24 ticks and the events before it go out at
+  that run; Now becomes the last event sent, else Now + ppq / 24 (not for the first clock after
+  the start). Runs without a clock send nothing.
+- Stop: All Notes Off at the run that takes it (sent through `SeqIdle`); Now stays.
+- 19 runs with clocks 1 to 37 ms apart at random, events every 1, 7 or 23 ticks: every event and
+  every Now reading at the millisecond.
+
+### Following MIDI Time Code (source 3, 30 fps)
+
+- The decoder counts in groups of two frames. A quarter frame's code time, in quarter frames, is
+  8 G + 4 b + its piece, where G is the group the decoder expects and b the low bit of the frames
+  of the last label read (taken over at piece 1). G moves on by one at a piece 0 that follows a
+  piece 7. A piece 0 inside a group (after its pieces 0 to e - 1) starts the next group at the
+  nearest group start: G moves on by one when e is 4 or more, and not otherwise; that piece 0's
+  own time is one quarter frame after the last one. At piece 7 the label is compared with G at
+  group resolution (suite `mtcbreaks`: groups broken after 0, 1, 2, 4, 6 and 7 pieces, with the
+  next label 0, 2 and 4 frames on).
+- The lock: once two labels in a row were read, the run that takes the next quarter frame (the
+  piece 0 after the second label) sends the patch, volume and pan of the streams and the Song
+  Position of the start ahead (below, for the label's time plus `ChaseDelay`); from then on the
+  callback gets (4, ...). With code 1.5 times too fast the piece 0 comes in the same run as the
+  label, and so does the lock output. Locking at the label's run instead is 10 ms early for code
+  at normal speed.
+- The chase ends at the first run whose first quarter frame lies `ChaseDelay` of code (240
+  quarter frames for 2 s) after the second label's last quarter frame, once the next quarter
+  frame would lie at or after the SMPTE offset; the start call returns after that run (code from
+  10:00 at 20 phases; code from 17:00 with offset 20:00). Measuring from the latest quarter frame
+  of the run, or from the lock's run, misses 2 to 16 of the 20 phases.
+- Now at the start: T = the code time of that run's first quarter frame in ticks, and Now =
+  (floor(T / beat) + 1) × beat with beat = ppq / 4; 0 for code at or before the offset. This
+  replaces the 0.25 to 0.37 s past `ChaseDelay` seen before: the lead is between 0 and one MIDI
+  beat, whatever the code's phase.
+- Following: at each run with code the position is the code time of the run's first quarter
+  frame, rounded to the nearest tick, and the events up to it go out. After the run the clock goes
+  on from the run's last quarter frame, with its fraction of a tick. 4,868 follow runs and 17,394
+  positions at 100 and 120 bpm, every arrival phase.
+- When the code stops the clock runs on, and the playback stops (All Notes Off) at the first run
+  where it has passed the last code time plus `FlywheelAmount`, after that run's events.
+- A label whose group differs from G is a jump. The decoder goes on with the group it expected,
+  and the playback stops at the run that takes the 24th quarter frame after the jump group's
+  piece 0, after what that run plays. While following, the label of a group that began inside
+  another is not read, so such a jump stops the playback one group later (jumps of -60 to +60
+  frames; breaks inside a group). Comparing that label too stops it a group early; dropping the
+  group altogether also drops it in the chase, where code that comes back after a pause locks a
+  group late.
+- During the chase a label that differs is taken as the new code, and the lock waits for two
+  labels again; the lock output goes out once more.
+
+### What is still open here
+
+- 2.10 and 3.00 in virtual time (2.10's MIDI clock output already agrees with the clock above).
+- Other meters and resolutions for the count-in; 24, 25 and 29.97 fps time code at every phase.
+- `SeqReceiveSysxBank` hangs in virtual time (a wait that calls nothing after a `midiInReset`
+  inside the receive), so suite `sysexin` stays on the host's clock and its MIDI is compared
+  without times.
 
 ## Locate delay
 
@@ -1209,8 +1361,8 @@ function the oracle suites call, found by trying layouts through the probe. Note
   ("Reject Loop Take", `SeqCancelLoopRecordTake`, `SeqEnumRecordStreams`).
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
-- MIDI Time Code: where exactly the 0.25 to 0.37 s past `ChaseDelay` at the lock, and past a jump,
-  come from (libseq takes 0.3 s).
+- Timing in virtual time: 2.10 and 3.00; other meters and resolutions for the count-in; time code
+  at 24, 25 and 29.97 fps at every phase; `SeqReceiveSysxBank`, which hangs in virtual time.
 - MIDI thru: what tells mode 1 (manual) from mode 2 (auto); both echo everything in the probes.
 - Recording: which note a note-off ends when the same key is held twice (libseq: the last one
   started, as in MIDI files); what the third word of `SeqRecordCleanup` does.

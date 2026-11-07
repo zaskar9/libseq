@@ -622,10 +622,8 @@ def _():
 
 @suite('record')
 def _():
-    # input script IN3.TXT: times from the moment the engine connects to the input (SeqOpen). The
-    # ticks of what comes in after the count-in depend on when Wine delivers it: the script runner
-    # lets them differ by 8 ticks (40 ms at 100 bpm and 120 ppq).
-    L = ['#! input IN3.TXT', '#! secs 40', '#! slack 8', '@open', 'call.w SEQCREATESEQ 0000 0000',
+    # input script IN3.TXT: times from the moment the engine connects to the input (SeqOpen).
+    L = ['#! input IN3.TXT', '#! secs 40', '@open', 'call.w SEQCREATESEQ 0000 0000',
          'call.w SEQSETSEQPARAM 0001 0010 d:00000001', 'sleep 800',
          'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'cbret 0', 'cbyield 1']
     L += ['?101,210 call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3',
@@ -777,7 +775,9 @@ def _():
     # SeqReceiveSysxBank(bank, callback, 0, 0, 0): collects incoming sysex into the bank until the
     # callback, called over and over with (bytes received, free memory) as two dwords, returns
     # non-zero. The input script sends the messages; cbretafter makes the callback say stop.
-    L = ['#! input SYSX.TXT', '#! secs 45', '@open', 'buf 0 192', 'cbmask c', 'cbyield 1',
+    # The suite runs on the host's clock: in virtual time the DLL's receive hangs (a wait that
+    # calls nothing after midiInReset), so its MIDI is compared without times.
+    L = ['#! input SYSX.TXT', '#! secs 45', '#! realtime', '@open', 'buf 0 192', 'cbmask c', 'cbyield 1',
          '@load ENG_SYSX.WRK', 'call.w SEQCREATESYSXBANK 0001', 'let 1']
 
     def show():
@@ -1396,6 +1396,109 @@ def mtc_input():
     return L
 
 
+# MIDI Time Code that breaks off inside a group while the playback follows it (input MTCBRK.TXT):
+# (pieces of the broken group, frames the next group's label lies after the broken group's).
+# Code from 00:00:10:00; the break comes 52 groups in, after the given pieces of group 52 (0: at
+# the group's start), and the code goes on from a piece 0 at once. 0 frames is no jump for a
+# group that begins inside another before its piece 4, 2 frames none from piece 4 on.
+MTC_BREAKS = [(0, 2), (0, 4), (1, 0), (1, 2), (2, 0), (2, 2), (4, 0), (4, 2), (6, 0), (6, 2), (7, 2), (1, -2)]
+MTC_BREAK_T0, MTC_BREAK_EVERY, MTC_BREAK_GROUPS = 2000, 7000, 52
+
+
+@suite('mtcbreaks')
+def _():
+    # 1.01: the decoder counts in two-frame groups. A piece 0 inside a group starts the next group
+    # at the nearest group start (one on from piece 4), counted from its piece 1 (the piece 0 itself
+    # one quarter frame on); while following, the label of such a group is not read. A jump stops
+    # the playback at the run that takes the 24th quarter frame after the jump group's piece 0,
+    # after what that run plays; when the code stops, the clock runs on from the run's last quarter
+    # frame (with its fraction of a tick), and the flywheel stop also comes after the run's events.
+    def src(v):
+        return [f'?101 call.w SEQSETSRCCLOCK {v}', f'?!101 call.w SEQSETSRCCLOCK 0001 {v}']
+    L = ['#! input MTCBRK.TXT', '#! secs 120', '#! irq', '@open', 'cbyield 1', 'cbret 0', 'cbmask 2 merge']
+    for i, (pieces, frames) in enumerate(MTC_BREAKS):
+        L += [f'echo == the code breaks off after {pieces} pieces of a group; the next label {frames} frames on',
+              '@load ENG_ORDR.WRK'] + src('0003')
+        L += ['call.w SEQSETFPS 0001 001e', 'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000',
+              '?!300 call.w SEQPLAYSTART cb3', '?300 call.w SEQSTART cb3 @0', 'call.d SEQGETNOW 0001',
+              'idle 2400', 'call.d SEQGETNOW 0001', 'call.w SEQEXPIRED', '@stop', 'sleep 1000',
+              'call.w SEQDESTROYSEQ 0001']
+    L += ['@close']
+    return L
+
+
+def mtc_break_input():
+    L = ['# MIDI Time Code for the mtcbreaks suite (written by tools/ttsprobe/oracles/gen.py): quarter',
+         '# frames (F1), times in ms from the moment the engine connects to the input (SeqOpen)']
+    qf = 1000.0 / 120
+    for i, (pieces, frames) in enumerate(MTC_BREAKS):
+        t0 = MTC_BREAK_T0 + i * MTC_BREAK_EVERY
+        n = 8 * MTC_BREAK_GROUPS + pieces  # quarter frames before the break
+        L.append(f'# the code breaks off after {pieces} pieces of a group; the next label {frames} frames on')
+        L += qframes(t0, (n - 1) * qf + 0.5, 30, 0, 0, 10, 0)
+        f = 300 + 2 * MTC_BREAK_GROUPS + frames  # the next group's label, in frames
+        L += qframes(t0 + n * qf, 1500, 30, 0, 0, f // 30, f % 30)
+    return L
+
+
+# Count-ins in 1.01 (suite countins). The clock starts again at -1 at the end of a count-in,
+# whatever Now; the take's position is the clock plus the start. The clicks of the count-in fall
+# on Now's beats, the beats left count down from its begin. A stop without a timer run since the
+# start leaves the clock as the start set it. The clock carries over a SeqClose and the next
+# SeqOpen. A take needs a free stream: after 256 streams SeqRecordStart answers 0 (Song Position
+# still sent).
+COUNTIN_NOWS = [1, 2, 3, 4, 5, 7, 11, 13, 29, 30, 31, 119, 120, 121, 0]
+COUNTIN_PLAYS = [1, 2, 3, 5, 8, 13, 26, 40]
+COUNTIN_REOPENS = [0, 13, 37, 54, 3, 21]
+
+
+@suite('countins')
+def _():
+    take = ['buf 1 16', 'call.d SEQRECCOUNT', 'call.w SEQRECORDCLEANUP 0001 0001 0000 @1', 'dump 1 0 2',
+            'call.d SEQSTREAMLEN %b1+0', 'buf 0 16'] + walk('%b1+0', 6) + ['call.w SEQDESTROYSTREAM %b1+0']
+    L = ['#! input COUNTIN.TXT', '#! secs 200', '@open', 'cbret 0', 'cbyield 1', 'call.w SEQCREATESEQ 0000 0000',
+         'call.w SEQSETTEMPO 0001 d:00000000 2710', 'call.w SEQSETSEQPARAM 0001 0010 d:00000001',
+         'call.w SEQSETPLAYINGSEQ 0001', 'sleep 300']
+    L += ['echo == a take from Now 1000 with Song Position: from 990 (the MIDI beat), the clock from -1',
+          'call.d SEQSETNOW 0001 d:000003e8', 'call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3', 'sleep 1500',
+          'call.w SEQRECORDSTOP', 'call.d SEQGETNOW 0001'] + take
+    L += ['echo == the same without Song Position: from 1000',
+          'call.w SEQSETSEQPARAM 0001 0004 d:00000000', 'call.d SEQSETNOW 0001 d:000003e8',
+          'call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3', 'sleep 1500', 'call.w SEQRECORDSTOP',
+          'call.d SEQGETNOW 0001'] + take
+    L += ['echo == count-ins from Now on, one after the other']
+    for now in COUNTIN_NOWS:
+        L += [f'call.d SEQSETNOW 0001 d:{now:08x}', 'call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3',
+              'call.w SEQRECORDSTOP', 'call.d SEQGETNOW 0001']
+    L += ['echo == short plays before the count-in', 'call.w SEQCREATESTREAM 0001 0000 0000', 'let 2',
+          'call.w SEQSETSTREAMPARAM %2 0007 d:00000000', 'buf 3 8', 'fill 3 0 00 00 00 b0 01 00 00 00',
+          'call.d SEQSEEK %2 0000 d:00000000', 'call.w SEQINSEVT %2 @3']
+    for ms in COUNTIN_PLAYS:
+        L += ['call.d SEQSETNOW 0001 d:00000000', 'call.w SEQPLAYSTART null', f'sleep {ms}', 'call.w SEQPLAYSTOP',
+              'call.d SEQGETNOW 0001', 'call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3', 'call.w SEQRECORDSTOP']
+    L += ['echo == SeqClose and SeqOpen: the clock carries over']
+    for ms in COUNTIN_REOPENS:
+        L += ['call.w SEQCLOSE', f'sleep {ms}', 'call.w SEQOPEN 0000 0000', 'call.w SEQCREATESEQ 0000 0000',
+              'call.w SEQSETSEQPARAM 0001 0010 d:00000001', 'call.w SEQSETPLAYINGSEQ 0001', f'sleep {500 + ms}',
+              'call.w SEQRECORDSTART 0000 0000 0000 0000 0000 cb3', 'call.w SEQRECORDSTOP']
+    L += ['echo == takes without a cleanup: one stream each, 256 at most',
+          'call.w SEQSETSEQPARAM 0001 0010 d:00000000']
+    for i in range(258):
+        L += ['call.w SEQRECORDSTART 0000 0000 0000 0000 0000 null', 'call.w SEQRECORDSTOP']
+    L += ['@close']
+    return L
+
+
+def countin_input():
+    """The countins suite's input (tests/data/ttsseq/input/COUNTIN.TXT): a controller every 5 ms
+    after each of its first two count-ins."""
+    L = ['# MIDI input for the countins suite (written by tools/ttsprobe/oracles/gen.py): times in ms',
+         '# from the moment the engine connects to the input (SeqOpen)']
+    for start, ctl in ((3000, 2), (7400, 3)):
+        L += [f'{start + 5 * i} b0 {ctl:02x} {i:02x}' for i in range(100)]
+    return L
+
+
 OPTS_USUAL = {'SyncOutputPort': 1}
 OPTS = {  # the [Options] of the two options suites (tests/data/ttsseq/input/OPTS1.INI, OPTS2.INI)
     1: {'SendLocalOff': 0, 'SendLocalOn': 1, 'ForceNoteOff': 1, 'Timebase': 96, 'SysxSendPacketSize': 100,
@@ -1508,6 +1611,7 @@ def main():
                             ('OPTS2.TXT', ['# MIDI input for the options2 suite (written by tools/ttsprobe/oracles/gen.py)',
                                           '2000 f0 7d 01 02 03 f7'], '\n'),
                             ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'), ('THRU.TXT', thru_input(), '\n'), ('MTC.TXT', mtc_input(), '\n'),
+                            ('MTCBRK.TXT', mtc_break_input(), '\n'), ('COUNTIN.TXT', countin_input(), '\n'),
                             ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
         with open(os.path.join(inputs, name), 'w', newline='') as f:
             f.write(nl.join(lines) + nl)

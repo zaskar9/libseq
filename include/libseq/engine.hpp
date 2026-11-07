@@ -18,6 +18,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <span>
@@ -352,8 +353,8 @@ public:
     [[nodiscard]] Platform* platform() const noexcept { return platform_; }
     /// SeqOpen: Local Control Off on all 16 channels of every output port (`SendLocalOff`).
     void open();
-    /// SeqClose: destroys every sequence, then All Sound Off and sustain off on all 16 channels of
-    /// every output port.
+    /// SeqClose: destroys every sequence and stops the timer. 1.01 then resets its output ports
+    /// (midiOutReset); it sends nothing itself (the host's closed() may reset its ports).
     void close();
     /// Sends one message to a port, as the engine does all its output.
     void send(int port, std::span<const std::uint8_t> message);
@@ -377,7 +378,8 @@ public:
     bool txMidiMsg(std::uint16_t port, std::uint16_t channel, std::uint16_t status, std::uint16_t data1,
                    std::uint16_t data2);
     /// MIDI input: the host calls it for every message that comes in, a short message of 1 to 3
-    /// bytes or a whole sysex message, when it comes in (Platform::milliseconds is its time).
+    /// bytes or a whole sysex message, when it comes in. The engine takes it at the timer's next
+    /// run, as 1.01 does: the thru echoes it then, and a take records it at that run's position.
     void receive(std::span<const std::uint8_t> message);
     /// The timer: the host calls it every timerPeriod() milliseconds while the engine is open.
     void timer();
@@ -551,38 +553,56 @@ private:
     /// A system message that came in: MIDI sync or a quarter frame.
     void syncInput(std::span<const std::uint8_t> message);
     void quarterFrame(std::uint8_t data);
-    /// The time code's time in seconds, minus the sequence's SMPTE offset, in ticks (0 before it).
-    [[nodiscard]] static Tick codeTick(const Sequence& s, double seconds);
+    /// The time code's time in seconds, minus the sequence's SMPTE offset, in ticks with their
+    /// fraction (0 before it).
+    [[nodiscard]] static double codeTicks(const Sequence& s, double seconds);
     [[nodiscard]] static double offsetSeconds(const Sequence& s);
     std::uint16_t clockSource_ = kSourceInternal;
     /// MIDI sync: what came in while the start waits, and the Song Position kept for the next
     /// Continue.
     struct ClockSync {
         bool waiting = false;
-        int go = 0; // 1 Start, 2 Continue
+        int go = 0;        // 1 Start, 2 Continue
+        unsigned held = 0; // clocks taken with the Start or Continue
         bool stopKept = false;
         std::optional<Tick> position;
     };
     ClockSync clockSync_;
-    /// MIDI Time Code as it comes in: the quarter frames of the current two-frame group, the last
-    /// label read (the group after it should say two frames more), and the code's time at the
-    /// last quarter frame.
+    /// MIDI Time Code as it comes in: the quarter frames of the current two-frame group and the
+    /// decoder's count (quarterFrame).
     struct CodeSync {
         std::array<std::uint8_t, 8> pieces{};
-        int expect = -1;     // the next quarter frame of the group, -1 before a group begins
-        bool known = false;  // a label was read
-        int run = 0;         // labels read one after the other, without a jump
-        int rate = -1;       // 0 24, 1 25, 2 30 drop frame, 3 30 fps
-        double label = 0;    // seconds: the last label read
-        double first = 0;    // the first label of the run
-        double time = 0;     // the code's time at the last quarter frame
-        bool jumped = false; // the last label was not the one expected
-        double jumpFrom = 0; // where the code should have been then
+        int expect = -1;          // the next quarter frame of the group, -1 before a group begins
+        bool inside = false;      // the group began inside another (a piece 0 came before its piece 7)
+        bool known = false;       // a label was read
+        int run = 0;              // labels read one after the other, without a jump
+        int rate = -1;            // 0 24, 1 25, 2 30 drop frame, 3 30 fps
+        std::int64_t group = 0;   // the two-frame group expected
+        int bit = 0;              // the low bit of the frames, for the current group
+        int parity = 0;           // the low bit of the frames of the last label
+        std::int64_t count = 0;   // quarter frames taken
+        std::int64_t jumpAt = -1; // following: the quarter frame a jump group began at
+        double time = 0;          // the code's time at the last quarter frame, in seconds
+        double label = 0;         // the code's time at the last quarter frame of the last label read
+        std::int64_t labelAt = 0; // that quarter frame (its number in count)
+        double first = 0;         // the code's time at the first quarter frame of the last run with code
+        bool inRun = false;       // a quarter frame was taken at this run
         bool following = false;
     };
     CodeSync code_;
     unsigned chaseDelay_ = 20; // ChaseDelay, tenths of a second
     unsigned flywheel_ = 5;    // FlywheelAmount, tenths of a second
+    /// The timer starts again (SeqSetPlayingSeq, a load).
+    void restartTimer();
+    /// MIDI Time Code: a quarter frame was taken at this run already (the first moves the playback).
+    bool codeTaken_ = false;
+    /// The input that came in since the last run, taken at this run.
+    void takeInput();
+    void takeChannelInput();
+    std::vector<std::vector<std::uint8_t>> channelIn_;
+    void input(std::span<const std::uint8_t> message);
+    std::mutex inboxMutex_;
+    std::vector<std::vector<std::uint8_t>> inbox_;
     /// A sysex message that came in: for the bank being received, if any.
     void receiveSysx(std::span<const std::uint8_t> message);
     /// MIDI thru: echoes a channel message with the current sequence's thru settings.

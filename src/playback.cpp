@@ -15,10 +15,20 @@
 //    (123); then, with parameter 2, pitch wheel centre, modulation 0, sustain 0 and controller 121.
 //  - Key+ outside 0 to 127 folds by octaves into range; Vel+ keeps 1 to 127; an event that Time+
 //    moves before tick 0 does not play.
-//  - The engine's timer sends what is due when it runs, every TimerPeriod milliseconds.
+//  - Timing (found in virtual time; clock.hpp has the clock, docs/ttsseq-api.md "Timing" the
+//    experiments behind each rule): the engine's timer runs every TimerPeriod milliseconds. At a
+//    run the clock first moves on by the whole ticks since the last run; then the sync input of
+//    the run is taken (MIDI clock, time code), then what is due goes out (events up to the clock,
+//    the metronome, the count-in), and then the run's channel input (thru and the take).
+//  - Now is the tick of the last thing played; while nothing plays it moves on in whole MIDI
+//    clocks, also past the end until SeqIdle sees the end.
+//  - A count-in waits for the clock's next MIDI clock; its clicks fall on Now's beats, its beats
+//    left count down from its begin, and at its end the clock starts again at -1: the take's
+//    position is the clock plus the start.
 #include "playback.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -28,6 +38,11 @@ namespace {
 
 constexpr Tick kNever = std::numeric_limits<Tick>::max();
 constexpr int kLoopForever = 9999;
+
+/// Division rounding down (the clock is -1 for a moment at the end of a count-in).
+std::int64_t floorDiv(const std::int64_t a, const std::int64_t b) noexcept {
+    return a >= 0 ? a / b : -((-a + b - 1) / b);
+}
 
 std::uint8_t foldKey(int key) noexcept {
     while (key > 127) {
@@ -209,22 +224,43 @@ void Player::build() {
 
 // ---- time
 
-double Player::tickToMs(const Tick tick) const {
-    const double us = static_cast<double>(seq_->tempoMap.elapsedAt(tick) - seq_->tempoMap.elapsedAt(anchorTick_)) /
-                      static_cast<double>(seq_->ppq);
-    return anchorMs_ + us / 1000.0 / speed_;
+const Sequence* Player::followed() const {
+    // the sequence the clock follows: the one playing, else the playing sequence
+    return seq_ != nullptr && playing_ ? seq_ : engine_->sequence(engine_->playingSeq());
 }
 
-Tick Player::msToTick(const double ms) const {
-    if (ms <= anchorMs_) {
-        return anchorTick_;
+std::int64_t Player::perMs() const {
+    const Sequence* s = followed();
+    if (s == nullptr) {
+        return 1000LL * 120 * 64;
     }
-    const double elapsed = static_cast<double>(seq_->tempoMap.elapsedAt(anchorTick_)) +
-                           (ms - anchorMs_) * 1000.0 * speed_ * static_cast<double>(seq_->ppq);
-    return seq_->tempoMap.tickAt(static_cast<std::uint64_t>(elapsed), 0, 1, false);
+    const std::uint16_t ratio = s->tempoRatio < s->tempoRatios.size() ? s->tempoRatios.at(s->tempoRatio) : 64;
+    return 1000LL * s->ppq * (ratio > 0 ? ratio : 64);
 }
 
-// ---- output
+std::int64_t Player::tickSize(const std::int64_t tick) const {
+    // a tick: the microseconds of a quarter note at the tempo there, rounded as the tempo map
+    // does (so 70 bpm runs a little slow); 100 bpm without a sequence
+    const Sequence* s = followed();
+    if (s == nullptr) {
+        return TempoMap::usPerQuarter(10000) * 64;
+    }
+    const Tick at = playing_ ? static_cast<Tick>(std::max<std::int64_t>(tick + base_, 0)) : s->now;
+    return TempoMap::usPerQuarter(s->tempoMap.tempoAt(at)) * 64;
+}
+
+void Player::tickBefore(const std::uint32_t at) {
+    clock_.tickBefore(at, tickSize(clock_.value()));
+}
+
+void Player::timerStarted(const std::uint32_t now) {
+    tickBefore(now);
+}
+
+std::int64_t Player::clockTicks() const {
+    const Sequence* s = seq_ != nullptr && playing_ ? seq_ : engine_->sequence(engine_->playingSeq());
+    return std::max<std::int64_t>((s != nullptr ? s->ppq : 120) / 24, 1);
+}
 
 void Player::send(const int port, const std::initializer_list<std::uint8_t> bytes) {
     const Platform* p = engine_->platform();
@@ -427,14 +463,14 @@ void Player::click(const bool downbeat) {
     clickOn_ = true;
 }
 
-void Player::clicks(const double now, const Tick limit) {
+void Player::clicks(const Tick upTo) {
     const bool on = seq_->param(recording_ ? qp::kMetroRecord : qp::kMetroPlay) != 0 &&
                     seq_->param(qp::kMetroVelocity) > 0 && seq_->param(qp::kMetroDuration) > 0;
     const std::uint16_t ppq = seq_->ppq;
     for (;;) {
         // the click's end, when it comes before the next beat
-        const bool beatDue = on && clickTick_ <= limit && tickToMs(clickTick_) <= now;
-        if (clickOn_ && clickOffMs_ <= now && (!beatDue || clickOffMs_ <= tickToMs(clickTick_))) {
+        const bool beatDue = on && clickTick_ <= upTo;
+        if (clickOn_ && clickOffTick_ <= upTo && (!beatDue || clickOffTick_ <= clickTick_)) {
             send(click_.port, {click_.status, click_.key, 0});
             clickOn_ = false;
             continue;
@@ -443,47 +479,82 @@ void Player::clicks(const double now, const Tick limit) {
             return;
         }
         const auto [tick, downbeat] = beatAtOrAfter(seq_->meterMap, clickTick_, ppq);
-        if (tick > limit) {
+        if (tick > upTo) {
             clickTick_ = tick;
             return;
         }
         click(downbeat);
         const Tick last = nextMeasureStart(seq_->meterMap, tick, ppq) - ppq / 24;
-        clickOffMs_ = tickToMs(std::min(tick + clickTicks(), last));
+        clickOffTick_ = std::min(tick + clickTicks(), last);
         clickTick_ = beatAtOrAfter(seq_->meterMap, tick + 1, ppq).first;
     }
 }
 
-/// The count-in: the measures before the start position, at the tempo there; it clicks on the
-/// beats of the meter at the start, counted back from the measure the start is in, so a start
-/// between beats has its first click late and its last one early (suite punch). A click ends as
-/// one does in playback, at the latest one clock before the next measure.
-void Player::countInClicks(const double now) {
-    const auto at = [&](const std::int64_t tick) {
-        return recordMs_ - static_cast<double>(static_cast<std::int64_t>(recordTick_) - tick) * msPerTick_;
-    };
-    const auto beat = static_cast<std::int64_t>(countInBeatTicks_);
-    const std::int64_t measure = beat * countInNumerator_;
-    for (;;) {
-        const std::int64_t g = countInFirst_ + beat * countInDone_;
-        const bool beatDue = countInDone_ < countInBeats_ && at(g) <= now;
-        if (clickOn_ && clickOffMs_ <= now && (!beatDue || clickOffMs_ <= at(g))) {
-            send(click_.port, {click_.status, click_.key, 0});
-            clickOn_ = false;
-            continue;
-        }
-        if (!beatDue) {
+/// A timer run during the count-in. It begins at the first run after the start call where the
+/// clock enters a new MIDI clock, and clicks on the song's beats, counted in MIDI clocks from the
+/// start position: at the runs where the clock enters a MIDI clock that is a whole number of
+/// beats from it. A click ends after the metronome's duration. The count-in ends at the first run
+/// where the position counter reaches the target the start set; the take begins there, with
+/// the clock one tick before the start position.
+void Player::countInRun() {
+    const std::int64_t clk = clockTicks();
+    const std::int64_t index = floorDiv(clock_.value(), clk);
+    const auto beat = std::max<std::int64_t>(static_cast<std::int64_t>(countInBeatTicks_) / clk, 1);
+    const auto fromStart = static_cast<std::int64_t>(seq_->now) / clk;
+    bool clickNow = false;
+    if (countInWaits_) {
+        if (!crossed_) {
             return;
         }
-        ++countInDone_;
-        const std::int64_t intoMeasure = ((g - countInGrid_) % measure + measure) % measure;
-        const std::int64_t next = g - intoMeasure + measure - static_cast<std::int64_t>(seq_->ppq / 24);
-        click(intoMeasure == 0);
-        clickOffMs_ = std::min(at(g + static_cast<std::int64_t>(clickTicks())), at(next));
+        countInWaits_ = false;
+        countInBegin_ = index;
+        clickNow = fromStart % beat == 0;
+    } else if (crossed_) {
+        clickNow = (index - countInBegin_ + fromStart) % beat == 0;
     }
+    // the beats left count down from the begin, a beat at a time, whatever Now does to the clicks
+    countInDone_ = static_cast<std::uint16_t>(1 + (index - countInBegin_) / beat);
+    if (crossed_ && clickOn_ && index >= countInOff_) {
+        send(click_.port, {click_.status, click_.key, 0});
+        clickOn_ = false;
+    }
+    if (clickNow) {
+        click(true);
+        countInOff_ = index + static_cast<std::int64_t>(clickTicks()) / clk;
+    }
+    if (clock_.value() + pOffset_ < countInTarget_) {
+        return;
+    }
+    countIn_ = false;
+    // the clock starts again at -1, whatever the start: the take's position is the clock plus
+    // the start (Now 0 to 1000, with and without Song Position)
+    base_ = static_cast<std::int64_t>(recordTick_);
+    clock_.setValue(-1);
+    tickBefore(lastRunMs_);
+    pOffset_ = 0;
+    lastIndex_ = -1;
+    if (clickOn_) {
+        // the click goes off in the take, as many MIDI clocks after its start as it had left past
+        // the next one (Now 1000, with and without Song Position)
+        clickOffTick_ = recordTick_ + static_cast<Tick>(std::max<std::int64_t>(countInOff_ - index - 1, 0) * clk);
+    }
+    clickTick_ = beatAtOrAfter(seq_->meterMap, recordTick_ + (clickNow ? 1 : 0), seq_->ppq).first;
 }
 
 // ---- the transport
+
+void Player::songPositionOnly(Sequence& sequence) {
+    // a start that goes no further (SeqRecordStart without a stream left for the take): its
+    // Song Position still goes out
+    const std::uint16_t ppq = sequence.ppq;
+    if (sequence.param(qp::kSendSpp) != 0 && ppq >= 4) {
+        Tick tick = sequence.now;
+        tick -= tick % (ppq / 4U);
+        sequence.now = tick;
+        const Tick beats = tick / (ppq / 4U);
+        send(0, {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
+    }
+}
 
 bool Player::start(Sequence& sequence, const bool recording, const Drive drive) {
     if (playing_ || waiting_) {
@@ -501,9 +572,6 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
     seq_->now = tick;
     seq_->setParam(qp::kNowJumped, 1);
     build();
-    const std::uint16_t ratio =
-        seq_->tempoRatio < seq_->tempoRatios.size() ? seq_->tempoRatios.at(seq_->tempoRatio) : 64;
-    speed_ = ratio > 0 ? ratio / 64.0 : 1.0;
     // the auto-shuttle, when the start lies before its stop
     loop_ = false;
     stopAt_ = false;
@@ -521,32 +589,26 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
         stopAt_ = true;
         stopTick_ = stopTime;
     }
-    anchorTick_ = tick;
-    anchorMs_ = engine_->platform() != nullptr ? engine_->platform()->milliseconds() : 0;
-    // a recording's count-in: measures of the meter at the start, at the tempo there
+    // a recording's count-in: measures of the meter at the start; it ends one MIDI clock short of
+    // them, counted on the position counter from the MIDI clock after it (rounded toward zero)
     countInBeats_ = 0;
     countInDone_ = 0;
     const MeterEntry& meter = seq_->meterMap.entries()[seq_->meterMap.indexAtTick(tick)];
     countInNumerator_ = std::max<std::uint8_t>(meter.numerator, 1);
     countInBeatTicks_ = MeterMap::beatTicks(meter, ppq);
-    msPerTick_ = 60'000.0 * 100.0 / std::max<double>(seq_->tempoMap.tempoAt(tick), 1.0) / ppq / speed_;
+    const auto clk = static_cast<std::int64_t>(std::max<std::uint16_t>(ppq / 24, 1));
     if (recording && seq_->param(qp::kCountIn) > 0 && countInBeatTicks_ > 0) {
-        // the beats of the count-in's span [start - length, start) on the grid of the start's measure
-        const auto beat = static_cast<std::int64_t>(countInBeatTicks_);
-        const auto length = static_cast<std::int64_t>(seq_->param(qp::kCountIn)) * countInNumerator_ * beat;
-        countInGrid_ =
-            static_cast<std::int64_t>(seq_->meterMap.toTick(seq_->meterMap.toMBT(tick, ppq).measure, 1, 0, ppq));
-        const std::int64_t from = static_cast<std::int64_t>(tick) - length;
-        const std::int64_t k = (from - countInGrid_ + (from >= countInGrid_ ? beat - 1 : 0)) / beat;
-        countInFirst_ = countInGrid_ + k * beat;
-        if (countInFirst_ < from) {
-            countInFirst_ += beat;
-        }
-        countInBeats_ = static_cast<std::uint16_t>((static_cast<std::int64_t>(tick) - countInFirst_ + beat - 1) / beat);
-        anchorMs_ += static_cast<double>(length) * msPerTick_;
+        const std::int64_t length = static_cast<std::int64_t>(seq_->param(qp::kCountIn)) * countInNumerator_ *
+                                    static_cast<std::int64_t>(countInBeatTicks_);
+        const std::int64_t position = clock_.value() + pOffset_;
+        countInTarget_ = (position / clk + 1) * clk + length - clk;
+        countInBeats_ = static_cast<std::uint16_t>(seq_->param(qp::kCountIn) * countInNumerator_);
+        countInWaits_ = true;
+        countIn_ = true;
+    } else {
+        countIn_ = false;
     }
     recordTick_ = tick;
-    recordMs_ = anchorMs_;
     next_ = static_cast<std::size_t>(
         std::lower_bound(items_.begin(), items_.end(), tick, [](const Item& it, Tick t) { return it.tick < t; }) -
         items_.begin());
@@ -575,9 +637,18 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
     if (seq_->param(qp::kSearchBack) != 0) {
         searchBack(tick);
     }
+    ranSince_ = false;
+    atEnd_ = false;
+    base_ = 0;
     if (drive != Drive::Timer) {
         waiting_ = true; // until the sync comes
         return true;
+    }
+    if (!countIn_) {
+        // the clock is the playback position, counted from the timer's last run
+        clock_.setValue(static_cast<std::int64_t>(tick));
+        clock_.from(lastRunMs_);
+        pOffset_ = 0; // (the next run compares its MIDI clock with the last run's, before the start)
     }
     playing_ = true; // the timer plays the events from the start on
     return true;
@@ -588,8 +659,6 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
 void Player::go(const Tick from) {
     waiting_ = false;
     seq_->now = from;
-    anchorTick_ = from;
-    anchorMs_ = engine_->platform() != nullptr ? engine_->platform()->milliseconds() : 0;
     next_ = static_cast<std::size_t>(
         std::lower_bound(items_.begin(), items_.end(), from, [](const Item& it, Tick t) { return it.tick < t; }) -
         items_.begin());
@@ -597,7 +666,12 @@ void Player::go(const Tick from) {
     spanTick_ = from;
     clocks_ = 0;
     firstClock_ = true;
-    deadline_ = kNever;
+    deadline_ = std::numeric_limits<double>::infinity();
+    codeStop_ = false;
+    codeLast_ = -1;
+    clock_.setValue(static_cast<std::int64_t>(from));
+    clock_.from(lastRunMs_);
+    pOffset_ = 0;
     ended_ = false;
     playing_ = true;
 }
@@ -630,9 +704,13 @@ void Player::searchBackFor(const Tick at) {
     }
 }
 
-void Player::clock() {
-    if (playing_ && !ended_ && drive_ == Drive::Clock) {
-        ++clocks_;
+void Player::clocks(const unsigned count, const bool held) {
+    if (!playing_ || ended_ || drive_ != Drive::Clock || count == 0) {
+        return;
+    }
+    clocks_ += count;
+    if (!held) {
+        scheduleClock();
     }
 }
 
@@ -642,19 +720,16 @@ void Player::externalStop() {
     }
 }
 
-void Player::follow(const Tick tick, const Tick deadline) {
-    if (!playing_ || ended_ || drive_ != Drive::Code || engine_->platform() == nullptr) {
+void Player::follow(const Tick tick, const double deadline, const bool first, const double exact) {
+    if (!playing_ || ended_ || drive_ != Drive::Code) {
         return;
     }
-    anchorTick_ = tick;
-    anchorMs_ = engine_->platform()->milliseconds();
-    deadline_ = deadline;
-}
-
-void Player::runOut(const Tick deadline) {
-    if (playing_ && drive_ == Drive::Code) {
-        deadline_ = deadline;
+    if (first) {
+        clock_.setValue(static_cast<std::int64_t>(tick));
+        clock_.from(lastRunMs_);
     }
+    codeLast_ = exact;
+    deadline_ = deadline;
 }
 
 /// MIDI clock: each clock plays the ticks of its span, ppq / 24 of them; Now is then the tick of
@@ -699,67 +774,67 @@ Tick Player::limit() const noexcept {
         return loopThru_;
     }
     // a recording, and a playback that follows time code, play on past the end
-    Tick end = recording_ || drive_ == Drive::Code ? kNever : lastTick();
-    if (drive_ == Drive::Code) {
-        end = std::min(end, deadline_);
-    }
+    const Tick end = recording_ || drive_ == Drive::Code ? kNever : lastTick();
     return stopAt_ ? std::min(stopTick_, end) : end;
 }
 
-void Player::schedule(const double now) {
-    const Tick limit = this->limit();
+/// The timer's run while playing: everything up to the clock goes out, in time order with the
+/// metronome. Now is the time of the last thing played; while nothing plays it moves on in whole
+/// MIDI clocks from there.
+void Player::schedule() {
+    const auto at = [this]() { return static_cast<Tick>(std::max<std::int64_t>(position(), 0)); };
+    bool played = false;
+    Tick last = 0;
     while (!ended_) {
+        const Tick e = position() < 0 ? 0 : at();
         const Tick itemTick = next_ < items_.size() ? items_[next_].tick : kNever;
         const Tick offTick = offs_.empty() ? kNever : offs_.top().tick;
         const Tick content = std::min(itemTick, offTick);
+        if (position() < 0) {
+            break;
+        }
         if (loop_ && content >= loopThru_) {
             // the auto-shuttle: at its stop, on at its rewind time without a stop
-            if (tickToMs(loopThru_) > now) {
-                clicks(now, loopThru_);
+            if (e < loopThru_) {
+                clicks(e);
                 break;
             }
-            clicks(tickToMs(loopThru_), loopThru_ - 1);
+            // the wrap: the clock goes back by the loop's length and one tick more, keeping what it
+            // ran past the stop (so passes come 0 or one run late, by turns, at 120 bpm)
+            clicks(loopThru_ - 1);
             silence();
-            anchorMs_ = now; // the wrap happens when the timer finds it due
-            anchorTick_ = loopFrom_;
+            clock_.setValue(clock_.value() - static_cast<std::int64_t>(loopThru_ - loopFrom_) - 1);
             seq_->setParam(qp::kNowJumped, 1);
+            seq_->now = loopFrom_;
             next_ = static_cast<std::size_t>(std::lower_bound(items_.begin(), items_.end(), loopFrom_,
                                                               [](const Item& it, Tick t) { return it.tick < t; }) -
                                              items_.begin());
             clickTick_ = beatAtOrAfter(seq_->meterMap, loopFrom_, seq_->ppq).first;
             continue;
         }
-        if (drive_ == Drive::Code && content >= deadline_) {
-            // the code stopped or jumped: the playback runs on to where it said, and ends there
-            if (tickToMs(deadline_) <= now) {
-                ended_ = true;
-                seq_->now = deadline_;
-                return;
-            }
-            clicks(now, deadline_);
-            break;
-        }
         const Tick stop = stopAt_ ? stopTick_ : kNever;
         if ((recording_ || drive_ == Drive::Code) && content == kNever && !stopAt_) {
-            clicks(now, kNever - 1);
+            clicks(e);
             break;
         }
         if (content >= stop || content == kNever) {
             // the end, or the auto-stop time, whose events do not play
-            const Tick at = content == kNever ? lastTick() : stopTick_;
-            clicks(now, at == stopTick_ && stopAt_ ? stopTick_ - 1 : at);
-            if (tickToMs(at) <= now) {
+            const Tick end = content == kNever ? lastTick() : stopTick_;
+            clicks(end == stopTick_ && stopAt_ ? std::min(e, stopTick_ - 1) : std::min(e, end));
+            if (end <= e) {
                 ended_ = true;
-                seq_->now = at;
+                atEnd_ = true;
+                seq_->now = end;
             }
             return;
         }
-        const double time = tickToMs(content);
-        if (time > now) {
-            clicks(now, limit);
+        if (content > e) {
+            clicks(std::min(e, limit()));
             break;
         }
-        clicks(time, content);
+        clicks(content);
+        played = true;
+        last = content;
         if (offTick <= itemTick) {
             noteOff(offs_.pop());
             continue;
@@ -769,36 +844,106 @@ void Player::schedule(const double now) {
         }
         ++next_;
     }
-    seq_->now = std::min(msToTick(now), limit);
+    if (ended_) {
+        return;
+    }
+    const auto clk = static_cast<Tick>(clockTicks());
+    if (played) {
+        seq_->now = last;
+    } else if (position() >= 0 && at() >= seq_->now + clk) {
+        seq_->now += (at() - seq_->now) / clk * clk;
+    }
+    if (drive_ == Drive::Code && codeLast_ >= 0) {
+        // on from the last quarter frame of the run, with its fraction of a tick
+        const auto whole = static_cast<std::int64_t>(std::floor(codeLast_ + 1e-9));
+        const auto size = tickSize(whole);
+        const double part = std::max(codeLast_ - static_cast<double>(whole), 0.0);
+        clock_.setValue(whole);
+        clock_.from(lastRunMs_, static_cast<std::int64_t>(part * static_cast<double>(size)));
+        codeLast_ = -1;
+    }
+    if (drive_ == Drive::Code && (codeStop_ || static_cast<double>(clock_.value()) > deadline_ + 1e-6)) {
+        // the code jumped, or stopped and the clock ran on FlywheelAmount past it: the playback
+        // ends after this run
+        codeStop_ = false;
+        ended_ = true;
+    }
+}
+
+void Player::opened(const std::uint32_t now) {
+    // the clock and the position counter start at the first SeqOpen and carry over a SeqClose
+    // and the next SeqOpen (a hundred close and open cycles, at every 1 ms phase); the timer's
+    // start counts from one tick before
+    if (!everOpened_) {
+        everOpened_ = true;
+        clock_.setValue(0);
+        lastIndex_ = 0;
+        pStarted_ = false;
+        pOffset_ = 0;
+    }
+    tickBefore(now);
+    lastRunMs_ = now;
+}
+
+void Player::created() noexcept {
+    if (!pStarted_) {
+        pStarted_ = true;
+        pOffset_ = -1 - clock_.value();
+    }
+}
+
+void Player::advance(const std::uint32_t now) {
+    // while playing the clock is the position and goes through the tempo map; while stopped (and
+    // counting in) it runs at the tempo at Now
+    const bool map = playing_ && seq_ != nullptr && drive_ == Drive::Timer && !countIn_;
+    clock_.run(
+        now, perMs(), [this](const std::int64_t t) { return tickSize(t); },
+        [this, map](const std::int64_t t) -> std::int64_t {
+            if (!map) {
+                return -1;
+            }
+            const TempoMap& m = seq_->tempoMap;
+            const std::size_t i = m.indexAt(static_cast<Tick>(std::max<std::int64_t>(t + base_, 0))) + 1;
+            return i < m.size() ? static_cast<std::int64_t>(m.entries()[i].tick) - base_ : -1;
+        });
+    lastRunMs_ = now;
+    ranSince_ = true;
+    const std::int64_t index = floorDiv(clock_.value(), clockTicks());
+    crossed_ = index > lastIndex_;
+    lastIndex_ = index;
 }
 
 void Player::timer() {
+    if (playing_ && ended_ && atEnd_ && seq_ != nullptr) {
+        // past the end, until SeqIdle sees it, Now moves on in whole MIDI clocks
+        const auto clk = clockTicks();
+        if (position() >= static_cast<std::int64_t>(seq_->now) + clk) {
+            seq_->now += static_cast<Tick>((position() - static_cast<std::int64_t>(seq_->now)) / clk * clk);
+        }
+        return;
+    }
     if (!playing_ || ended_ || seq_ == nullptr || engine_->platform() == nullptr) {
         return;
     }
-    const double now = engine_->platform()->milliseconds();
-    if (countingIn()) {
-        countInClicks(now);
+    if (countIn_) {
+        countInRun();
         return;
     }
     if (drive_ == Drive::Clock) {
-        scheduleClock();
-        return;
+        return; // the clocks play what they span when they come in
     }
-    schedule(now);
+    schedule();
 }
 
 bool Player::countingIn() const {
-    return playing_ && recording_ && engine_->platform() != nullptr && engine_->platform()->milliseconds() < recordMs_;
+    return playing_ && recording_ && countIn_;
 }
 
-Tick Player::recordTick(const double ms) const {
-    if (ms <= recordMs_) {
+Tick Player::recordTick() const {
+    if (countIn_ || position() <= static_cast<std::int64_t>(recordTick_)) {
         return recordTick_;
     }
-    const double elapsed = static_cast<double>(seq_->tempoMap.elapsedAt(recordTick_)) +
-                           (ms - recordMs_) * 1000.0 * speed_ * static_cast<double>(seq_->ppq);
-    return seq_->tempoMap.tickAt(static_cast<std::uint64_t>(elapsed), 0, 1, false);
+    return static_cast<Tick>(position());
 }
 
 std::uint16_t Player::idle() {
@@ -808,6 +953,7 @@ std::uint16_t Player::idle() {
     playing_ = false;
     ended_ = false;
     stopOutput(seq_->param(qp::kZeroControllers) != 0);
+    tickBefore(lastRunMs_);
     if (seq_->param(qp::kAutoRewind) != 0) {
         seq_->now = static_cast<Tick>(seq_->param(qp::kRewindTime));
     }
@@ -816,26 +962,27 @@ std::uint16_t Player::idle() {
 
 void Player::jump(const Tick tick) {
     silence();
-    anchorTick_ = tick;
-    anchorMs_ = engine_->platform() != nullptr ? engine_->platform()->milliseconds() : 0;
+    clock_.setValue(static_cast<std::int64_t>(tick));
     next_ = static_cast<std::size_t>(
         std::lower_bound(items_.begin(), items_.end(), tick, [](const Item& it, Tick t) { return it.tick < t; }) -
         items_.begin());
     clickTick_ = beatAtOrAfter(seq_->meterMap, tick, seq_->ppq).first;
     seq_->now = tick;
-    schedule(anchorMs_);
+    schedule();
 }
 
 bool Player::stop() {
     if (!playing_) {
         return false;
     }
-    if (!ended_ && drive_ != Drive::Clock && engine_->platform() != nullptr) {
-        seq_->now = std::min(msToTick(engine_->platform()->milliseconds()), limit());
-    }
     playing_ = false;
     ended_ = false;
     stopOutput(seq_->param(qp::kZeroControllers) != 0);
+    // the clock counts on from one tick before the timer's last run; when no run came since the
+    // start, from the start's (the last run itself)
+    if (ranSince_) {
+        tickBefore(lastRunMs_);
+    }
     return true;
 }
 

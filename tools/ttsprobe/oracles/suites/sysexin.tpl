@@ -1,5 +1,6 @@
 #! input SYSX.TXT
 #! secs 45
+#! realtime
 @open
 buf 0 192
 cbmask c

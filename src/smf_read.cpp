@@ -203,6 +203,7 @@ private:
 } // namespace
 
 SeqHandle Engine::loadMidiFile(const std::filesystem::path& path) {
+    restartTimer(); // 1.01 starts its timer again around every load
     std::vector<std::uint8_t> data;
     try {
         data = bytes::readFileBytes(path.string());

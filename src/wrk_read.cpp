@@ -355,6 +355,7 @@ private:
 } // namespace
 
 SeqHandle Engine::loadCakewalkFile(const std::filesystem::path& path, const FileProc& callback) {
+    restartTimer(); // 1.01 starts its timer again around every load
     std::vector<std::uint8_t> data;
     try {
         data = bytes::readFileBytes(path.string());

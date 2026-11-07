@@ -31,9 +31,10 @@ Three versions were studied:
   needed adjusting, it was the environment: one byte of Wine's own ALSA driver (the manufacturer
   ID its MIDI ports report), a fake ALSA sequencer library that Wine loads instead of the real
   one, Wine's 16-bit MMSYSTEM, which did not pass buffers for system exclusive input between
-  16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`), and Wine's
-  KRNL386, to call timer and MIDI callbacks at interrupt time as Windows 3.1 does
-  (`tools/ttsprobe/wine/krnl386-irq.patch`).
+  16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`), the same
+  module's timer, clock and MIDI devices, to run them on a virtual clock
+  (`tools/ttsprobe/wine/mmsystem16-vtime.patch`), and Wine's KRNL386, to call timer and MIDI
+  callbacks at interrupt time as Windows 3.1 does (`tools/ttsprobe/wine/krnl386-irq.patch`).
 - **No Cakewalk files in this repository.** The DLLs and programs come from the user's own disks.
   The repository holds only what the observations produced, and songs written for the purpose.
 
@@ -291,6 +292,34 @@ the DLL, like libseq, locked once to the tail of the previous case's code before
 code that jumps during the chase is locked to again, which the MIDI capture shows as a second
 lock output. A repeated quarter frame 0 at the join of two pieces of code is what makes a jump of
 two frames visible.
+
+### 17. Virtual time (2026-11-07)
+
+Until now every time in the suites was compared with a margin: 40 ms for playback, 8 ticks for
+recording. Under Wine the DLL's timer and the MIDI input ran on the host's clock and came a few
+milliseconds early or late, differently on every run, so the DLL's own timing could not be told
+from Wine's. Wine's 16-bit MMSYSTEM got a virtual clock (`mmsystem16-vtime.patch`): the DLL's
+timer, `timeGetTime` and the MIDI devices run on milliseconds that pass only where the probe
+waits, and a call takes no time. Every run now gives the same output to the millisecond, and an
+experiment can put a call or an input at any millisecond: one input per millisecond over half a
+second, a start at every phase of the timer, code that breaks off after each piece of a group.
+
+That turned timing into a question with exact answers. A small simulator was written for each
+part of the engine and tried against the logs until every case agreed, and then the rules went
+into libseq, which reproduces the logs itself. The rules are a reconstruction of the DLL's
+algorithm: each reproduces the DLL in every case tried, and each is kept only as far as the
+experiments force it. The engine counts ticks with a remainder from one tick before its timer starts; a count-in waits
+for the next MIDI clock, clicks on Now's beats and ends with the clock back at -1; time code is
+decoded in groups of two frames, a group that starts inside another moves to the nearest group
+start, and the chase ends 240 quarter frames after the second label. `ttsseq-api.md`, Timing,
+lists every rule with the experiments behind it and the alternatives they ruled out.
+
+The exact comparison also corrected older readings. `SeqClose` sends nothing itself: the All
+Sound Off and sustain off seen at every close were Wine's driver resetting the port. The thru's
+channel 16 turns a pitch wheel into an F0 status that the DLL does send, and Wine's driver
+dropped. Some of the experiments became suites, `mtcbreaks` and `countins`, so the rules are
+checked with the others. One suite stays on the host's clock: in virtual time the DLL's sysex
+receive hangs after a `midiInReset`, so `sysexin` is compared without its times.
 
 ## In this folder
 

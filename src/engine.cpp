@@ -620,6 +620,7 @@ SeqHandle Engine::freeHandle() const {
 SeqHandle Engine::createSequence() {
     const SeqHandle h = freeHandle();
     sequences_.emplace(h, std::make_unique<Sequence>(h, &shared_));
+    player_->created();
     if (current_ == 0) {
         current_ = h;
     }
@@ -684,7 +685,22 @@ void Engine::sendStreamParam(const Stream& stream, const int param, const bool a
 }
 
 void Engine::timer() {
+    if (platform_ != nullptr) {
+        player_->advance(platform_->milliseconds());
+    }
+    codeTaken_ = false;
+    code_.inRun = false;
+    takeInput();
     player_->timer();
+    // the run's channel messages (thru and the take) come after its playback and metronome
+    takeChannelInput();
+}
+
+void Engine::restartTimer() {
+    if (platform_ != nullptr) {
+        player_->timerStarted(platform_->milliseconds());
+        platform_->startTimer(timerPeriod_);
+    }
 }
 
 bool Engine::setPlayingSeq(const SeqHandle seq) {
@@ -692,6 +708,7 @@ bool Engine::setPlayingSeq(const SeqHandle seq) {
         return false;
     }
     current_ = seq;
+    restartTimer(); // 1.01 starts its timer again (timeKillEvent, timeSetEvent)
     const Sequence* s = sequence(seq);
     for (int p = qp::kThruMode; p <= qp::kLocalOnPort; ++p) {
         thru_[static_cast<std::size_t>(p - qp::kThruMode)] = s != nullptr ? s->param(p) : 0;
@@ -771,7 +788,9 @@ bool Engine::expired() const noexcept {
 void Engine::open() {
     thru_ = {2, 0, -1, 0, 0, -1};
     if (platform_ != nullptr) {
+        player_->opened(platform_->milliseconds());
         platform_->opened(*this);
+        platform_->startTimer(timerPeriod_);
     }
     const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
     for (int port = 0; port < ports; ++port) {
@@ -787,17 +806,10 @@ void Engine::close() {
         destroySequence(sequences_.begin()->first);
     }
     notes_.clear();
-    const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
-    for (int port = 0; port < ports; ++port) {
-        for (unsigned ch = 0; ch < 16; ++ch) {
-            const auto status = static_cast<std::uint8_t>(0xb0U | ch);
-            const std::array<std::uint8_t, 3> soundOff{status, 120, 0};
-            const std::array<std::uint8_t, 3> sustainOff{status, 64, 0};
-            send(port, soundOff);
-            send(port, sustainOff);
-        }
-    }
+    // 1.01 sends nothing itself here: it resets its output ports (midiOutReset), and what goes out
+    // then is the driver's (Wine's sends All Sound Off and sustain off on every channel)
     if (platform_ != nullptr) {
+        platform_->stopTimer();
         platform_->closed();
     }
 }
