@@ -3,10 +3,34 @@
 
 #include <cstdint>
 #include <span>
+#include <string>
 
 namespace libseq {
 
 class Engine;
+
+/// The [Options] of TTSSEQ.INI that 1.01 reads, as the host keeps them (docs/reverse-engineering/
+/// ttsseq-api.md, TTSSEQ.INI). The defaults are 1.01's. The engine asks for them at SeqOpen, and
+/// for the timer's period also at SeqSetPlayingSeq and every load, as 1.01 reads its INI file.
+struct Options {
+    /// SyncOutputPort: the port (from 1) the Song Position goes to. 1.01 sends no other sync.
+    int syncOutputPort = 1;
+    /// SendLocalOff: Local Control Off on every channel of every port at SeqOpen (0: none).
+    int sendLocalOff = 1;
+    /// Timebase: 1.01 reads it, and its new sequences stay at 120 ppq all the same.
+    int timebase = 120;
+    /// TimerPeriod and TimerResolution, in milliseconds (0 counts as 1).
+    unsigned timerPeriod = 10;
+    unsigned timerResolution = 5;
+    /// SysxSendPacketSize: SeqSendSysxBank sends the bank in packets of this size (0: one byte).
+    unsigned sysxSendPacketSize = 1024;
+    /// SysxReceiveBuffers and SysxReceiveBuffersSize: the input buffers a sysex receive uses.
+    unsigned sysxReceiveBuffers = 128;
+    unsigned sysxReceiveBuffersSize = 512;
+    /// ChaseDelay and FlywheelAmount: MIDI Time Code's chase and run-on, in tenths of a second.
+    unsigned chaseDelay = 20;
+    unsigned flywheelAmount = 5;
+};
 
 /// The MIDI ports and the clock, which 1.01 has from Windows (`midiOutShortMsg`,
 /// `midiOutLongMsg`, `midiInOpen`, `timeGetTime`). While the engine is open the host calls
@@ -23,8 +47,16 @@ public:
     Platform(Platform&&) = delete;
     Platform& operator=(Platform&&) = delete;
 
-    /// The number of output ports; port numbers run from 0.
+    /// The number of output ports; port numbers run from 0. They are the devices in the order the
+    /// user put them (TTSSEQ.INI's [MIDI Output Devices]; SeqConfigMidi's dialog).
     [[nodiscard]] virtual int outputPorts() const = 0;
+    /// The name of the device behind an output port (SeqGetPortName).
+    [[nodiscard]] virtual std::string outputName(int port) const {
+        static_cast<void>(port);
+        return {};
+    }
+    /// TTSSEQ.INI's [Options].
+    [[nodiscard]] virtual Options options() const { return {}; }
     /// Sends a message at once: a short message of 1 to 3 bytes, or a sysex message F0 ... F7.
     virtual void send(int port, std::span<const std::uint8_t> message) = 0;
     /// A clock in milliseconds that only goes forward.

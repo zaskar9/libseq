@@ -351,8 +351,13 @@ public:
     /// The system the engine sends its MIDI to and takes its time from; null for none.
     void setPlatform(Platform* platform) noexcept { platform_ = platform; }
     [[nodiscard]] Platform* platform() const noexcept { return platform_; }
-    /// SeqOpen: Local Control Off on all 16 channels of every output port (`SendLocalOff`).
+    /// SeqOpen: reads the platform's options (TTSSEQ.INI) and sends Local Control Off on all 16
+    /// channels of every output port (`SendLocalOff`).
     void open();
+    /// SeqGetPortName: "n: device" for port n - 1.
+    [[nodiscard]] std::string portName(int port) const;
+    /// The port the Song Position goes to (`SyncOutputPort`; port 1 when that is no port).
+    [[nodiscard]] int syncPort() const noexcept;
     /// SeqClose: destroys every sequence and stops the timer. 1.01 then resets its output ports
     /// (midiOutReset); it sends nothing itself (the host's closed() may reset its ports).
     void close();
@@ -448,12 +453,14 @@ public:
     /// The program's callback of a sysex receive: the bytes received so far and the free memory.
     /// It returns 0 to go on receiving.
     using SysxReceiveProc = std::function<std::uint32_t(std::uint32_t received, std::uint32_t free)>;
-    /// SeqReceiveSysxBank: appends every sysex message that comes in to the bank, but universal
-    /// ones (F0 7E, F0 7F), until the callback returns non-zero. 1, or -2 when the bank is still
-    /// empty; 0 for no such bank.
+    /// SeqReceiveSysxBank: appends every sysex message that comes in to the bank, until the
+    /// callback returns non-zero. A message comes in through buffers of SysxReceiveBuffersSize
+    /// bytes, and a buffer whose second byte is 7E or 7F is left out (universal sysex). 1, or -2
+    /// when the bank is still empty; -4 when a message comes in with fewer than 2 receive buffers
+    /// (SysxReceiveBuffers); 0 for no such bank.
     std::int16_t receiveSysxBank(StreamHandle bank, const SysxReceiveProc& callback);
-    /// SeqSendSysxBank: sends the bank's bytes at once, in packets of 1024 bytes cut anywhere,
-    /// with about 65 ms between packets (the call waits).
+    /// SeqSendSysxBank: sends the bank's bytes, in packets of SysxSendPacketSize bytes cut
+    /// anywhere (0: one byte), 60 ms apart (the call waits).
     bool sendSysxBank(StreamHandle bank);
     /// `TimerPeriod` of TTSSEQ.INI (1.01: 10 ms).
     [[nodiscard]] unsigned timerPeriod() const noexcept { return timerPeriod_; }
@@ -527,6 +534,7 @@ private:
     std::unique_ptr<Player> player_;
     SeqHandle standby_ = 0;
     unsigned timerPeriod_ = 10;
+    Options options_; // TTSSEQ.INI as SeqOpen read it
     int fileError_ = 0;
     /// The event the MIDI file writer and reader work in. 1.01 keeps one for both and never clears
     /// it, so what a message does not fill (the second data byte and the duration of a program
@@ -634,6 +642,7 @@ private:
     /// The bank a sysex receive fills (0 for none) and the bytes it took so far.
     StreamHandle sysxReceive_ = 0;
     std::uint32_t sysxReceived_ = 0;
+    bool sysxFailed_ = false; // a message came in with fewer than 2 receive buffers
     StepRecording step_;
     std::uint32_t recCount_ = 0;
     /// An input message for the take.

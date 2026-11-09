@@ -28,6 +28,26 @@ void defineApi101(Probe& p, Engine& e) {
         return 1;
     });
 
+    // ---- devices and memory
+    p.define("SEQGETPORTNAME", [&e](Args& a, Probe& pr) -> std::uint32_t {
+        const int port = a.word();
+        putString(pr, a.ptr(), e.portName(port));
+        return 1;
+    });
+    // SeqHugeMemCpy(dst, src, count32): a copy across segments, which C++ has as std::memcpy; the
+    // result is the count
+    p.define("SEQHUGEMEMCPY", [](Args& a, Probe& pr) -> std::uint32_t {
+        const FarPtr dst = a.ptr();
+        const FarPtr src = a.ptr();
+        const std::uint32_t n = a.dword();
+        std::uint8_t* d = pr.mem.at(dst, n);
+        const std::uint8_t* from = pr.mem.at(src, n);
+        if (d != nullptr && from != nullptr && n > 0) {
+            std::memmove(d, from, n);
+        }
+        return n;
+    });
+
     // ---- sequences
     p.define("SEQCREATESEQ", [&e](Args&, Probe&) -> std::uint32_t { return e.createSequence(); });
     p.define("SEQDESTROYSEQ", [&e](Args& a, Probe&) -> std::uint32_t {

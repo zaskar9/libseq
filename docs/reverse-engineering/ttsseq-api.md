@@ -62,7 +62,9 @@ names table, next to the exports) reads "Twelve Tone Systems Seqencer Engine", w
 | `SeqClose()` | sends nothing itself in 1.01. The All Sound Off (CC 120) and sustain off (CC 64 = 0) on every channel seen on the host's clock come from Wine's ALSA driver resetting the port (`midiOutReset`); in virtual time they are gone [probe, virtual time] |
 
 On opening its port each engine sends Local Control Off (CC 122 = 0) on all 16 channels
-[probe]. 2.10 and 3.00 skip a port whose manufacturer ID is 255; 1.01 does not [probe].
+[probe], channel by channel, each on every port in turn (1.01, two ports: suite `ports`), unless
+`SendLocalOff` is 0. 2.10 and 3.00 skip a port whose manufacturer ID is 255; 1.01 does not
+[probe].
 
 ## Sequences and parameters
 
@@ -343,7 +345,11 @@ not take `SeqSetPlayingSeq(0)` (it answers 0) and goes on echoing.
 - Play in Cakewalk Apprentice 1.04: `SeqSetPlayingSeq(seq)`, `SeqSetStandbySeq(0)`, `SeqPlayStart(callback)`;
   Stop: `SeqPlayStop()` [trace]. A null callback works [probe].
 - The engine does not stop by itself at the end: `SeqIdle()` notices the end, returns 1 and the
-  stop output (All Notes Off) goes out [probe].
+  stop output (All Notes Off) goes out [probe]. The stop output goes to every output port,
+  whichever ports the streams play on (1.01, two ports: suite `ports2`).
+- A start with nothing at or after the start position (an empty sequence, a start past the end)
+  ends in the start call: the Song Position and the stop output go out at once, `SeqIdle` then
+  reports the end and `SeqPlayStop` returns 0 (1.01: suite `ports2`).
 - The start call sends the Song Position Pointer, the streams' patch, volume and pan and the
   search-back; the events at the start position go out with the timer's next run, after the call
   has returned (a string event's play message comes after the call's result) [probe].
@@ -740,8 +746,6 @@ calls and code). Ticks below are at 120 ppq; a MIDI clock (`clk`) is ppq / 24 ti
 
 - 2.10 and 3.00 in virtual time (2.10's MIDI clock output already agrees with the clock above).
 - Other meters and resolutions for the count-in; 24, 25 and 29.97 fps time code at every phase.
-- The step 9 suites (`misc`, `options1`, `options2`, `ports`) still have oracles recorded on the
-  host's clock.
 
 ## Locate delay
 
@@ -809,7 +813,10 @@ without the patch is a little less exact than 86Box's.
     Professional shows them as "14 bytes received (space for 2109181952)" until Done.
   - The loop ends when the callback returns non-zero. The result is 1, or -2 (0xFFFE) when the
     bank is still empty; -4 when the input buffer could not be prepared (unpatched Wine;
-    Professional then says "Out of memory") [probe, trace, relay].
+    Professional then says "Out of memory") [probe, trace, relay]. With fewer than 2 receive
+    buffers (`SysxReceiveBuffers`) a message that comes in counts in the bytes the callback sees
+    but stays out of the bank, and the result is -4 when the callback ends the loop (1.01: suite
+    `options2`).
   - Every complete message is appended to the bank, also to a bank that already has bytes.
     Universal messages (F0 7E and F0 7F) are left out; channel messages are ignored [probe].
   - The engine prepares `SysxReceiveBuffers` buffers of `SysxReceiveBuffersSize` bytes (128 and
@@ -819,9 +826,12 @@ without the patch is a little less exact than 86Box's.
     `options1`].
 - `SeqSendSysxBank(bank, 0, 0)` sends the bank's bytes in packets of `SysxSendPacketSize` bytes
   (1024 by default), cut without regard to where messages begin and end, one `midiOutLongMsg`
-  each. Between packets the engine waits about 65 ms in a loop that reads `GetCurrentTime`, before
-  the call returns; the wait does not depend on the packet size or the timer settings [relay,
-  probe]. Wine's ALSA driver adds an F0 or F7 to a packet that does not begin or end with one,
+  each. Between packets the engine waits in a loop that reads `GetCurrentTime`, before the call
+  returns; the wait does not depend on the packet size or the timer settings [relay, probe]. In
+  virtual time, with USER's tick count on the same clock (`user16-vtime.patch`), the packets go
+  out exactly 60 ms apart (1.01: suites `options1`, `options2`); on the host's clock Wine's took
+  about 65 ms. On Windows 3.1, whose tick count moves in steps of about 55 ms, the gap will
+  vary. Wine's ALSA driver adds an F0 or F7 to a packet that does not begin or end with one,
   so the fake port logs every packet as a message of its own.
   - The other words, zero in Professional's call, had no visible effect [probe].
 - Receiving sysex under Wine needs Wine's 16-bit MMSYSTEM to pass input buffers between 16 and
@@ -1023,14 +1033,14 @@ with which default, and when; changing one key at a time showed what each does [
 
 | Key | Default | Read | Effect |
 |---|---|---|---|
-| `SyncOutputPort` | 1 | `SeqOpen` | the port for MIDI sync output (2.10, 3.00; 1.01 sends none). A value outside the output ports (0, or more than there are) shows "An invalid Sync Output Port 'n' was specified. Please re-check the following list of devices to use..." and then the device dialog, in all three versions; Cancel there makes `SeqOpen` return 3 with no port open |
-| `SendLocalOff` | 1 | `SeqOpen` | Local Control Off (CC 122 = 0) on all 16 channels when the port opens; 0 sends none, any other value counts as 1 |
+| `SyncOutputPort` | 1 | `SeqOpen` | the port for MIDI sync output (2.10, 3.00); 1.01 sends only the Song Position Pointer of a start there (suites `ports`, `ports2`). A value outside the output ports (0, or more than there are) shows "An invalid Sync Output Port 'n' was specified. Please re-check the following list of devices to use..." and then the device dialog, in all three versions; Cancel there makes `SeqOpen` return 3 with no port open |
+| `SendLocalOff` | 1 | `SeqOpen` | Local Control Off (CC 122 = 0) on all 16 channels when the port opens, channel by channel on every port in turn; 0 sends none, any other value counts as 1 |
 | `SendLocalOn` | 0 | `SeqClose` (2.10, 3.00) | not 0: Local Control On (CC 122 = 127) on all 16 channels when the port closes, before All Sound Off. 1.01 does not read it |
 | `ForceNoteOff` | 0 | `SeqOpen` (3.00) | not 0: the end of a note goes out as 8n kk 40 instead of 9n kk 00. The note-off the engine sends when a key that is sounding starts again stays 9n kk 00; `SeqTxMidiMsg` sends what it is given |
 | `Timebase` | 120 | `SeqOpen` | the PPQ of new sequences (`SeqCreateSeq`) in 2.10 and 3.00. Below 24 counts as 24, above 480 as 480 (in 3.00 also -5, read unsigned); of the values in between, 24, 48, 72, 96, 168, 192, 360, 384 and 480 were kept, and 25, 47, 60, 100, 200 and 400 gave 120. 1.01 reads it, but its new sequences stay at 120 |
 | `TimerPeriod`, `TimerResolution` | 10 and 5; 3.00: 2 and 1 | 1.01: `SeqOpen`, every file load and `SeqSetPlayingSeq`; 2.10: `SeqOpen` and `SeqSetPlayingSeq`; 3.00: `SeqOpen` | the engine's multimedia timer: `timeSetEvent(period, resolution, ..., periodic)` and `timeBeginPeriod(resolution)`; 0 counts as 1. They change only the timing. `SeqConfigMidi` (3.00) writes High 2 and 1, Medium 5 and 2, Low 10 and 5 |
-| `SysxSendPacketSize` | 1024 | `SeqOpen` | the packet size for sending sysex (above); 0 sends one byte at a time |
-| `SysxReceiveBuffers`, `SysxReceiveBuffersSize` | 128 and 512 | `SeqOpen` | the input buffers for receiving sysex (above). With fewer than 2 buffers the receive returns -4 when a message comes in; a size of 0 crashed the probe |
+| `SysxSendPacketSize` | 1024 | `SeqOpen` | the packet size for sending sysex (above), 60 ms apart; 0 sends one byte at a time |
+| `SysxReceiveBuffers`, `SysxReceiveBuffersSize` | 128 and 512 | `SeqOpen` | the input buffers for receiving sysex (above). With fewer than 2 buffers a message that comes in stays out of the bank and the receive returns -4 when its callback ends it; a size of 0 crashed the probe |
 | `RecordLengthDesired` | 16 | `SeqOpen` (2.10, 3.00) | the record buffer: n × 8 KB + 256 bytes (`GlobalReAlloc`), 1024 events per 8 KB. Events beyond it are lost: with 1, a take of 1100 notes keeps 1024 (2.10's `SeqRecCount`, 3.00's record buffer). 0 counts as 16. 1.01 does not read it and kept all 1100 |
 | `ChaseDelay` | 20 | `SeqOpen` | MIDI Time Code: how long the engine locks to the code before the start call returns, in tenths of a second (5: 0.5 s, 40: 4 s). No effect on MIDI clock |
 | `FlywheelAmount` | 5 | `SeqOpen` | MIDI Time Code: how long the engine runs on when the code stops, in tenths of a second (1: 0.1 s, 20: 2 s). No effect on MIDI clock |
@@ -1054,8 +1064,8 @@ all three versions except the timer (`devices/configmidi-*.txt`) [probe]:
   changes nothing.
 - The new assignment takes effect at once, without a new `SeqOpen`: Cakewalk port n is device
   n - 1 of the list, as `SeqGetPortName` and the MIDI from `SeqTxMidiMsg` show.
-- `SeqGetPortName(port, buffer)` writes "n: device"; for a port beyond the assigned ones it
-  repeats the first device's name with that number.
+- `SeqGetPortName(port, buffer)` writes "n: device"; past the assigned ports the devices come
+  round again (two devices: port 3 names the first, port 4 the second; suite `ports`).
 - `SyncOutputPort` decides where MIDI sync goes: with 2, Start, Clock, Stop and the Song Position
   Pointer go to port 2 (2.10, 3.00; the `ports` suite, which gives the engine such an INI file).
 - 3.00's timer precision: High writes `TimerPeriod=2`, `TimerResolution=1`; Medium 5 and 2; Low
@@ -1064,6 +1074,19 @@ all three versions except the timer (`devices/configmidi-*.txt`) [probe]:
 libseq does not port the dialog. The state behind it (which devices are which ports, which port
 sends sync) belongs to libseq's platform interface; the application draws its own dialog and
 keeps the settings.
+
+### Devices and options in libseq (1.01)
+
+The platform interface (`include/libseq/platform.hpp`) has what 1.01 gets from `TTSSEQ.INI` and
+Windows: `outputPorts()` and `outputName(port)`, the devices in port order, and `options()`, the
+`[Options]` 1.01 reads (`libseq::Options`, with 1.01's defaults). The engine reads them at
+`SeqOpen` (the timer period also at `SeqSetPlayingSeq` and every load, as 1.01 reads its INI
+file). `SendLocalOn`, `ForceNoteOff` and `RecordLengthDesired` are not there, because 1.01 does
+not read them; `Timebase` is, because it does, though its new sequences stay at 120 ppq. A
+`SyncOutputPort` that names no port makes the DLL show its dialog; libseq then uses port 1, and
+it is up to the application to keep the setting valid. The runner reads the suite's INI file
+(`#! ini FILE`) and names each message's port after the fake device, as the capture does. The
+suites `ports`, `ports2`, `options1`, `options2` and `misc` pass with their MIDI.
 
 ## Recording
 

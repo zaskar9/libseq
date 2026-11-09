@@ -12,7 +12,7 @@ The DLLs are not part of this repository; they come from your own Cakewalk disks
 | Folder | Content |
 |---|---|
 | `probe/` | `ttsprobe.c`, a 16-bit Windows program that loads a DLL and calls its functions from a script; `first.txt`, the first script |
-| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync), `user32-dlgproc.patch` (Wine's user32: 16-bit dialog procedures, for Cakewalk Professional's dialogs) and `build-wine16.sh` (builds all three), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
+| `wine/` | `fakeseq.c` (a fake ALSA sequencer with one MIDI output and one scripted MIDI input), `patch-winealsa.py` (Wine's own driver: the manufacturer ID of its ports), `mmsystem16-midiin.patch` (Wine's 16-bit MMSYSTEM: MIDI input buffers, for sysex), `mmsystem16-vtime.patch` and `user16-vtime.patch` (virtual time, below), `krnl386-irq.patch` (Wine's KRNL386: callbacks at interrupt time, for external sync), `user32-dlgproc.patch` (Wine's user32: 16-bit dialog procedures, for Cakewalk Professional's dialogs) and `build-wine16.sh` (builds all four modules), `runcw.sh` (runs a 16-bit program with the fake ports), `caps16.c` (lists the MIDI devices a 16-bit program sees) |
 | `sweep/` | calling every export to measure argument sizes, finding pointer layouts, mapping file bytes to parameters, playing songs, the SPP test, working the device dialog (`configmidi.sh`), single external-sync experiments (`syncexp.py`, and `mtcexp.py` for time code with frame rates and offsets), what one `TTSSEQ.INI` option changes (`options.py`), one recording with chosen `SeqRecordStart` arguments (`recstart.py`) |
 | `analysis/` | turning traces and outputs into tables: argument sizes, the API catalogue, parameter maps, `.WRK` dumps, the one-byte song variants; `snoopcalls.py` lists a program's engine calls with their arguments |
 | `record/` | recording with the programs themselves, from scripted MIDI input: Cakewalk Professional 2.00 (`prorec.sh`) and the Professional demo on 1.01 (`demo.sh`) |
@@ -104,14 +104,17 @@ The probe calls it where it waits: once per millisecond of `sleep` and `idle`, a
 callback with `cbyield 1`. A call into the DLL takes no time; at each millisecond the timers due
 run first, then the input due. MIDI input comes from `$VTIME_INPUT` (the fake port's script
 format, times from `midiInOpen`), and what goes out, and the input delivered, is written to
-`$VTIME_LOG` in the fake port's log format. The probe's `time` prints the virtual clock. Every
+`$VTIME_LOG` in the fake port's log format. With `wine/user16-vtime.patch` USER's
+`GetCurrentTime` and `GetTickCount` read the same clock, and a loop that waits on them moves it
+on one millisecond every 100 reads (TTSSEQ waits on `GetCurrentTime` between sysex packets). The
+probe's `time` prints the virtual clock. Every
 run gives the same output to the millisecond, so an experiment can place a call or an input at
 any millisecond. A wait that calls nothing (the wait for MIDI Start without a callback) would
 stop the clock; `VTIME_WATCHDOG=MS` moves it on from a thread of its own while the program has
 not touched it for MS ms of real time (with `WINE_WIN16_IRQ_CALLBACKS=serial`).
 `oracles/mkoracles.sh` runs every suite in virtual time (`VTIME=0` for the host's clock); `#! irq`
-and `#! watchdog` turn the watchdog on. The script runner (`tests/runner`) keeps time the same way, so libseq is compared with
-the DLL at the exact millisecond (`ttsseq-api.md`, Timing).
+and `#! watchdog` turn the watchdog on. The script runner (`tests/runner`) keeps time the same
+way, so libseq is compared with the DLL at the exact millisecond (`ttsseq-api.md`, Timing).
 
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
 probe's `cbretafter MS HEX` switches the callbacks' result after MS milliseconds, and `cbmask HEX`

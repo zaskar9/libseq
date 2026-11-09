@@ -270,19 +270,6 @@ void Player::send(const int port, const std::initializer_list<std::uint8_t> byte
     engine_->send(port, std::span<const std::uint8_t>(bytes.begin(), bytes.size()));
 }
 
-std::set<int> Player::portsInUse() const {
-    std::set<int> ports;
-    for (const Stream* st : seq_->streams()) {
-        if (!st->events().empty()) {
-            ports.insert(st->param(sp::kPort));
-        }
-    }
-    if (ports.empty()) {
-        ports.insert(0);
-    }
-    return ports;
-}
-
 void Player::noteOn(const Item& it) {
     if (!engine_->notes_.insert(Engine::NoteKey{it.port, it.data[0] & 0x0f, it.data[1]}).second) {
         send(it.port, {it.data[0], it.data[1], 0}); // the key is sounding: it ends first
@@ -384,7 +371,12 @@ void Player::searchBack(const Tick start) {
 }
 
 void Player::stopOutput(const bool zeroControllers) {
-    std::set<int> ports = portsInUse();
+    // every output port, whichever the streams use (two ports, a stream on either: suite ports)
+    std::set<int> ports;
+    const int outputs = engine_->platform() != nullptr ? engine_->platform()->outputPorts() : 0;
+    for (int port = 0; port < outputs; ++port) {
+        ports.insert(port);
+    }
     if (clickOn_) {
         send(click_.port, {click_.status, click_.key, 0});
         clickOn_ = false;
@@ -552,7 +544,8 @@ void Player::songPositionOnly(Sequence& sequence) {
         tick -= tick % (ppq / 4U);
         sequence.now = tick;
         const Tick beats = tick / (ppq / 4U);
-        send(0, {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
+        send(engine_->syncPort(),
+             {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
     }
 }
 
@@ -618,7 +611,8 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
     offs_.clear();
     if (spp && ppq >= 4) {
         const Tick beats = tick / (ppq / 4U);
-        send(0, {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
+        send(engine_->syncPort(),
+             {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
     }
     std::vector<const Stream*> streams;
     for (const Stream* st : seq_->streams()) {
@@ -639,6 +633,7 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
     }
     ranSince_ = false;
     atEnd_ = false;
+    stopSent_ = false;
     base_ = 0;
     if (drive != Drive::Timer) {
         waiting_ = true; // until the sync comes
@@ -651,6 +646,13 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
         pOffset_ = 0; // (the next run compares its MIDI clock with the last run's, before the start)
     }
     playing_ = true; // the timer plays the events from the start on
+    if (!recording && !loop_ && next_ == items_.size()) {
+        // nothing at or after the start (an empty sequence, a start past the end): the playback
+        // ends in the start call, with its stop output, and SeqIdle reports the end (suite ports2)
+        ended_ = true;
+        stopOutput(seq_->param(qp::kZeroControllers) != 0);
+        stopSent_ = true;
+    }
     return true;
 }
 
@@ -693,7 +695,8 @@ void Player::lockOutput(const Tick at) {
     }
     if (seq_->param(qp::kSendSpp) != 0 && seq_->ppq >= 4) {
         const Tick beats = at / (seq_->ppq / 4U);
-        send(0, {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
+        send(engine_->syncPort(),
+             {0xf2, byte(static_cast<int>(beats & 0x7fU)), byte(static_cast<int>((beats >> 7) & 0x7fU))});
     }
     searchBackFor(at);
 }
@@ -952,7 +955,10 @@ std::uint16_t Player::idle() {
     }
     playing_ = false;
     ended_ = false;
-    stopOutput(seq_->param(qp::kZeroControllers) != 0);
+    if (!stopSent_) {
+        stopOutput(seq_->param(qp::kZeroControllers) != 0);
+    }
+    stopSent_ = false;
     tickBefore(lastRunMs_);
     if (seq_->param(qp::kAutoRewind) != 0) {
         seq_->now = static_cast<Tick>(seq_->param(qp::kRewindTime));

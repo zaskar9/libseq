@@ -136,7 +136,6 @@ private:
     [[nodiscard]] Tick lastTick() const noexcept { return end_; }
     /// Where the playback goes no further: the loop's stop, the auto-stop time or the end.
     [[nodiscard]] Tick limit() const noexcept;
-    [[nodiscard]] std::set<int> portsInUse() const;
     void schedule();
     void emit(const Item& item);
     void noteOn(const Item& item);
@@ -199,6 +198,7 @@ private:
     bool ranSince_ = false;   // a timer run came since the start
     bool everOpened_ = false; // SeqOpen came once (the clock carries over a close and open)
     bool atEnd_ = false;      // ended at the sequence's end (SeqIdle has not seen it yet)
+    bool stopSent_ = false;   // ended in the start call, its stop output sent already
 };
 
 } // namespace libseq

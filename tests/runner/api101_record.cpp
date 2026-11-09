@@ -48,11 +48,13 @@ void defineRecord101(Probe& p, Engine& e) {
                 {0x0464, 0x0100, static_cast<std::uint16_t>(count >> 16), static_cast<std::uint16_t>(count & 0xffffU)});
         });
     });
+    // returns nothing; read as a word (suite misc), AX still holds the velocity
     p.define("SEQSTEPRECPARAMS", [&e](Args& a, Probe&) -> std::uint32_t {
         const libseq::Tick position = a.dword();
         const std::uint16_t duration = a.word();
-        e.stepRecParams(position, duration, a.word());
-        return 0;
+        const std::uint16_t velocity = a.word();
+        e.stepRecParams(position, duration, velocity);
+        return velocity;
     });
     p.define("SEQSTEPRECTERM", [&e](Args&, Probe&) -> std::uint32_t { return e.stepRecTerm(); });
     p.define("SEQRECORDEVENT", [&e](Args& a, Probe& pr) -> std::uint32_t {

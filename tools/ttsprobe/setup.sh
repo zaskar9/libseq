@@ -15,9 +15,10 @@
 # end the run, not wait for a debugger), copies the DLLs to C:\PROBE\V101, V210 and V300 with a
 # TTSSEQ.INI naming the fake MIDI ports, copies the test songs to C:\PROBE, builds libfakeseq.so and ttsprobe.exe, and checks that
 # Wine's ALSA driver reports a usable manufacturer ID (wine/patch-winealsa.py; needs root to
-# install, see the message). Receiving sysex (the sysexin suite) also needs Wine's 16-bit MMSYSTEM
-# built with wine/mmsystem16-midiin.patch, and external sync (the sync suite) its KRNL386 built
-# with wine/krnl386-irq.patch (both from wine/build-wine16.sh).
+# install, see the message). The oracle suites also need Wine's 16-bit MMSYSTEM built with
+# wine/mmsystem16-midiin.patch (sysex input) and mmsystem16-vtime.patch (virtual time), its USER
+# with wine/user16-vtime.patch and its KRNL386 with wine/krnl386-irq.patch (external sync), all
+# from wine/build-wine16.sh.
 set -e
 . "$(dirname "$0")/env.sh"
 src=${1:?usage: setup.sh DLLDIR}
@@ -47,10 +48,10 @@ if python3 -c "import sys; b=open(sys.argv[1],'rb').read(); sys.exit(0 if b.find
   echo "  sudo cp $alsa $alsa.orig && sudo cp $TTSPROBE_WORK/winealsa.so $alsa"
 fi
 w16=$(dirname "$alsa")/../i386-windows
-if [ ! -f "$w16/mmsystem.dll16.orig" ] || [ ! -f "$w16/krnl386.exe16.orig" ]; then
-  echo "Receiving sysex (suite sysexin) and external sync (suite sync) need two patched 16-bit Wine modules; build and install them:"
+if [ ! -f "$w16/mmsystem.dll16.orig" ] || [ ! -f "$w16/krnl386.exe16.orig" ] || [ ! -f "$w16/user.exe16.orig" ]; then
+  echo "The oracle suites (virtual time, sysex input, external sync) need three patched 16-bit Wine modules; build and install them:"
   echo "  $TTSPROBE/wine/build-wine16.sh $TTSPROBE_WORK/wine16"
-  for m in mmsystem.dll16 krnl386.exe16; do
+  for m in mmsystem.dll16 krnl386.exe16 user.exe16; do
     echo "  sudo cp $w16/$m $w16/$m.orig && sudo cp $TTSPROBE_WORK/wine16/$m $w16/$m"
   done
 fi

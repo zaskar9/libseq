@@ -88,7 +88,7 @@ suites passed numerator and denominator as two words, which the engine took as k
 |---|---|---|
 | `SeqGetMeterMapLen(seq)` | w | |
 | `SeqGetMeterAtIx(seq, index, p measure)` | d | key << 16 \| meter; the entry's measure (a word) goes to the pointer |
-| `SeqMeterIxByTick(seq, d tick)` | d | |
+| `SeqMeterIxByTick(seq, d tick)` | d | the index in AX; 1.01 leaves the tick's high word in DX (tick 0x10000 gives 0x00010005; suite `misc`) |
 | `SeqGetMeter(seq, d tick)` | d | key << 16 \| meter in effect at the tick |
 | `SeqInsMeter(seq, measure, key, meter)` | w | kept in measure order; an entry at the same measure is replaced |
 | `SeqDelMeter(seq, measure)` | w | deletes the entry in effect at the measure, also the first one |
@@ -169,13 +169,13 @@ suites passed numerator and denominator as two words, which the engine took as k
 | `SeqGetSrcClock([seq])`, `SeqSetSrcClock([seq,] source)` | w | the sequence from 2.10 on; 0 internal, 1 MIDI sync, 3 MIDI Time Code; another value returns 0 and changes nothing |
 | `SeqRecordStart(stream, d in, d out, p callback)` (stream 0: no punch), `SeqRecordStop()`, `SeqRecCount()`, `SeqRecordCleanup(seq, keep, 0, p stream)` (the word at `stream` is read too: a stream to merge with, or to put punched-out events back into) | w / d | 1.01, 2.10; see API.md |
 | `SeqStepRecSetup(seq, hwnd)` | w | a new stream for the take; the engine posts 0x464 (wParam 0x100, lParam the event count) to `hwnd` after each step |
-| `SeqStepRecParams(d position, duration, velocity)` | | the next step's position, its notes' duration, a fixed velocity (0: as played) |
+| `SeqStepRecParams(d position, duration, velocity)` | | the next step's position, its notes' duration, a fixed velocity (0: as played). No result; 1.01 leaves the velocity in AX (suite `misc`) |
 | `SeqSetRecCount(d n)` | w | keeps the first n events of the take (Delete) |
 | `SeqStepRecTerm()` | w | ends step recording; the number of events (3.00 then sets the count to 0) |
 | `SeqRecordEvent(p event)` | w | adds the event to a running take at the current position; 1.01 and 2.10 not during step recording | |
 | `SeqTxMidiMsg(port, channel, status, data1, data2)` | w | sends one channel message at once: the channel replaces the status's low nibble; port 0xffff is every port, channel 0xff every channel. Note-offs (0x8n, or 0x9n with velocity 0) go out only for notes that are on; a note-on for a note that is on sends its note-off first. Returns 1, or 0 for pitch wheel (0xEn), system messages, channel 16 and above or data above 0x7f, which are not sent |
-| `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out"; past the assigned ports, the first device's name with that number |
-| `SeqHugeMemCpy(p dst, p src, d count)` | d | |
+| `SeqGetPortName(port, p buffer)` | d | "1: Fake - MIDI Out"; past the assigned ports the devices come round again, with that number (suite `ports`) |
+| `SeqHugeMemCpy(p dst, p src, d count)` | d | copies count bytes; the count |
 | `SeqIOSeek(file, d offset, origin)` | d | the new position; origin 0 start, 1 current, 2 end. Only while a file is open: in the load and save callbacks and the event procedures |
 | `SeqIORead(file, p buffer, count)`, `SeqIOWrite(file, p buffer, count)` | w | the bytes moved; the count is a dword in 3.00. `SeqIOWrite` writes to the engine's file whatever handle it gets (0 works); `SeqIOSeek` uses the handle |
 | load and save callback | | callback(code, word, d value): 0xFE (file, or a percentage when saving), a chunk type with the file, 3 (?), 0xFF with the file; returns 1 for a chunk it read |

@@ -698,9 +698,23 @@ void Engine::timer() {
 
 void Engine::restartTimer() {
     if (platform_ != nullptr) {
+        timerPeriod_ = std::max(platform_->options().timerPeriod, 1U); // TimerPeriod, read again
         player_->timerStarted(platform_->milliseconds());
         platform_->startTimer(timerPeriod_);
     }
+}
+
+int Engine::syncPort() const noexcept {
+    const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
+    return options_.syncOutputPort >= 1 && options_.syncOutputPort <= ports ? options_.syncOutputPort - 1 : 0;
+}
+
+std::string Engine::portName(const int port) const {
+    // "n: device"; past the assigned ports the devices come round again (two devices: port 3 is the
+    // first, port 4 the second; suite ports)
+    const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
+    const std::string device = ports <= 0 ? std::string() : platform_->outputName(port % ports);
+    return std::to_string(port + 1) + ": " + device;
 }
 
 bool Engine::setPlayingSeq(const SeqHandle seq) {
@@ -787,14 +801,22 @@ bool Engine::expired() const noexcept {
 
 void Engine::open() {
     thru_ = {2, 0, -1, 0, 0, -1};
+    options_ = platform_ != nullptr ? platform_->options() : Options{};
+    timerPeriod_ = std::max(options_.timerPeriod, 1U);
+    chaseDelay_ = options_.chaseDelay;
+    flywheel_ = options_.flywheelAmount;
     if (platform_ != nullptr) {
         player_->opened(platform_->milliseconds());
         platform_->opened(*this);
         platform_->startTimer(timerPeriod_);
     }
+    if (options_.sendLocalOff == 0) {
+        return;
+    }
+    // channel by channel, each on every port in turn (suite ports)
     const int ports = platform_ != nullptr ? platform_->outputPorts() : 0;
-    for (int port = 0; port < ports; ++port) {
-        for (unsigned ch = 0; ch < 16; ++ch) {
+    for (unsigned ch = 0; ch < 16; ++ch) {
+        for (int port = 0; port < ports; ++port) {
             const std::array<std::uint8_t, 3> localOff{static_cast<std::uint8_t>(0xb0U | ch), 122, 0};
             send(port, localOff);
         }

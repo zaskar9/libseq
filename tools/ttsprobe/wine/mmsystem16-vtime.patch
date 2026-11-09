@@ -121,10 +121,10 @@ index fc3b6f4..f29bb57 100644
  }
  
 diff --git a/dlls/mmsystem.dll16/mmsystem.dll16.spec b/dlls/mmsystem.dll16/mmsystem.dll16.spec
-index 66d1e9b..26ceaf8 100644
+index 66d1e9b..11fc638 100644
 --- a/dlls/mmsystem.dll16/mmsystem.dll16.spec
 +++ b/dlls/mmsystem.dll16/mmsystem.dll16.spec
-@@ -174,3 +174,7 @@
+@@ -174,3 +174,8 @@
  
  # these are Wine only exported functions. Is there another way to do it ?
  2047   pascal  __wine_mmThreadEntryPoint(long) WINE_mmThreadEntryPoint
@@ -132,12 +132,13 @@ index 66d1e9b..26ceaf8 100644
 +# virtual time (vtime.c, WINE_VTIME)
 +2000   pascal  VTIMEADVANCE(word) VTIMEADVANCE16
 +2001   pascal  VTIMENOW() VTIMENOW16
++2002   pascal  VTIMETICKS() VTIMETICKS16
 diff --git a/dlls/mmsystem.dll16/vtime.c b/dlls/mmsystem.dll16/vtime.c
 new file mode 100644
-index 0000000..dcf7b17
+index 0000000..7d96b16
 --- /dev/null
 +++ b/dlls/mmsystem.dll16/vtime.c
-@@ -0,0 +1,482 @@
+@@ -0,0 +1,503 @@
 +/*
 + * Virtual time for 16-bit programs (the probe's WINE_VTIME mode)
 + *
@@ -153,7 +154,9 @@ index 0000000..dcf7b17
 + * The clock moves on only when the program says so: VTIMEADVANCE(ms) [MMSYSTEM.2000] moves it on
 + * one millisecond at a time and runs what falls due, the timers first, then the input. The probe
 + * calls it where it waits; a call into a DLL takes no virtual time. VTIMENOW() [MMSYSTEM.2001]
-+ * reads the clock, or answers 0xFFFFFFFF when virtual time is off.
++ * reads the clock, or answers 0xFFFFFFFF when virtual time is off. VTIMETICKS() [MMSYSTEM.2002] is
++ * the system's tick count (USER's GetCurrentTime and GetTickCount, with user16-vtime.patch) on the
++ * same clock: a program that waits on it in a loop moves it on one millisecond every 100 reads.
 + * Some waits of a program call nothing at all (a loop on a flag that only its timer or MIDI
 + * callback sets, as at interrupt time on Windows 3.1). With VTIME_WATCHDOG=MS the clock also moves
 + * on, from a thread of its own, while the program has not touched it for MS milliseconds of real
@@ -609,6 +612,25 @@ index 0000000..dcf7b17
 +        vt_touch();
 +    }
 +    LeaveCriticalSection(&vt_cs);
++}
++
++/**************************************************************************
++ *                              VTIMETICKS      [MMSYSTEM.2002]
++ */
++DWORD WINAPI VTIMETICKS16(void)
++{
++    static unsigned polls;
++    DWORD now;
++    if (!VTIME_On()) return GetTickCount();
++    EnterCriticalSection(&vt_cs);
++    if (vt_depth == 0)
++    {
++        vt_touch();
++        if (++polls >= 100) { polls = 0; vt_step(); }
++    }
++    now = vt_now;
++    LeaveCriticalSection(&vt_cs);
++    return now;
 +}
 +
 +/**************************************************************************

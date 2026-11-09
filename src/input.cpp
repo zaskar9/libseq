@@ -87,11 +87,27 @@ void Engine::input(const std::span<const std::uint8_t> message) {
 void Engine::receiveSysx(const std::span<const std::uint8_t> message) {
     Sequence* s = sequence(seqOf(sysxReceive_));
     SysxBank* bank = s != nullptr ? s->sysxBank(sysxReceive_) : nullptr;
-    if (bank == nullptr || (message.size() > 1 && (message[1] == 0x7e || message[1] == 0x7f))) {
-        return; // universal messages are left out
+    if (bank == nullptr) {
+        return;
     }
-    bank->data.insert(bank->data.end(), message.begin(), message.end());
-    sysxReceived_ += static_cast<std::uint32_t>(message.size());
+    if (options_.sysxReceiveBuffers < 2) {
+        // too few buffers: the bytes count, but nothing goes into the bank, and the receive answers
+        // -4 when the callback ends it (suite options2)
+        sysxReceived_ += static_cast<std::uint32_t>(message.size());
+        sysxFailed_ = true;
+        return;
+    }
+    // the message comes in through buffers of SysxReceiveBuffersSize bytes; a buffer whose second
+    // byte is 7E or 7F is left out as a universal message, also in the middle of a message
+    const std::size_t size = std::max<std::size_t>(options_.sysxReceiveBuffersSize, 1);
+    for (std::size_t at = 0; at < message.size(); at += size) {
+        const auto part = message.subspan(at, std::min(size, message.size() - at));
+        if (part.size() > 1 && (part[1] == 0x7e || part[1] == 0x7f)) {
+            continue;
+        }
+        bank->data.insert(bank->data.end(), part.begin(), part.end());
+        sysxReceived_ += static_cast<std::uint32_t>(part.size());
+    }
 }
 
 std::int16_t Engine::receiveSysxBank(const StreamHandle bank, const SysxReceiveProc& callback) {
@@ -101,6 +117,7 @@ std::int16_t Engine::receiveSysxBank(const StreamHandle bank, const SysxReceiveP
     }
     sysxReceive_ = bank;
     sysxReceived_ = 0;
+    sysxFailed_ = false;
     constexpr std::uint32_t kFree = 0x01000000; // GetFreeSpace: what libseq says it has
     for (;;) {
         if (!callback || callback(sysxReceived_, kFree) != 0) {
@@ -112,6 +129,9 @@ std::int16_t Engine::receiveSysxBank(const StreamHandle bank, const SysxReceiveP
         platform_->wait();
     }
     sysxReceive_ = 0;
+    if (sysxFailed_) {
+        return -4;
+    }
     const SysxBank* b = s->sysxBank(bank);
     return b != nullptr && !b->data.empty() ? std::int16_t{1} : std::int16_t{-2};
 }
@@ -122,17 +142,20 @@ bool Engine::sendSysxBank(const StreamHandle bank) {
     if (b == nullptr) {
         return false;
     }
-    constexpr std::size_t kPacket = 1024; // SysxSendPacketSize
-    constexpr std::uint32_t kGapMs = 65;
+    // packets of SysxSendPacketSize bytes (0: one byte), 60 ms apart: 1.01 waits on the system's
+    // tick count (GetCurrentTime) between them, and the call returns after the last (virtual
+    // time, with the tick count on the same clock: suites options1 and options2)
+    constexpr std::uint32_t kGapMs = 60;
+    const std::size_t packet = std::max<std::size_t>(options_.sysxSendPacketSize, 1);
     const std::vector<std::uint8_t> data = b->data;
-    for (std::size_t at = 0; at < data.size(); at += kPacket) {
+    for (std::size_t at = 0; at < data.size(); at += packet) {
         if (at > 0 && platform_ != nullptr) {
             const std::uint32_t until = platform_->milliseconds() + kGapMs;
             while (platform_->milliseconds() < until) {
                 platform_->wait();
             }
         }
-        send(0, std::span<const std::uint8_t>(data).subspan(at, std::min(kPacket, data.size() - at)));
+        send(0, std::span<const std::uint8_t>(data).subspan(at, std::min(packet, data.size() - at)));
     }
     return true;
 }

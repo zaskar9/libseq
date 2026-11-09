@@ -64,6 +64,7 @@ files and reading and writing MIDI files byte for byte as 1.01 does, string even
 kinds and the program's file callbacks, playback through a platform interface for the MIDI
 ports and the clock, and the input side: MIDI thru, real-time recording with count-in and punch,
 step recording, sysex receive and send, `SeqTxMidiMsg`, and following MIDI clock and MIDI Time
-Code. Their timing reproduces 1.01 to the millisecond, measured with Wine in virtual time
+Code, and the devices and options that `TTSSEQ.INI` holds, through the platform interface. Their
+timing reproduces 1.01 to the millisecond, measured with Wine in virtual time
 (`docs/reverse-engineering/ttsseq-api.md`, Timing). An earlier exploration
 (versions 0.1.0 to 0.8.1) is kept on the branch `archive/0.x`.

@@ -229,9 +229,13 @@ void defineTime101(Probe& p, Engine& e) {
         putWord(pr, measure, static_cast<std::uint16_t>(m.measure + 1));
         return meterResult(m);
     });
+    // a word; read as a double word (suite misc), DX still holds the tick's high word
     p.define("SEQMETERIXBYTICK", [seq](Args& a, Probe&) -> std::uint32_t {
         const Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->meterMap.indexAtTick(a.dword()));
+        const std::uint32_t tick = a.dword();
+        return s == nullptr
+                   ? 0
+                   : (tick & 0xffff0000U) | (static_cast<std::uint32_t>(s->meterMap.indexAtTick(tick)) & 0xffffU);
     });
     p.define("SEQGETMETER", [seq](Args& a, Probe&) -> std::uint32_t {
         const Sequence* s = seq(a);

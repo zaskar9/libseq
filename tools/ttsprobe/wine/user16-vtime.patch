@@ -1,0 +1,51 @@
+diff --git a/dlls/user.exe16/user.c b/dlls/user.exe16/user.c
+index ef3ccc8..0803301 100644
+--- a/dlls/user.exe16/user.c
++++ b/dlls/user.exe16/user.c
+@@ -37,6 +37,29 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(user);
+ 
++/***********************************************************************
++ *		GetTickCount (USER.13), GetCurrentTime (USER.15)
++ *
++ * With WINE_VTIME=1 the tick count comes from MMSYSTEM's virtual clock (VTIMETICKS,
++ * mmsystem16-vtime.patch), once that module is loaded.
++ */
++DWORD WINAPI GetTickCount16(void)
++{
++    static int vtime = -1;
++    static FARPROC16 ticks;
++    DWORD ret;
++
++    if (vtime < 0) vtime = getenv("WINE_VTIME") && atoi(getenv("WINE_VTIME")) != 0;
++    if (vtime && !ticks)
++    {
++        HMODULE16 mmsystem = GetModuleHandle16("MMSYSTEM");
++        if (mmsystem) ticks = GetProcAddress16(mmsystem, (LPCSTR)MAKEINTRESOURCE(2002));
++    }
++    if (!ticks) return GetTickCount();
++    WOWCallback16Ex((DWORD)ticks, WCB16_PASCAL, 0, NULL, &ret);
++    return ret;
++}
++
+ /* handle to handle 16 conversions */
+ #define HANDLE_16(h32)		(LOWORD(h32))
+ #define HGDIOBJ_16(h32)		(LOWORD(h32))
+diff --git a/dlls/user.exe16/user.exe16.spec b/dlls/user.exe16/user.exe16.spec
+index 4798ccc..cd8902f 100644
+--- a/dlls/user.exe16/user.exe16.spec
++++ b/dlls/user.exe16/user.exe16.spec
+@@ -8,10 +8,10 @@
+ 10  pascal -ret16 SetTimer(word word word segptr) SetTimer16
+ 11  pascal -ret16 SetSystemTimer(word word word segptr) SetSystemTimer16 # BEAR11
+ 12  pascal -ret16 KillTimer(word word) KillTimer16
+-13  pascal   GetTickCount() GetTickCount
++13  pascal   GetTickCount() GetTickCount16
+ 14  pascal   GetTimerResolution() GetTimerResolution16
+ # GetCurrentTime is effectively identical to GetTickCount
+-15  pascal   GetCurrentTime() GetTickCount
++15  pascal   GetCurrentTime() GetTickCount16
+ 16  pascal -ret16 ClipCursor(ptr) ClipCursor16
+ 17  pascal -ret16 GetCursorPos(ptr) GetCursorPos16
+ 18  pascal -ret16 SetCapture(word) SetCapture16

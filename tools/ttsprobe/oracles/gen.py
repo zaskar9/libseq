@@ -967,6 +967,19 @@ def _():
     return L
 
 
+@suite('ports2')
+def _():
+    # 1.01: the same two devices, sync output to port 1 (PORTS2.INI). The Song Position goes to the
+    # sync port; the stop output goes to every port, whichever port the stream plays on, and also
+    # for a sequence without streams.
+    return ['#! outputs 2', '#! ini PORTS2.INI', '#! secs 40', '@open',
+            'echo == ENG_SYNC: its stream plays on port 1', '@load ENG_SYNC.WRK', 'call.w SEQGETSTREAMPARAM 0100 0003',
+            'call.w SEQSETPLAYINGSEQ 0001', 'call.w SEQSETSTANDBYSEQ 0000', 'sleep 500', '@play', 'idle 600', '@stop', 'idle 300',
+            'echo == the stream on port 2', 'call.w SEQSETSTREAMPARAM 0100 0003 d:00000001', '@play', 'idle 300', '@stop',
+            'idle 300', 'echo == an empty sequence', 'call.w SEQCREATESEQ 0000 0000', 'call.w SEQSETPLAYINGSEQ 0002',
+            '@play', 'idle 300', '@stop', 'idle 300', '@close']
+
+
 @suite('steprec')
 def _():
     # Step recording as Cakewalk Apprentice 1.04's dialog does it [trace]: SeqStepRecSetup(seq, hwnd)
@@ -1610,7 +1623,9 @@ def main():
                                           '2000 f0 7d 01 02 03 f7'], '\n'),
                             ('PUNCH.TXT', punch_input(PUNCH_STARTS), '\n'), ('THRU.TXT', thru_input(), '\n'), ('MTC.TXT', mtc_input(), '\n'),
                             ('MTCBRK.TXT', mtc_break_input(), '\n'), ('COUNTIN.TXT', countin_input(), '\n'),
-                            ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n')]:
+                            ('OPTS1.INI', opts_ini(1), '\r\n'), ('OPTS2.INI', opts_ini(2), '\r\n'),
+                            ('PORTS2.INI', ['[Options]', 'SyncOutputPort=1', '[MIDI Output Devices]', '0=Fake - MIDI Out 2',
+                                            '1=Fake - MIDI Out', '[MIDI Input Devices]', '0=Fake - MIDI In'], '\r\n')]:
         with open(os.path.join(inputs, name), 'w', newline='') as f:
             f.write(nl.join(lines) + nl)
         print('wrote input/' + name)

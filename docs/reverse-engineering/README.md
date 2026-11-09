@@ -33,7 +33,8 @@ Three versions were studied:
   one, Wine's 16-bit MMSYSTEM, which did not pass buffers for system exclusive input between
   16-bit programs and the driver (`tools/ttsprobe/wine/mmsystem16-midiin.patch`), the same
   module's timer, clock and MIDI devices, to run them on a virtual clock
-  (`tools/ttsprobe/wine/mmsystem16-vtime.patch`), and Wine's KRNL386, to call timer and MIDI
+  (`tools/ttsprobe/wine/mmsystem16-vtime.patch`), with Wine's USER for the tick count
+  (`tools/ttsprobe/wine/user16-vtime.patch`), and Wine's KRNL386, to call timer and MIDI
   callbacks at interrupt time as Windows 3.1 does (`tools/ttsprobe/wine/krnl386-irq.patch`).
 - **No Cakewalk files in this repository.** The DLLs and programs come from the user's own disks.
   The repository holds only what the observations produced, and songs written for the purpose.
@@ -329,6 +330,30 @@ matches it to the millisecond. The same tracing brought two smaller corrections,
 behaves as a Windows driver does: a reset returns only the buffers queued when it is called, and
 a buffer's done and queued flags are kept on Wine's 32-bit copy of the header too, since Wine's
 unprepare copies those back.
+
+### 18. Devices and options (2026-11-09)
+
+The last suites of 1.01 that libseq did not run yet were about the system around the engine:
+which devices are its ports (`ports`), the `[Options]` of `TTSSEQ.INI` (`options1`, `options2`)
+and a few calls nobody else makes (`misc`). They were recorded again in virtual time first. The
+platform interface gained the device names and the options, and the runner reads each suite's
+INI file, so libseq runs them with the same settings the DLL had.
+
+Running them showed what one port could not. With two ports, Local Control Off goes out channel
+by channel, on every port in turn, and the stop output goes to every port, whichever port the
+streams use. A new suite, `ports2`, also showed that 1.01 sends its Song Position to the sync
+port, and that a start with nothing to play ends in the start call. Past the assigned ports,
+`SeqGetPortName` does not repeat the first device, as written before, but comes round the
+devices again.
+
+One finding was about the method again. In virtual time the sysex packets went out all at once,
+not 65 ms apart. The DLL waits between them on USER's `GetCurrentTime`, which the virtual clock
+did not cover, so the wait cost no virtual time. A small patch to Wine's USER
+(`user16-vtime.patch`) puts the tick count on the same clock; with it the packets go out exactly
+60 ms apart, and libseq waits as long. Two other results are leftovers in registers rather than
+results: read as a double word, `SeqMeterIxByTick` has the tick's high word in DX, and
+`SeqStepRecParams`, which returns nothing, leaves the velocity in AX. The runner reproduces both,
+since the suites read them.
 
 ## In this folder
 

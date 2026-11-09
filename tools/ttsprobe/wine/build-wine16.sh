@@ -1,5 +1,5 @@
 #!/bin/bash
-# build-wine16.sh OUTDIR: builds three of Wine's modules with this folder's patches, for the Wine
+# build-wine16.sh OUTDIR: builds four of Wine's modules with this folder's patches, for the Wine
 # version installed, and writes them to OUTDIR:
 #
 # - mmsystem.dll16 with mmsystem16-midiin.patch. Wine 9.0 does not map the long buffers of 16-bit
@@ -13,6 +13,9 @@
 #   every time, which is what the timing of libseq is checked against (docs/ttsseq-api.md,
 #   Timing). VTIME_WATCHDOG moves the clock on in waits that call nothing (needs the irq patch).
 #   Unset, the module behaves as before.
+# - user.exe16 with user16-vtime.patch: in virtual time, USER's GetCurrentTime and GetTickCount
+#   read the same clock (MMSYSTEM.2002), which a loop that waits on them moves on. TTSSEQ waits on
+#   GetCurrentTime between sysex packets. Unset, the module behaves as before.
 # - krnl386.exe16 with krnl386-irq.patch. Windows 3.1 runs the callbacks of multimedia timers and
 #   MIDI drivers at interrupt time, while the program runs; Wine runs them only when no thread is in
 #   16-bit code. A program that waits in a loop for such a callback (TTSSEQ 1.01 waiting for MIDI
@@ -25,11 +28,12 @@
 #   value that stands for "some 16-bit procedure" instead of the procedure, and the next message
 #   to the dialog jumps to a bad address. The demo's Punch-in and Auto-shuttle dialogs crashed.
 #
-# All three change Wine only. Needs: git, flex, bison, gcc and the MinGW cross compiler for i686
+# All four change Wine only. Needs: git, flex, bison, gcc and the MinGW cross compiler for i686
 # (i686-w64-mingw32-gcc). Install the results over Wine's own modules (keep the originals):
 #   W=/usr/lib/i386-linux-gnu/wine/i386-windows
 #   sudo cp $W/mmsystem.dll16 $W/mmsystem.dll16.orig; sudo cp OUTDIR/mmsystem.dll16 $W/
 #   sudo cp $W/krnl386.exe16 $W/krnl386.exe16.orig; sudo cp OUTDIR/krnl386.exe16 $W/
+#   sudo cp $W/user.exe16 $W/user.exe16.orig; sudo cp OUTDIR/user.exe16 $W/
 #   sudo cp $W/user32.dll $W/user32.dll.orig; sudo cp OUTDIR/user32.dll $W/
 set -e
 out=$(mkdir -p "${1:?usage: build-wine16.sh OUTDIR}" && cd "$1" && pwd)
@@ -37,7 +41,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 ver=$(wine --version | sed 's/^wine-\([0-9.]*\).*/\1/')
 work=$out/wine-build; mkdir -p "$work"; cd "$work"
 [ -d src ] || git clone --depth 1 --branch "wine-$ver" https://github.com/wine-mirror/wine.git src
-for p in mmsystem16-midiin.patch mmsystem16-vtime.patch krnl386-irq.patch user32-dlgproc.patch; do
+for p in mmsystem16-midiin.patch mmsystem16-vtime.patch user16-vtime.patch krnl386-irq.patch user32-dlgproc.patch; do
   git -C src apply --check "$here/$p" 2>/dev/null && git -C src apply "$here/$p"
 done
 mkdir -p build; cd build
@@ -48,7 +52,7 @@ mkdir -p build; cd build
   --without-capi --without-gphoto --without-inotify --without-pcsclite --without-wayland \
   --without-osmesa --without-xcomposite > configure.log
 make -j"$(nproc)" dlls/mmsystem.dll16/i386-windows/mmsystem.dll16 dlls/krnl386.exe16/i386-windows/krnl386.exe16 \
-  dlls/user32/i386-windows/user32.dll > make.log
+  dlls/user.exe16/i386-windows/user.exe16 dlls/user32/i386-windows/user32.dll > make.log
 cp dlls/mmsystem.dll16/i386-windows/mmsystem.dll16 dlls/krnl386.exe16/i386-windows/krnl386.exe16 \
-  dlls/user32/i386-windows/user32.dll "$out/"
-echo "built: $out/mmsystem.dll16, krnl386.exe16 and user32.dll (Wine $ver with this folder's patches)"
+  dlls/user.exe16/i386-windows/user.exe16 dlls/user32/i386-windows/user32.dll "$out/"
+echo "built: $out/mmsystem.dll16, krnl386.exe16, user.exe16 and user32.dll (Wine $ver with this folder's patches)"

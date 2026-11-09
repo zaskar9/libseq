@@ -15,7 +15,8 @@
 // the engine move it on one millisecond at a time. At each millisecond the engine's timer runs
 // when due (every period from the moment the engine last started it), then the input due is
 // handed over. The suite's header names its MIDI input ("#! input FILE", in tests/data/ttsseq/
-// input), times counted from SeqOpen, as the probe's input. The probe's window gets the messages
+// input), times counted from SeqOpen, as the probe's input, and its TTSSEQ.INI ("#! ini FILE"):
+// the output devices in port order and the [Options]. The probe's window gets the messages
 // the engine posts (step recording) when the script sleeps or idles.
 //
 // MIDI is what the DLL sent (SUITE.midi: milliseconds and bytes, recorded in virtual time).
@@ -100,9 +101,18 @@ std::vector<Input> readInput(const fs::path& path) {
 class Capture final : public libseq::Platform {
 public:
     explicit Capture(ttsrun::Probe& probe) : probe_(&probe) {}
-    [[nodiscard]] int outputPorts() const override { return ports; }
+    [[nodiscard]] int outputPorts() const override { return static_cast<int>(devices.size()); }
+    [[nodiscard]] std::string outputName(const int port) const override {
+        return port >= 0 && port < outputPorts() ? devices[static_cast<std::size_t>(port)] : std::string();
+    }
+    [[nodiscard]] libseq::Options options() const override { return opts; }
+    /// The fake port's outputs are "Fake - MIDI Out" (logged as port 0) and "Fake - MIDI Out N"
+    /// (port N); the capture names a message's port that way.
     void send(const int port, const std::span<const std::uint8_t> message) override {
-        sent.push_back({static_cast<double>(probe_->clock), port, {message.begin(), message.end()}, probe_->calls});
+        const std::string name = outputName(port);
+        const std::string base = "Fake - MIDI Out";
+        const int fake = name.size() > base.size() + 1 ? std::stoi(name.substr(base.size() + 1)) : 0;
+        sent.push_back({static_cast<double>(probe_->clock), fake, {message.begin(), message.end()}, probe_->calls});
     }
     [[nodiscard]] std::uint32_t milliseconds() const override { return probe_->clock; }
     void opened(libseq::Engine& engine) override {
@@ -137,7 +147,8 @@ public:
             engine_->receive(input[next_++].bytes);
         }
     }
-    int ports = 1;
+    std::vector<std::string> devices{"Fake - MIDI Out"};
+    libseq::Options opts;
     std::vector<Message> sent;
     std::vector<Input> input;
 
@@ -227,7 +238,65 @@ struct Setup {
     fs::path songs;
     fs::path outDir;
     std::string inputName;
+    std::string iniName;
 };
+
+/// The suite's TTSSEQ.INI ("#! ini FILE", in tests/data/ttsseq/input): the output devices in
+/// port order and the [Options] 1.01 reads.
+void readIni(const fs::path& path, Capture& capture) {
+    std::ifstream f(path);
+    std::string section;
+    std::vector<std::string> devices;
+    libseq::Options& o = capture.opts;
+    for (std::string l; std::getline(f, l);) {
+        if (!l.empty() && l.back() == '\r') {
+            l.pop_back();
+        }
+        if (l.starts_with("[")) {
+            section = l;
+            continue;
+        }
+        const std::size_t eq = l.find('=');
+        if (eq == std::string::npos) {
+            continue;
+        }
+        const std::string key = l.substr(0, eq);
+        const std::string value = l.substr(eq + 1);
+        if (section == "[MIDI Output Devices]") {
+            devices.push_back(value);
+            continue;
+        }
+        if (section != "[Options]") {
+            continue;
+        }
+        const int v = std::stoi(value);
+        const auto u = static_cast<unsigned>(v);
+        if (key == "SyncOutputPort") {
+            o.syncOutputPort = v;
+        } else if (key == "SendLocalOff") {
+            o.sendLocalOff = v;
+        } else if (key == "Timebase") {
+            o.timebase = v;
+        } else if (key == "TimerPeriod") {
+            o.timerPeriod = u;
+        } else if (key == "TimerResolution") {
+            o.timerResolution = u;
+        } else if (key == "SysxSendPacketSize") {
+            o.sysxSendPacketSize = u;
+        } else if (key == "SysxReceiveBuffers") {
+            o.sysxReceiveBuffers = u;
+        } else if (key == "SysxReceiveBuffersSize") {
+            o.sysxReceiveBuffersSize = u;
+        } else if (key == "ChaseDelay") {
+            o.chaseDelay = u;
+        } else if (key == "FlywheelAmount") {
+            o.flywheelAmount = u;
+        }
+    }
+    if (!devices.empty()) {
+        capture.devices = devices;
+    }
+}
 
 struct Pass {
     std::string out;
@@ -244,6 +313,9 @@ Pass runPass(const Setup& setup) {
     engine.setPlatform(&capture);
     if (!setup.inputName.empty()) {
         capture.input = readInput(setup.script.parent_path().parent_path() / "input" / setup.inputName);
+    }
+    if (!setup.iniName.empty()) {
+        readIni(setup.script.parent_path().parent_path() / "input" / setup.iniName, capture);
     }
     probe.advance = [&capture](std::uint32_t ms) {
         while (ms-- > 0) {
@@ -314,6 +386,9 @@ int main(int argc, char** argv) {
     for (std::string l; std::getline(script, l) && (l.empty() || l[0] == '#' || l.starts_with("mode"));) {
         if (l.starts_with("#! input ")) {
             setup.inputName = l.substr(9);
+        }
+        if (l.starts_with("#! ini ")) {
+            setup.iniName = l.substr(7);
         }
     }
     const Pass pass = runPass(setup);
