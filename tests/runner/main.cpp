@@ -19,9 +19,7 @@
 // the engine posts (step recording) when the script sleeps or idles.
 //
 // MIDI is what the DLL sent (SUITE.midi: milliseconds and bytes, recorded in virtual time).
-// libseq's output must be the same messages at the same milliseconds. A suite marked
-// "#! realtime" was recorded on the host's clock (sysexin: the DLL's sysex receive waits hang in
-// virtual time); its messages are compared in order, without their times.
+// libseq's output must be the same messages at the same milliseconds.
 #include "api.hpp"
 
 #include "libseq/engine.hpp"
@@ -203,10 +201,10 @@ CaptureFile readCapture(const fs::path& path) {
 
 /// Compares libseq's MIDI with the DLL's, message by message: the same bytes on the same port at
 /// the same millisecond. Prints the first difference; true when they agree.
-bool compareMidi(const std::vector<Message>& want, const std::vector<Message>& got, const bool times) {
+bool compareMidi(const std::vector<Message>& want, const std::vector<Message>& got) {
     for (std::size_t i = 0; i < std::max(want.size(), got.size()); ++i) {
         if (i < want.size() && i < got.size() && want[i].port == got[i].port && want[i].bytes == got[i].bytes &&
-            (!times || want[i].time == got[i].time)) {
+            want[i].time == got[i].time) {
             continue;
         }
         std::cout << "MIDI differs at message " << i + 1 << " of " << want.size() << ":\n";
@@ -229,7 +227,6 @@ struct Setup {
     fs::path songs;
     fs::path outDir;
     std::string inputName;
-    bool realtime = false; // "#! realtime": the DLL's MIDI was recorded on the host's clock
 };
 
 struct Pass {
@@ -318,33 +315,12 @@ int main(int argc, char** argv) {
         if (l.starts_with("#! input ")) {
             setup.inputName = l.substr(9);
         }
-        if (l.starts_with("#! realtime")) {
-            setup.realtime = true;
-        }
     }
     const Pass pass = runPass(setup);
     bool midiOk = true;
     if (!midi.empty()) {
-        CaptureFile capture = fs::exists(midi) ? readCapture(midi) : CaptureFile{};
-        if (setup.realtime) {
-            // on the host's clock the MIDI went through Wine's driver, whose midiOutReset at
-            // SeqClose adds All Sound Off and sustain off on every channel (not the DLL's)
-            const auto reset = [](const Message& m) {
-                return m.bytes.size() == 3 && (m.bytes[0] & 0xf0U) == 0xb0U &&
-                       (m.bytes[1] == 0x78 || m.bytes[1] == 0x40) && m.bytes[2] == 0;
-            };
-            auto& v = capture.sent;
-            std::size_t n = 0;
-            while (n < v.size() && reset(v[v.size() - 1 - n])) {
-                ++n;
-            }
-            if (n == 32) {
-                v.resize(v.size() - n);
-            }
-        }
-        // a suite recorded on the host's clock (its waits hang in virtual time) is compared
-        // message by message, without the times
-        midiOk = compareMidi(capture.sent, pass.sent, !setup.realtime);
+        const CaptureFile capture = fs::exists(midi) ? readCapture(midi) : CaptureFile{};
+        midiOk = compareMidi(capture.sent, pass.sent);
     }
     if (!dumpMidi.empty()) {
         std::ofstream d(dumpMidi);

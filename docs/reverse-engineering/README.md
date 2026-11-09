@@ -318,8 +318,17 @@ The exact comparison also corrected older readings. `SeqClose` sends nothing its
 Sound Off and sustain off seen at every close were Wine's driver resetting the port. The thru's
 channel 16 turns a pitch wheel into an F0 status that the DLL does send, and Wine's driver
 dropped. Some of the experiments became suites, `mtcbreaks` and `countins`, so the rules are
-checked with the others. One suite stays on the host's clock: in virtual time the DLL's sysex
-receive hangs after a `midiInReset`, so `sysexin` is compared without its times.
+checked with the others.
+
+One suite at first hung in virtual time: `sysexin` stopped inside `SeqReceiveSysxBank` after the
+callback said stop. Tracing the MIDI input calls in both clocks showed the same calls, callbacks
+and flags up to that point, but 128 buffers queued on the host's clock against 64 in virtual
+time. The DLL queues 128, and the patch kept only 64 without saying so; after `midiInReset` the
+DLL waited for the other 64. With room for 1024 the suite runs in virtual time and libseq
+matches it to the millisecond. The same tracing brought two smaller corrections, so the patch now
+behaves as a Windows driver does: a reset returns only the buffers queued when it is called, and
+a buffer's done and queued flags are kept on Wine's 32-bit copy of the header too, since Wine's
+unprepare copies those back.
 
 ## In this folder
 

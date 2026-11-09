@@ -775,9 +775,7 @@ def _():
     # SeqReceiveSysxBank(bank, callback, 0, 0, 0): collects incoming sysex into the bank until the
     # callback, called over and over with (bytes received, free memory) as two dwords, returns
     # non-zero. The input script sends the messages; cbretafter makes the callback say stop.
-    # The suite runs on the host's clock: in virtual time the DLL's receive hangs (a wait that
-    # calls nothing after midiInReset), so its MIDI is compared without times.
-    L = ['#! input SYSX.TXT', '#! secs 45', '#! realtime', '@open', 'buf 0 192', 'cbmask c', 'cbyield 1',
+    L = ['#! input SYSX.TXT', '#! secs 45', '@open', 'buf 0 192', 'cbmask c', 'cbyield 1',
          '@load ENG_SYSX.WRK', 'call.w SEQCREATESYSXBANK 0001', 'let 1']
 
     def show():

@@ -11,8 +11,7 @@
 # "#! irq" runs timer and MIDI callbacks without the Win16 lock, as at interrupt time on Windows 3.1
 # (needs Wine's krnl386.exe16 built with wine/krnl386-irq.patch; see wine/build-wine16.sh); in
 # virtual time it also turns on the watchdog, for the waits that call nothing ("#! watchdog" turns
-# on only that, in virtual time); "#! realtime" runs the suite on the host's clock (fakeseq), for
-# waits that hang in virtual time (sysexin), and the runner then compares its MIDI without times.
+# on only that, in virtual time).
 # The suites run in virtual time (Wine's 16-bit MMSYSTEM built with wine/mmsystem16-vtime.patch):
 # the DLL's timer, its clock and the MIDI devices run on a millisecond clock that moves only where
 # the probe waits, so every run gives the same output to the millisecond. VTIME=0 runs them on the
@@ -38,8 +37,7 @@ for s in "${suites[@]}"; do
   python3 "$here/render.py" $ver "$tpl" > "$out/$s.txt"
   cp "$out/$s.txt" "$V/orc.txt"; rm -f "$V/orc.out"
   : > "$raw/$s.fake"
-  rt=$(grep -q '^#! realtime' "$tpl" && echo 1)
-  if [ "${VTIME:-1}" = 1 ] && [ -z "$rt" ]; then
+  if [ "${VTIME:-1}" = 1 ]; then
     WINE_VTIME=1 VTIME_LOG="$raw/$s.fake" VTIME_INPUT=${input:+$INPUTS/$input} FAKESEQ_OUTPUTS=$outputs \
     VTIME_WATCHDOG=${watch:+200} WINE_WIN16_IRQ_CALLBACKS=${watch:+serial} TRACE=-all \
         "$RUNCW" "$V" ttsprobe.exe "$raw/$s.log" $secs orc.txt orc.out || true

@@ -12,9 +12,7 @@
 #   goes out is logged in the fake port's format. A run gives the same output to the millisecond
 #   every time, which is what the timing of libseq is checked against (docs/ttsseq-api.md,
 #   Timing). VTIME_WATCHDOG moves the clock on in waits that call nothing (needs the irq patch).
-#   Unset, the module behaves as before. One known gap: TTSSEQ's sysex receive (SeqReceiveSysxBank)
-#   hangs in virtual time after a midiInReset inside the receive; the sysexin suite runs on the
-#   host's clock ("#! realtime").
+#   Unset, the module behaves as before.
 # - krnl386.exe16 with krnl386-irq.patch. Windows 3.1 runs the callbacks of multimedia timers and
 #   MIDI drivers at interrupt time, while the program runs; Wine runs them only when no thread is in
 #   16-bit code. A program that waits in a loop for such a callback (TTSSEQ 1.01 waiting for MIDI

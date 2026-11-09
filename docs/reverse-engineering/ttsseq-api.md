@@ -582,9 +582,8 @@ The platform interface hands every message that comes in to the engine (`Engine:
 sync and time code, a sysex receive, the gap between sysex packets) by calling `Platform::wait`
 on every turn, where the host lets time pass and its timer and input run. The runner plays the
 suite's input script from `SeqOpen` on and lets one millisecond pass per turn. The suites
-`thru`, `midiout`, `record`, `punch`, `param3`, `steprec`, `sync`, `mtc`, `mtcbreaks` and
-`countins` pass with their MIDI, and `sysexin` with its MIDI compared without times (it runs on
-the host's clock; see Timing).
+`thru`, `midiout`, `record`, `punch`, `param3`, `steprec`, `sysexin`, `sync`, `mtc`, `mtcbreaks`
+and `countins` pass with their MIDI.
 
 In virtual time the input reaches the DLL at its scripted millisecond, so the ticks recorded
 after a count-in and the echoes of the thru are compared exactly, counted from `SeqOpen` as the
@@ -741,9 +740,8 @@ calls and code). Ticks below are at 120 ppq; a MIDI clock (`clk`) is ppq / 24 ti
 
 - 2.10 and 3.00 in virtual time (2.10's MIDI clock output already agrees with the clock above).
 - Other meters and resolutions for the count-in; 24, 25 and 29.97 fps time code at every phase.
-- `SeqReceiveSysxBank` hangs in virtual time (a wait that calls nothing after a `midiInReset`
-  inside the receive), so suite `sysexin` stays on the host's clock and its MIDI is compared
-  without times.
+- The step 9 suites (`misc`, `options1`, `options2`, `ports`) still have oracles recorded on the
+  host's clock.
 
 ## Locate delay
 
@@ -1362,7 +1360,7 @@ function the oracle suites call, found by trying layouts through the probe. Note
 - `SyncAllowRateTweak` in `TTSSEQ.INI`: no visible effect found.
 - MIDI Time Code: whether the limit after the offset is exactly 4096 quarter notes.
 - Timing in virtual time: 2.10 and 3.00; other meters and resolutions for the count-in; time code
-  at 24, 25 and 29.97 fps at every phase; `SeqReceiveSysxBank`, which hangs in virtual time.
+  at 24, 25 and 29.97 fps at every phase.
 - MIDI thru: what tells mode 1 (manual) from mode 2 (auto); both echo everything in the probes.
 - Recording: which note a note-off ends when the same key is held twice (libseq: the last one
   started, as in MIDI files); what the third word of `SeqRecordCleanup` does.

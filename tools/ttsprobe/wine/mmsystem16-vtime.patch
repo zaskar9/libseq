@@ -134,10 +134,10 @@ index 66d1e9b..26ceaf8 100644
 +2001   pascal  VTIMENOW() VTIMENOW16
 diff --git a/dlls/mmsystem.dll16/vtime.c b/dlls/mmsystem.dll16/vtime.c
 new file mode 100644
-index 0000000..2cffd70
+index 0000000..dcf7b17
 --- /dev/null
 +++ b/dlls/mmsystem.dll16/vtime.c
-@@ -0,0 +1,465 @@
+@@ -0,0 +1,482 @@
 +/*
 + * Virtual time for 16-bit programs (the probe's WINE_VTIME mode)
 + *
@@ -185,7 +185,7 @@ index 0000000..2cffd70
 +WINE_DEFAULT_DEBUG_CHANNEL(mmsys);
 +
 +#define VT_MAX_TIMERS 16
-+#define VT_MAX_BUFFERS 64
++#define VT_MAX_BUFFERS  1024 /* MIDI input buffers queued at once (TTSSEQ 1.01 queues 128) */
 +
 +struct vt_timer
 +{
@@ -417,6 +417,7 @@ index 0000000..2cffd70
 +void VTIME_MidiInStarted(HMIDIIN16 h, BOOL started)
 +{
 +    if (h != vt_in_handle) return;
++    TRACE("%lu: %s (depth %d)\n", vt_now, started ? "start" : "stop", vt_depth);
 +    if (started && !vt_in_started) vt_in_start = vt_now;
 +    vt_in_started = started;
 +}
@@ -437,6 +438,16 @@ index 0000000..2cffd70
 +    vt_depth--;
 +}
 +
++/* A 16-bit header's flags, and those of the 32-bit header Wine made for it at the prepare (in its
++ * lpNext): Wine's unprepare copies the 32-bit flags back to the program's header, so both must say
++ * whether the buffer is queued or done, as the driver's would. */
++static void vt_set_flags(LPMIDIHDR16 hdr, DWORD clear, DWORD set)
++{
++    LPMIDIHDR hdr32 = (LPMIDIHDR)hdr->lpNext;
++    hdr->dwFlags = (hdr->dwFlags & ~clear) | set;
++    if (hdr32) hdr32->dwFlags = (hdr32->dwFlags & ~clear) | set;
++}
++
 +/* a buffer given back to the program, with what it holds */
 +static void vt_buffer_done(DWORD recorded)
 +{
@@ -444,25 +455,31 @@ index 0000000..2cffd70
 +    LPMIDIHDR16 hdr = MapSL(seg);
 +    memmove(vt_in_buffers, vt_in_buffers + 1, --vt_in_nbuffers * sizeof(SEGPTR));
 +    hdr->dwBytesRecorded = recorded;
-+    hdr->dwFlags = (hdr->dwFlags & ~MHDR_INQUEUE) | MHDR_DONE;
++    vt_set_flags(hdr, MHDR_INQUEUE, MHDR_DONE);
++    TRACE("%lu: buffer %08lx back with %lu bytes, %u left\n", vt_now, seg, recorded, vt_in_nbuffers);
 +    vt_in_callback16(MIM_LONGDATA, seg, vt_now - vt_in_start);
 +}
 +
 +void VTIME_MidiInAddBuffer(HMIDIIN16 h, SEGPTR seg)
 +{
 +    LPMIDIHDR16 hdr = MapSL(seg);
-+    if (h != vt_in_handle || vt_in_nbuffers >= VT_MAX_BUFFERS) return;
-+    hdr->dwFlags = (hdr->dwFlags & ~MHDR_DONE) | MHDR_INQUEUE;
++    if (h != vt_in_handle) return;
++    if (vt_in_nbuffers >= VT_MAX_BUFFERS) { ERR("more than %u input buffers\n", VT_MAX_BUFFERS); return; }
++    vt_set_flags(hdr, MHDR_DONE, MHDR_INQUEUE);
 +    hdr->dwBytesRecorded = 0;
 +    vt_in_buffers[vt_in_nbuffers++] = seg;
++    TRACE("%lu: buffer %08lx queued, %u in all\n", vt_now, seg, vt_in_nbuffers);
 +}
 +
-+/* midiInReset: every buffer comes back, empty */
++/* midiInReset: every buffer queued at the call comes back, empty. A buffer the program queues
++ * again from its callback meanwhile stays queued, as on Windows. */
 +void VTIME_MidiInReset(HMIDIIN16 h)
 +{
++    unsigned n;
 +    if (h != vt_in_handle) return;
 +    vt_in_started = FALSE;
-+    while (vt_in_nbuffers) vt_buffer_done(0);
++    TRACE("%lu: reset, %u buffers (depth %d)\n", vt_now, vt_in_nbuffers, vt_depth);
++    for (n = vt_in_nbuffers; n && vt_in_nbuffers; n--) vt_buffer_done(0);
 +}
 +
 +static void vt_deliver(const struct vt_input *in)
@@ -477,7 +494,7 @@ index 0000000..2cffd70
 +    {
 +        /* system exclusive: as much as each buffer holds, in the order they were added */
 +        unsigned at = 0;
-+        while (at < in->len && vt_in_nbuffers)
++        while (at < in->len && vt_in_nbuffers && vt_in_started) /* (a reset in the callback ends it) */
 +        {
 +            LPMIDIHDR16 hdr = MapSL(vt_in_buffers[0]);
 +            BYTE *data = MapSL((SEGPTR)hdr->lpData);

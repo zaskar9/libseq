@@ -110,9 +110,7 @@ any millisecond. A wait that calls nothing (the wait for MIDI Start without a ca
 stop the clock; `VTIME_WATCHDOG=MS` moves it on from a thread of its own while the program has
 not touched it for MS ms of real time (with `WINE_WIN16_IRQ_CALLBACKS=serial`).
 `oracles/mkoracles.sh` runs every suite in virtual time (`VTIME=0` for the host's clock); `#! irq`
-and `#! watchdog` turn the watchdog on, and `#! realtime` keeps a suite on the host's clock:
-`sysexin`, because `SeqReceiveSysxBank` hangs in virtual time after a `midiInReset` inside the
-receive. The script runner (`tests/runner`) keeps time the same way, so libseq is compared with
+and `#! watchdog` turn the watchdog on. The script runner (`tests/runner`) keeps time the same way, so libseq is compared with
 the DLL at the exact millisecond (`ttsseq-api.md`, Timing).
 
 For functions that wait in a loop until their callback says stop (`SeqReceiveSysxBank`), the
