@@ -367,8 +367,28 @@ Writing each function's comment meant checking each claim again, and one did not
 `signatures.md` said that `SeqCloneStream`'s flag decides whether the events are copied. The
 `streams` suite had already shown both flags copying them, and the engine copied the parameters
 with flag 1, which no suite read back. A new suite, `clone`, sets a stream's patch, volume and
-track position and clones it both ways: the events and the name always come along, the parameters only with
-flag 1, the same in all three versions.
+track position and clones it both ways: the events and the name always come along, the
+parameters only with flag 1, the same in all three versions.
+
+### 20. Release 1.1.0 (2026-11-10)
+
+With the interface in place, 1.01 is done as far as observation reaches. All 63 oracle suites
+pass, through the C interface, with the MIDI at the same millisecond. 157 of the 158 functions of
+the DLL's interface are called by at least one suite; the 158th, `SeqConfigMidi`, opens a dialog
+and was observed by working the dialog instead (`devices/`).
+
+What remains open about 1.01 is small and written down where it belongs:
+
+- `signatures.md` marks five places with "?", arguments with no effect found: the last two words
+  of `SeqCreateStream`, the double word of `SeqTempoCopy`, the word before `SeqMeterCopy`'s flag,
+  the last word of `SeqHMSF2Frame` and the double word of `SeqSortMarkers`. More arguments are
+  always 0 in the programs' calls, such as those of `SeqOpen` and `SeqCreateSeq`. libseq takes
+  all of them and ignores them; `ttsseq.h` names them `reserved`.
+- What 1.01 does with handles it does not hold, or with 0 bytes per sysex line, cannot be a
+  target: it crashes or answers garbage. libseq answers 0 instead (`CHANGELOG.md`).
+
+The next release, 2.10.0, starts from here. Its suites already exist (`tests/data/ttsseq/210`),
+and `diff-101-210.txt` lists where 2.10 answers differently.
 
 ## In this folder
 
