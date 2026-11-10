@@ -34,7 +34,7 @@ jobs:
           CXX: ${{ matrix.cxx }}
       - name: Build
         run: cmake --build build --config Release
-      - name: Test (the oracle suites that pass so far)
+      - name: Test (the oracle suites, the C and the C++ test)
         run: ctest --test-dir build --build-config Release --output-on-failure
 
   swift:

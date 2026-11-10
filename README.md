@@ -35,6 +35,7 @@ this repository, so each statement about the engine can be traced to the observa
 
 | Folder | Content |
 |---|---|
+| `CHANGELOG.md`, `DESIGN.md` | What each release implements; the interfaces and the export map |
 | `include/libseq/`, `src/` | The library: `ttsseq.h`, the DLL's interface in C, over `engine.hpp`, the C++ interface (`DESIGN.md`) |
 | `tests/runner/` | `ttsrun`, which runs the probe's scripts against the library's C interface, and the oracle tests built on it |
 | `tests/c/` | A C program on the C interface |
@@ -54,7 +55,7 @@ this repository, so each statement about the engine can be traced to the observa
 The tests are the oracle suites of `tests/data/ttsseq/101`: `ttsrun` runs each suite's script against
 the library's C interface and compares what it prints, line by line, with what `TTSSEQ.DLL` 1.01 printed for the
 same script, and the MIDI it sends, message by message at the same millisecond. `tests/runner/suites101.txt`
-lists the suites the library passes so far.
+lists the suites; release 1.1.0 passes all 63 of them.
 `build/tests/runner/ttsrun --songs tests/data/songs SCRIPT [EXPECTED]` runs one script by hand.
 
 The Swift package builds with `swift build` (Swift 5.9 or later) and tests with `swift test` (Swift 6
@@ -65,16 +66,10 @@ interoperability.
 
 ## Status
 
-Release 1.1.0 (TTSSEQ 1.01) is being built one layer at a time, each with the oracle suites it
-makes pass. Done: sequences and streams with the engine's handles and parameters, reading `.WRK`
-files into them, the time base (tempo and meter maps with their copy and paste, positions and
-timecode), the event cursor with the edit primitives, markers and sysex banks, saving `.WRK`
-files and reading and writing MIDI files byte for byte as 1.01 does, string events with their
-kinds and the program's file callbacks, playback through a platform interface for the MIDI
-ports and the clock, and the input side: MIDI thru, real-time recording with count-in and punch,
-step recording, sysex receive and send, `SeqTxMidiMsg`, and following MIDI clock and MIDI Time
-Code, and the devices and options that `TTSSEQ.INI` holds, through the platform interface. Their
-timing reproduces 1.01 to the millisecond, measured with Wine in virtual time
-(`docs/reverse-engineering/ttsseq-api.md`, Timing). All of it is reachable through 1.01's own
-interface in C, one function per export (`include/libseq/ttsseq.h`, `DESIGN.md`). An earlier exploration
-(versions 0.1.0 to 0.8.1) is kept on the branch `archive/0.x`.
+Release 1.1.0 implements `TTSSEQ.DLL` 1.01 (`CHANGELOG.md`). It reproduces the DLL in all tested
+cases: every 1.01 oracle suite passes, the MIDI timing included, to the millisecond. All 163 of
+the DLL's exports are mapped (`DESIGN.md`). Of the 158 that make up its interface, 157 are functions
+of `ttsseq.h`; the last, the device dialog `SeqConfigMidi`, belongs to the application. The other
+five are Windows plumbing. Next is release 2.10.0, built on top of
+it, one commit per change from 1.01 to 2.10. An earlier exploration (versions 0.1.0 to 0.8.1) is
+kept on the branch `archive/0.x`.
