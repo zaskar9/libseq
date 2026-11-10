@@ -355,6 +355,21 @@ results: read as a double word, `SeqMeterIxByTick` has the tick's high word in D
 `SeqStepRecParams`, which returns nothing, leaves the velocity in AX. The runner reproduces both,
 since the suites read them.
 
+### 19. The interface (2026-11-10)
+
+Until now the runner held the DLL's interface: each export, as the probe calls it, mapped onto the
+C++ engine. That interface is also a record of what the DLL offered, so it moved into the library
+as a C header with one function per export (`include/libseq/ttsseq.h`; `DESIGN.md` maps all 163
+exports). The runner now calls only that header, so the suites test the interface a program for
+the DLL would use.
+
+Writing each function's comment meant checking each claim again, and one did not hold.
+`signatures.md` said that `SeqCloneStream`'s flag decides whether the events are copied. The
+`streams` suite had already shown both flags copying them, and the engine copied the parameters
+with flag 1, which no suite read back. A new suite, `clone`, sets a stream's patch, volume and
+track position and clones it both ways: the events and the name always come along, the parameters only with
+flag 1, the same in all three versions.
+
 ## In this folder
 
 | File | Content |

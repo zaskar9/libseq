@@ -23,8 +23,6 @@
 // libseq's output must be the same messages at the same milliseconds.
 #include "api.hpp"
 
-#include "libseq/engine.hpp"
-
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -35,6 +33,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <span>
 #include <sstream>
 
 namespace fs = std::filesystem;
@@ -97,64 +96,118 @@ std::vector<Input> readInput(const fs::path& path) {
 }
 
 /// The runner's MIDI port and timer, in virtual time: it keeps what the engine sends, with the
-/// clock's time, and plays the input script from SeqOpen on.
-class Capture final : public libseq::Platform {
+/// clock's time, and plays the input script from SeqOpen on. The engine gets it as its platform
+/// (LibSeqSetPlatform).
+class Capture {
 public:
     explicit Capture(ttsrun::Probe& probe) : probe_(&probe) {}
-    [[nodiscard]] int outputPorts() const override { return static_cast<int>(devices.size()); }
-    [[nodiscard]] std::string outputName(const int port) const override {
-        return port >= 0 && port < outputPorts() ? devices[static_cast<std::size_t>(port)] : std::string();
+    [[nodiscard]] int outputPorts() const { return static_cast<int>(devices.size()); }
+    [[nodiscard]] const char* outputName(const int port) const {
+        return port >= 0 && port < outputPorts() ? devices[static_cast<std::size_t>(port)].c_str() : nullptr;
     }
-    [[nodiscard]] libseq::Options options() const override { return opts; }
     /// The fake port's outputs are "Fake - MIDI Out" (logged as port 0) and "Fake - MIDI Out N"
     /// (port N); the capture names a message's port that way.
-    void send(const int port, const std::span<const std::uint8_t> message) override {
-        const std::string name = outputName(port);
+    void send(const int port, const std::span<const std::uint8_t> message) {
+        const char* n = outputName(port);
+        const std::string name = n != nullptr ? n : "";
         const std::string base = "Fake - MIDI Out";
         const int fake = name.size() > base.size() + 1 ? std::stoi(name.substr(base.size() + 1)) : 0;
         sent.push_back({static_cast<double>(probe_->clock), fake, {message.begin(), message.end()}, probe_->calls});
     }
-    [[nodiscard]] std::uint32_t milliseconds() const override { return probe_->clock; }
-    void opened(libseq::Engine& engine) override {
-        engine_ = &engine;
+    [[nodiscard]] std::uint32_t milliseconds() const { return probe_->clock; }
+    void opened() {
+        open_ = true;
         base_ = probe_->clock;
         next_ = 0;
     }
-    void closed() override { engine_ = nullptr; }
-    void startTimer(const unsigned periodMs) override {
+    void closed() { open_ = false; }
+    void startTimer(const unsigned periodMs) {
         period_ = periodMs;
         nextRun_ = probe_->clock + periodMs;
         timer_ = true;
     }
-    void stopTimer() override { timer_ = false; }
+    void stopTimer() { timer_ = false; }
     /// The engine waits: a millisecond goes by, unless a callback took it already.
-    void wait() override {
+    void wait() {
         if (probe_->yielded) {
             probe_->yielded = false;
         } else if (probe_->advance) {
             probe_->advance(1);
         }
     }
+    /// The step recording's message to the probe's window.
+    void post(const std::uint16_t message, const std::uint16_t wParam, const std::uint32_t lParam) {
+        probe_->post({message, wParam, ttsrun::hi(lParam), ttsrun::lo(lParam)});
+    }
     /// One millisecond on: the timer when due, then the input due.
     void step() {
         ++probe_->clock;
-        if (timer_ && engine_ != nullptr && probe_->clock >= nextRun_) {
+        if (timer_ && open_ && probe_->clock >= nextRun_) {
             nextRun_ += period_;
-            engine_->timer();
+            LibSeqTimer();
         }
-        while (engine_ != nullptr && next_ < input.size() &&
+        while (open_ && next_ < input.size() &&
                static_cast<double>(base_) + input[next_].time <= static_cast<double>(probe_->clock)) {
-            engine_->receive(input[next_++].bytes);
+            const std::vector<std::uint8_t>& b = input[next_++].bytes;
+            LibSeqReceive(b.data(), b.size());
+        }
+    }
+    /// The C platform that leads here.
+    [[nodiscard]] LIBSEQPLATFORM platform() {
+        LIBSEQPLATFORM p{};
+        p.context = this;
+        p.outputPorts = [](void* c) { return self(c).outputPorts(); };
+        p.outputName = [](void* c, const int port) { return self(c).outputName(port); };
+        p.options = [](void* c, LIBSEQOPTIONS* o) { self(c).options(*o); };
+        p.send = [](void* c, const int port, const std::uint8_t* m, const std::size_t n) {
+            self(c).send(port, {m, n});
+        };
+        p.milliseconds = [](void* c) { return self(c).milliseconds(); };
+        p.opened = [](void* c) { self(c).opened(); };
+        p.closed = [](void* c) { self(c).closed(); };
+        p.startTimer = [](void* c, const unsigned ms) { self(c).startTimer(ms); };
+        p.stopTimer = [](void* c) { self(c).stopTimer(); };
+        p.wait = [](void* c) { self(c).wait(); };
+        p.postMessage = [](void* c, void* /*hwnd*/, const std::uint16_t m, const std::uint16_t w,
+                           const std::uint32_t l) { self(c).post(m, w, l); };
+        return p;
+    }
+    /// TTSSEQ.INI's [Options]: the engine passes 1.01's defaults, the INI changes those it has.
+    void options(LIBSEQOPTIONS& o) const {
+        for (const auto& [key, value] : opts) {
+            const auto u = static_cast<unsigned>(value);
+            if (key == "SyncOutputPort") {
+                o.syncOutputPort = value;
+            } else if (key == "SendLocalOff") {
+                o.sendLocalOff = value;
+            } else if (key == "Timebase") {
+                o.timebase = value;
+            } else if (key == "TimerPeriod") {
+                o.timerPeriod = u;
+            } else if (key == "TimerResolution") {
+                o.timerResolution = u;
+            } else if (key == "SysxSendPacketSize") {
+                o.sysxSendPacketSize = u;
+            } else if (key == "SysxReceiveBuffers") {
+                o.sysxReceiveBuffers = u;
+            } else if (key == "SysxReceiveBuffersSize") {
+                o.sysxReceiveBuffersSize = u;
+            } else if (key == "ChaseDelay") {
+                o.chaseDelay = u;
+            } else if (key == "FlywheelAmount") {
+                o.flywheelAmount = u;
+            }
         }
     }
     std::vector<std::string> devices{"Fake - MIDI Out"};
-    libseq::Options opts;
+    std::vector<std::pair<std::string, int>> opts; // [Options], key and value
     std::vector<Message> sent;
     std::vector<Input> input;
 
 private:
+    static Capture& self(void* c) { return *static_cast<Capture*>(c); }
     ttsrun::Probe* probe_;
-    libseq::Engine* engine_ = nullptr;
+    bool open_ = false;
     std::uint32_t base_ = 0; // SeqOpen: the time 0 of the input
     std::uint32_t nextRun_ = 0;
     unsigned period_ = 10;
@@ -247,7 +300,6 @@ void readIni(const fs::path& path, Capture& capture) {
     std::ifstream f(path);
     std::string section;
     std::vector<std::string> devices;
-    libseq::Options& o = capture.opts;
     for (std::string l; std::getline(f, l);) {
         if (!l.empty() && l.back() == '\r') {
             l.pop_back();
@@ -269,29 +321,7 @@ void readIni(const fs::path& path, Capture& capture) {
         if (section != "[Options]") {
             continue;
         }
-        const int v = std::stoi(value);
-        const auto u = static_cast<unsigned>(v);
-        if (key == "SyncOutputPort") {
-            o.syncOutputPort = v;
-        } else if (key == "SendLocalOff") {
-            o.sendLocalOff = v;
-        } else if (key == "Timebase") {
-            o.timebase = v;
-        } else if (key == "TimerPeriod") {
-            o.timerPeriod = u;
-        } else if (key == "TimerResolution") {
-            o.timerResolution = u;
-        } else if (key == "SysxSendPacketSize") {
-            o.sysxSendPacketSize = u;
-        } else if (key == "SysxReceiveBuffers") {
-            o.sysxReceiveBuffers = u;
-        } else if (key == "SysxReceiveBuffersSize") {
-            o.sysxReceiveBuffersSize = u;
-        } else if (key == "ChaseDelay") {
-            o.chaseDelay = u;
-        } else if (key == "FlywheelAmount") {
-            o.flywheelAmount = u;
-        }
+        capture.opts.emplace_back(key, std::stoi(value));
     }
     if (!devices.empty()) {
         capture.devices = devices;
@@ -308,9 +338,9 @@ Pass runPass(const Setup& setup) {
     std::ifstream script(setup.script);
     std::ostringstream out;
     ttsrun::Probe probe(out);
-    libseq::Engine engine;
     Capture capture(probe);
-    engine.setPlatform(&capture);
+    // a new engine for the pass, as when Windows loads the DLL
+    LibSeqUnload();
     if (!setup.inputName.empty()) {
         capture.input = readInput(setup.script.parent_path().parent_path() / "input" / setup.inputName);
     }
@@ -322,7 +352,9 @@ Pass runPass(const Setup& setup) {
             capture.step();
         }
     };
-    ttsrun::defineApi101(probe, engine);
+    const LIBSEQPLATFORM platform = capture.platform();
+    LibSeqSetPlatform(&platform);
+    ttsrun::defineApi101(probe);
     if (!setup.outDir.empty()) {
         fs::remove_all(setup.outDir);
         fs::create_directories(setup.outDir);
@@ -345,6 +377,8 @@ Pass runPass(const Setup& setup) {
         return p;
     };
     probe.runScript(script);
+    LibSeqUnload();
+    LibSeqSetPlatform(nullptr);
     return {out.str(), capture.sent, probe.missing};
 }
 

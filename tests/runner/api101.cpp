@@ -1,165 +1,124 @@
-// The TTSSEQ 1.01 interface over libseq, for the script runner: each exported function the
-// oracle scripts call, with the arguments as the probe pushes them (see
-// docs/reverse-engineering/signatures.md) and the result the DLL returns.
+// The TTSSEQ 1.01 interface for the script runner: each exported function the oracle scripts call,
+// with the arguments as the probe pushes them (see docs/reverse-engineering/signatures.md), handed
+// to libseq's C interface. Here: lifecycle, devices, sequences and streams.
 #include "api.hpp"
-
-#include "libseq/engine.hpp"
-
-#include <algorithm>
-#include <cstring>
 
 namespace ttsrun {
 
-using libseq::Engine;
-using libseq::Sequence;
-using libseq::Stream;
+Glue& glue() {
+    static Glue g;
+    return g;
+}
 
-void defineApi101(Probe& p, Engine& e) {
-    const auto w = [](const std::uint32_t v) { return v & 0xffffU; };
+namespace {
+
+/// SeqEnumStreams and SeqEnumSysxBanks: (seq, handle, value) as four words.
+std::uint16_t enumProc(const HSEQ seq, const std::uint16_t handle, const std::uint32_t value) {
+    const Glue& g = glue();
+    return static_cast<std::uint16_t>(g.probe->callback(g.enumCb, {seq, handle, hi(value), lo(value)}));
+}
+
+} // namespace
+
+SEQENUMPROC enumCallback(const FarPtr fn) {
+    return fn.null() ? nullptr : enumProc;
+}
+
+void defineApi101(Probe& p) {
+    glue() = Glue{};
+    glue().probe = &p;
 
     // ---- lifecycle
-    p.define("SEQGETVERSION", [](Args&, Probe&) -> std::uint32_t { return Engine::kVersion; });
-    p.define("SEQOPEN", [&e](Args&, Probe&) -> std::uint32_t {
-        e.open();
-        return 1;
+    p.define("SEQGETVERSION", [](Args&, Probe&) -> std::uint32_t { return SeqGetVersion(); });
+    p.define("SEQOPEN", [](Args& a, Probe&) -> std::uint32_t {
+        const std::uint16_t r1 = a.word();
+        return SeqOpen(r1, a.word());
     });
-    p.define("SEQCLOSE", [&e](Args&, Probe&) -> std::uint32_t {
-        e.close();
-        return 1;
-    });
+    p.define("SEQCLOSE", [](Args&, Probe&) -> std::uint32_t { return SeqClose(); });
 
     // ---- devices and memory
-    p.define("SEQGETPORTNAME", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const int port = a.word();
-        putString(pr, a.ptr(), e.portName(port));
-        return 1;
+    p.define("SEQGETPORTNAME", [](Args& a, Probe& pr) -> std::uint32_t {
+        const std::uint16_t port = a.word();
+        Text name(pr, a.ptr());
+        return SeqGetPortName(port, name.ptr());
     });
-    // SeqHugeMemCpy(dst, src, count32): a copy across segments, which C++ has as std::memcpy; the
-    // result is the count
     p.define("SEQHUGEMEMCPY", [](Args& a, Probe& pr) -> std::uint32_t {
         const FarPtr dst = a.ptr();
         const FarPtr src = a.ptr();
         const std::uint32_t n = a.dword();
-        std::uint8_t* d = pr.mem.at(dst, n);
-        const std::uint8_t* from = pr.mem.at(src, n);
-        if (d != nullptr && from != nullptr && n > 0) {
-            std::memmove(d, from, n);
-        }
-        return n;
+        return SeqHugeMemCpy(pr.mem.at(dst, n), pr.mem.at(src, n), n);
     });
 
     // ---- sequences
-    p.define("SEQCREATESEQ", [&e](Args&, Probe&) -> std::uint32_t { return e.createSequence(); });
-    p.define("SEQDESTROYSEQ", [&e](Args& a, Probe&) -> std::uint32_t {
-        e.destroySequence(a.word());
-        return 1; // also for a handle that holds no sequence
+    p.define("SEQCREATESEQ", [](Args& a, Probe&) -> std::uint32_t {
+        const std::uint16_t r1 = a.word();
+        return SeqCreateSeq(r1, a.word());
     });
-    p.define("SEQGETSEQPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = e.sequence(a.word());
-        const int param = a.word();
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->param(param));
+    p.define("SEQDESTROYSEQ", [](Args& a, Probe&) -> std::uint32_t { return SeqDestroySeq(a.word()); });
+    p.define("SEQGETSEQPARAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return dx(SeqGetSeqParam(seq, a.word()));
     });
-    p.define("SEQSETSEQPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
-        const int param = a.word();
-        const auto v = static_cast<std::int32_t>(a.dword());
-        return e.setSeqParam(seq, param, v) ? 1 : 0;
+    p.define("SEQSETSEQPARAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint16_t param = a.word();
+        return SeqSetSeqParam(seq, param, static_cast<std::int32_t>(a.dword()));
     });
-    p.define("SEQGETFILEERROR",
-             [&e](Args&, Probe&) -> std::uint32_t { return static_cast<std::uint32_t>(e.fileError()); });
+    p.define("SEQGETFILEERROR", [](Args&, Probe&) -> std::uint32_t { return SeqGetFileError(); });
 
     // ---- streams
-    p.define("SEQSTREAMLEN", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->events().size());
+    p.define("SEQSTREAMLEN", [](Args& a, Probe&) -> std::uint32_t { return SeqStreamLen(a.word()); });
+    p.define("SEQSTREAMDUR", [](Args& a, Probe&) -> std::uint32_t { return SeqStreamDur(a.word()); });
+    p.define("SEQGETSTREAMPARAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSTREAM h = a.word();
+        return dx(SeqGetStreamParam(h, a.word()));
     });
-    p.define("SEQSTREAMDUR", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        return s == nullptr ? 0 : s->duration();
+    p.define("SEQSETSTREAMPARAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSTREAM h = a.word();
+        const std::uint16_t param = a.word();
+        return SeqSetStreamParam(h, param, static_cast<std::int32_t>(a.dword()));
     });
-    p.define("SEQGETSTREAMPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        const int param = a.word();
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->param(param));
+    p.define("SEQGETSTREAMALLPARAMS", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSTREAM h = a.word();
+        return SeqGetStreamAllParams(h, pr.mem.at(a.ptr(), 22));
     });
-    p.define("SEQSETSTREAMPARAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const libseq::StreamHandle h = a.word();
-        const int param = a.word();
-        const auto v = static_cast<std::int32_t>(a.dword());
-        return e.setStreamParam(h, param, v) ? 1 : 0;
+    p.define("SEQGETSTREAMNAME", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSTREAM h = a.word();
+        Text name(pr, a.ptr());
+        return SeqGetStreamName(h, name.ptr(), a.word());
     });
-    p.define("SEQGETSTREAMALLPARAMS", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        std::uint8_t* out = pr.mem.at(a.ptr(), 22);
-        if (s == nullptr || out == nullptr) {
-            return 0;
-        }
-        s->allParams(out);
-        return 22;
+    p.define("SEQSETSTREAMNAME", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSTREAM h = a.word();
+        return SeqSetStreamName(h, pr.mem.string(a.ptr()).c_str());
     });
-    p.define("SEQGETSTREAMNAME", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const Stream* s = e.stream(a.word());
-        const FarPtr buf = a.ptr();
-        const std::size_t size = a.word();
-        if (s == nullptr || size == 0) {
-            return 0;
-        }
-        const std::size_t n = std::min(s->name().size(), size - 1);
-        std::uint8_t* out = pr.mem.at(buf, n + 1);
-        if (out == nullptr) {
-            return 0;
-        }
-        std::memcpy(out, s->name().data(), n);
-        out[n] = 0;
-        return 1;
+    p.define("SEQCREATESTREAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint16_t r1 = a.word();
+        return SeqCreateStream(seq, r1, a.word());
     });
-    p.define("SEQSETSTREAMNAME", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        Stream* s = e.stream(a.word());
-        if (s == nullptr) {
-            return 0;
-        }
-        s->setName(pr.mem.string(a.ptr()));
-        return 1;
+    p.define("SEQDESTROYSTREAM", [](Args& a, Probe&) -> std::uint32_t { return SeqDestroyStream(a.word()); });
+    p.define("SEQADOPTSTREAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqAdoptStream(seq, a.word());
     });
-    p.define("SEQCREATESTREAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = e.sequence(a.word());
-        return s == nullptr ? 0 : s->createStream().handle();
+    p.define("SEQCLONESTREAM", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const HSTREAM h = a.word();
+        return SeqCloneStream(seq, h, a.word());
     });
-    p.define("SEQDESTROYSTREAM", [&e](Args& a, Probe&) -> std::uint32_t { return e.destroyStream(a.word()) ? 1 : 0; });
-    p.define("SEQADOPTSTREAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
-        return e.adoptStream(seq, a.word());
-    });
-    p.define("SEQCLONESTREAM", [&e](Args& a, Probe&) -> std::uint32_t {
-        Sequence* dst = e.sequence(a.word());
-        const Stream* src = e.stream(a.word());
-        const bool flag = a.word() != 0;
-        return dst == nullptr || src == nullptr ? 0 : dst->clone(*src, flag).handle();
-    });
-    p.define("SEQENUMSTREAMS", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const libseq::SeqHandle h = a.word();
+    p.define("SEQENUMSTREAMS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const FarPtr cb = a.ptr();
-        const std::uint32_t value = a.dword();
-        const Sequence* s = e.sequence(h);
-        if (s == nullptr) {
-            return 0;
-        }
-        const auto hi = static_cast<std::uint16_t>(value >> 16);
-        const auto lo = static_cast<std::uint16_t>(value & 0xffffU);
-        for (const Stream* st : s->streams()) {
-            pr.callback(cb, {h, st->handle(), hi, lo});
-        }
-        pr.callback(cb, {0, 0, hi, lo});
-        return 1;
+        const Scoped s(glue().enumCb, cb);
+        return SeqEnumStreams(seq, enumCallback(cb), a.dword());
     });
 
-    (void)w;
-    defineEvents101(p, e);
-    defineMarks101(p, e);
-    defineTime101(p, e);
-    defineFiles101(p, e);
-    definePlay101(p, e);
-    defineRecord101(p, e);
+    defineEvents101(p);
+    defineMarks101(p);
+    defineTime101(p);
+    defineFiles101(p);
+    definePlay101(p);
+    defineRecord101(p);
 }
 
 } // namespace ttsrun

@@ -1,55 +1,54 @@
-// The TTSSEQ 1.01 transport over libseq, for the script runner: the playing sequence, start, stop,
-// SeqIdle and Now.
+// The TTSSEQ 1.01 transport for the script runner: the playing sequence, start, stop, SeqIdle and
+// Now.
 #include "api.hpp"
-
-#include "libseq/engine.hpp"
 
 namespace ttsrun {
 
-using libseq::Engine;
-using libseq::Sequence;
+namespace {
 
-void definePlay101(Probe& p, Engine& e) {
-    p.define("SEQSETPLAYINGSEQ", [&e](Args& a, Probe&) -> std::uint32_t { return e.setPlayingSeq(a.word()) ? 1 : 0; });
-    p.define("SEQSETSTANDBYSEQ", [&e](Args& a, Probe&) -> std::uint32_t { return e.setStandbySeq(a.word()) ? 1 : 0; });
-    p.define("SEQPLAYSTART",
-             [&e](Args& a, Probe& pr) -> std::uint32_t { return e.playStart(startProc(pr, a.ptr())) ? 1 : 0; });
-    p.define("SEQSETSRCCLOCK", [&e](Args& a, Probe&) -> std::uint32_t { return e.setSrcClock(a.word()) ? 1 : 0; });
-    p.define("SEQGETSRCCLOCK", [&e](Args&, Probe&) -> std::uint32_t { return e.srcClock(); });
-    p.define("SEQPLAYSTOP", [&e](Args&, Probe&) -> std::uint32_t { return e.playStop() ? 1 : 0; });
-    p.define("SEQTXMIDIMSG", [&e](Args& a, Probe&) -> std::uint32_t {
+/// A start that waits: (code, a, b) as three words.
+std::uint16_t startProc(const std::uint16_t code, const std::uint16_t a, const std::uint16_t b) {
+    const Glue& g = glue();
+    return static_cast<std::uint16_t>(g.probe->callback(g.startCb, {code, a, b}));
+}
+
+} // namespace
+
+SEQSTARTPROC startCallback(const FarPtr fn) {
+    return fn.null() ? nullptr : startProc;
+}
+
+void definePlay101(Probe& p) {
+    p.define("SEQSETPLAYINGSEQ", [](Args& a, Probe&) -> std::uint32_t { return SeqSetPlayingSeq(a.word()); });
+    p.define("SEQSETSTANDBYSEQ", [](Args& a, Probe&) -> std::uint32_t { return SeqSetStandbySeq(a.word()); });
+    p.define("SEQPLAYSTART", [](Args& a, Probe&) -> std::uint32_t {
+        const FarPtr fn = a.ptr();
+        const Scoped s(glue().startCb, fn);
+        return SeqPlayStart(startCallback(fn));
+    });
+    p.define("SEQSETSRCCLOCK", [](Args& a, Probe&) -> std::uint32_t { return SeqSetSrcClock(a.word()); });
+    p.define("SEQGETSRCCLOCK", [](Args&, Probe&) -> std::uint32_t { return SeqGetSrcClock(); });
+    p.define("SEQPLAYSTOP", [](Args&, Probe&) -> std::uint32_t { return SeqPlayStop(); });
+    p.define("SEQTXMIDIMSG", [](Args& a, Probe&) -> std::uint32_t {
         const std::uint16_t port = a.word();
         const std::uint16_t channel = a.word();
         const std::uint16_t status = a.word();
         const std::uint16_t d1 = a.word();
-        return e.txMidiMsg(port, channel, status, d1, a.word()) ? 1 : 0;
+        return SeqTxMidiMsg(port, channel, status, d1, a.word());
     });
-    p.define("SEQIDLE", [&e](Args&, Probe&) -> std::uint32_t { return e.idle(); });
-    p.define("SEQEXPIRED", [&e](Args&, Probe&) -> std::uint32_t { return e.expired() ? 1 : 0; });
-    p.define("SEQGETNOW", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = e.sequence(a.word());
-        return s == nullptr ? 0 : s->now;
+    p.define("SEQIDLE", [](Args&, Probe&) -> std::uint32_t { return SeqIdle(); });
+    p.define("SEQEXPIRED", [](Args&, Probe&) -> std::uint32_t { return SeqExpired(); });
+    p.define("SEQGETNOW", [](Args& a, Probe&) -> std::uint32_t { return SeqGetNow(a.word()); });
+    p.define("SEQSETNOW", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSetNow(seq, a.dword());
     });
-    p.define("SEQSETNOW", [&e](Args& a, Probe&) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
-        return e.setNow(seq, a.dword());
-    });
-    p.define("SEQREWIND", [&e](Args& a, Probe&) -> std::uint32_t { return e.setNow(a.word(), 0); });
-    p.define("SEQGETEND", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = e.sequence(a.word());
-        return s == nullptr ? 0 : s->end();
-    });
-    p.define("SEQGETDUR", [&e](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = e.sequence(a.word());
-        return s == nullptr ? 0 : s->dur;
-    });
-    p.define("SEQSETDUR", [&e](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = e.sequence(a.word());
-        const libseq::Tick d = a.dword();
-        if (s != nullptr) {
-            s->dur = d;
-        }
-        return d;
+    p.define("SEQREWIND", [](Args& a, Probe&) -> std::uint32_t { return SeqRewind(a.word()); });
+    p.define("SEQGETEND", [](Args& a, Probe&) -> std::uint32_t { return SeqGetEnd(a.word()); });
+    p.define("SEQGETDUR", [](Args& a, Probe&) -> std::uint32_t { return SeqGetDur(a.word()); });
+    p.define("SEQSETDUR", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSetDur(seq, a.dword());
     });
 }
 

@@ -2,6 +2,7 @@ lifecycle
 seqparams
 streamparams
 streams
+clone
 tempo
 meter
 timecode

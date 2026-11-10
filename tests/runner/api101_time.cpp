@@ -1,502 +1,326 @@
-// The TTSSEQ 1.01 interface over libseq, for the script runner: the time base, the tempo and
-// meter maps, positions and timecode (docs/reverse-engineering/signatures.md).
+// The TTSSEQ 1.01 interface for the script runner: the time base, the tempo and meter maps,
+// positions and timecode (docs/reverse-engineering/signatures.md).
 #include "api.hpp"
-
-#include "libseq/engine.hpp"
 
 namespace ttsrun {
 
-using libseq::Engine;
-using libseq::Sequence;
-using libseq::Tick;
-
 namespace {
 
-/// The key as the engine passes it: the signed byte, not sign-extended (0x00fd for 3 flats).
-std::uint16_t keyWord(const libseq::MeterEntry& m) {
-    return static_cast<std::uint8_t>(m.key);
+/// SeqEnumTempos: (elapsed, value) as four words.
+std::uint16_t tempoProc(const std::uint32_t elapsed, const std::uint32_t value) {
+    const Glue& g = glue();
+    return static_cast<std::uint16_t>(g.probe->callback(g.enumCb, {hi(elapsed), lo(elapsed), hi(value), lo(value)}));
 }
 
-/// The meter of an entry as the engine returns it: the key in DX, the meter in AX.
-std::uint32_t meterResult(const libseq::MeterEntry& m) {
-    return (std::uint32_t{keyWord(m)} << 16) | m.meter();
+/// SeqEnumMeters: (key, meter, value) as four words.
+std::uint16_t meterProc(const std::uint16_t key, const std::uint16_t meter, const std::uint32_t value) {
+    const Glue& g = glue();
+    return static_cast<std::uint16_t>(g.probe->callback(g.enumCb, {key, meter, hi(value), lo(value)}));
 }
 
-void putMBT(Probe& p, const FarPtr m, const FarPtr b, const FarPtr t, const libseq::MBT& v) {
-    putWord(p, m, v.measure);
-    putWord(p, b, v.beat);
-    putWord(p, t, v.tick);
+/// A key as the probe pushes it: a word whose low byte the engine takes.
+std::int16_t key(Args& a) {
+    return static_cast<std::int16_t>(a.word());
 }
 
 } // namespace
 
-void defineTime101(Probe& p, Engine& e) {
-    // A sequence handle the engine does not hold crashes TTSSEQ; the runner answers 0.
-    const auto seq = [&e](Args& a) -> Sequence* { return e.sequence(a.word()); };
-
+void defineTime101(Probe& p) {
     // ---- time base
-    p.define("SEQGETMAXPPQ", [](Args&, Probe&) -> std::uint32_t { return libseq::kMaxPpq; });
-    p.define("SEQGETMINTEMPO", [](Args&, Probe&) -> std::uint32_t { return libseq::kMinTempo; });
-    p.define("SEQGETMAXTEMPO", [](Args&, Probe&) -> std::uint32_t { return libseq::kMaxTempo; });
-    p.define("SEQGETPPQ", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->ppq;
-    });
-    p.define("SEQSETPPQ", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const std::uint16_t ppq = a.word();
-        return s != nullptr && s->setPpq(ppq) ? 1 : 0;
+    p.define("SEQGETMAXPPQ", [](Args&, Probe&) -> std::uint32_t { return SeqGetMaxPPQ(); });
+    p.define("SEQGETMINTEMPO", [](Args&, Probe&) -> std::uint32_t { return SeqGetMinTempo(); });
+    p.define("SEQGETMAXTEMPO", [](Args&, Probe&) -> std::uint32_t { return SeqGetMaxTempo(); });
+    p.define("SEQGETPPQ", [](Args& a, Probe&) -> std::uint32_t { return SeqGetPPQ(a.word()); });
+    p.define("SEQSETPPQ", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSetPPQ(seq, a.word());
     });
     p.define("SEQRESCALETIME", [](Args& a, Probe&) -> std::uint32_t {
-        const Tick t = a.dword();
+        const std::uint32_t t = a.dword();
         const std::uint16_t from = a.word();
-        return libseq::rescaleTime(t, from, a.word());
+        return SeqRescaleTime(t, from, a.word());
     });
 
     // ---- tempo map
-    p.define("SEQGETTEMPOMAPLEN", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->tempoMap.size());
+    p.define("SEQGETTEMPOMAPLEN", [](Args& a, Probe&) -> std::uint32_t { return SeqGetTempoMapLen(a.word()); });
+    p.define("SEQGETTEMPOATIX", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint16_t i = a.word();
+        Out<std::uint32_t> tick(pr, a.ptr());
+        return SeqGetTempoAtIx(seq, i, tick.ptr());
     });
-    p.define("SEQGETTEMPOATIX", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const std::size_t i = a.word();
-        const FarPtr tick = a.ptr();
-        if (s == nullptr || i >= s->tempoMap.size()) {
-            return 0xffff;
-        }
-        putDword(pr, tick, s->tempoMap.entries()[i].tick);
-        return s->tempoMap.entries()[i].tempo;
+    p.define("SEQTEMPOIXBYTICK", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTempoIxByTick(seq, a.dword());
     });
-    p.define("SEQTEMPOIXBYTICK", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->tempoMap.indexAt(a.dword()));
+    // the tempo is a word; 1.01 leaves the high word of the tick in DX
+    p.define("SEQGETTEMPO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
+        return SeqGetPPQ(seq) == 0 ? 0 : (t & 0xffff0000U) | SeqGetTempo(seq, t);
     });
-    p.define("SEQGETTEMPO", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const Tick t = a.dword();
-        // the tempo is a word; DX keeps the high word of the tick
-        return s == nullptr ? 0 : (t & 0xffff0000U) | s->tempoMap.tempoAt(t);
+    p.define("SEQSETTEMPO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
+        return SeqSetTempo(seq, t, a.word());
     });
-    p.define("SEQSETTEMPO", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const Tick t = a.dword();
-        const std::uint16_t tempo = a.word();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->tempoMap.set(t, tempo);
-        return 1;
+    p.define("SEQINSTEMPO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
+        return SeqInsTempo(seq, t, a.word());
     });
-    p.define("SEQINSTEMPO", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const Tick t = a.dword();
-        const std::uint16_t tempo = a.word();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->tempoMap.insert(t, tempo);
-        return 1;
+    p.define("SEQDELTEMPO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqDelTempo(seq, a.dword());
     });
-    p.define("SEQDELTEMPO", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        if (s == nullptr) {
-            return 0;
-        }
-        s->tempoMap.remove(a.dword());
-        return 1;
+    p.define("SEQCLEARTEMPOMAP", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqClearTempoMap(seq, a.word());
     });
-    p.define("SEQCLEARTEMPOMAP", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        if (s == nullptr) {
-            return 0;
-        }
-        s->tempoMap.clear(a.word());
-        return 1;
-    });
-    p.define("SEQRECALCTEMPOMAP", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->tempoMap.recalc());
-    });
-    p.define("SEQENUMTEMPOS", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const Tick from = a.dword();
-        const Tick thru = a.dword();
+    p.define("SEQRECALCTEMPOMAP", [](Args& a, Probe&) -> std::uint32_t { return SeqRecalcTempoMap(a.word()); });
+    p.define("SEQENUMTEMPOS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t from = a.dword();
+        const std::uint32_t thru = a.dword();
         const FarPtr cb = a.ptr();
-        const std::uint32_t value = a.dword();
-        if (s == nullptr) {
-            return 0;
-        }
-        const auto hi = static_cast<std::uint16_t>(value >> 16);
-        const auto lo = static_cast<std::uint16_t>(value & 0xffffU);
-        // the callback gets each entry's elapsed time (microseconds times the ppq, 32 bits of it),
-        // then (0, 0, 0, 0)
-        const std::size_t n = s->tempoMap.enumCount(from, thru);
-        for (std::size_t i = 0; i < n; ++i) {
-            const auto el = static_cast<std::uint32_t>(s->tempoMap.entries()[i].elapsed);
-            pr.callback(cb, {static_cast<std::uint16_t>(el >> 16), static_cast<std::uint16_t>(el & 0xffffU), hi, lo});
-        }
-        pr.callback(cb, {0, 0, 0, 0});
-        return 1;
+        const Scoped s(glue().enumCb, cb);
+        return SeqEnumTempos(seq, from, thru, cb.null() ? nullptr : tempoProc, a.dword());
     });
-    p.define("SEQSWAPTEMPOMAPS", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* x = seq(a);
-        Sequence* y = seq(a);
-        if (x != nullptr && y != nullptr) {
-            std::swap(x->tempoMap, y->tempoMap);
-        }
-        return 0;
+    p.define("SEQSWAPTEMPOMAPS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ x = a.word();
+        return SeqSwapTempoMaps(x, a.word());
     });
-
-    p.define("SEQTEMPOCOPY", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* src = seq(a);
-        Sequence* clip = seq(a);
-        const Tick from = a.dword();
-        const Tick thru = a.dword();
-        a.dword(); // no visible effect
-        const FarPtr flag = a.ptr();
-        if (src == nullptr || clip == nullptr) {
-            return 0;
-        }
-        if (clip->tempoMap.copyFrom(src->tempoMap, from, thru)) {
-            putWord(pr, flag, 1);
-        }
-        return 1;
+    p.define("SEQTEMPOCOPY", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ src = a.word();
+        const HSEQ clip = a.word();
+        const std::uint32_t from = a.dword();
+        const std::uint32_t thru = a.dword();
+        const std::uint32_t r = a.dword();
+        Out<std::uint16_t> flag(pr, a.ptr());
+        return SeqTempoCopy(src, clip, from, thru, r, flag.ptr());
     });
-    p.define("SEQTEMPOPASTE", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* clip = seq(a);
-        Sequence* dst = seq(a);
-        const Tick at = a.dword();
-        const Tick length = a.dword();
+    p.define("SEQTEMPOPASTE", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ clip = a.word();
+        const HSEQ dst = a.word();
+        const std::uint32_t at = a.dword();
+        const std::uint32_t length = a.dword();
         const std::uint16_t reps = a.word();
-        const bool slide = a.word() != 0;
-        if (clip == nullptr || dst == nullptr) {
-            return 0;
-        }
-        dst->tempoMap.paste(clip->tempoMap, at, length, reps, slide);
-        return 1;
+        return SeqTempoPaste(clip, dst, at, length, reps, a.word());
     });
 
     // ---- tempo ratios
-    p.define("SEQGETTEMPORATIO", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const std::size_t i = a.word();
-        return s == nullptr || i >= s->tempoRatios.size() ? 0 : s->tempoRatios[i];
+    p.define("SEQGETTEMPORATIO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqGetTempoRatio(seq, a.word());
     });
-    p.define("SEQSETTEMPORATIO", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const std::size_t i = a.word();
-        const std::uint16_t ratio = a.word();
-        if (s == nullptr || i >= s->tempoRatios.size()) {
-            return 0;
-        }
-        s->tempoRatios[i] = ratio;
-        return 1;
-    });
-    p.define("SEQSELECTTEMPORATIO", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
+    p.define("SEQSETTEMPORATIO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint16_t i = a.word();
-        if (s == nullptr || i >= s->tempoRatios.size()) {
-            return 0;
-        }
-        s->tempoRatio = i;
-        return 1;
+        return SeqSetTempoRatio(seq, i, a.word());
     });
-    p.define("SEQWHICHTEMPORATIO", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->tempoRatio;
+    p.define("SEQSELECTTEMPORATIO", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSelectTempoRatio(seq, a.word());
     });
+    p.define("SEQWHICHTEMPORATIO", [](Args& a, Probe&) -> std::uint32_t { return SeqWhichTempoRatio(a.word()); });
+    // the result is the buffer: the probe's pointer
     p.define("SEQTEMPORATIO2STR", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::uint16_t ratio = a.word();
         const FarPtr buf = a.ptr();
-        putString(pr, buf, libseq::tempoRatioString(ratio));
+        {
+            Text text(pr, buf);
+            SeqTempoRatio2Str(ratio, text.ptr());
+        }
         return farResult(buf);
     });
 
     // ---- meter map
-    p.define("SEQGETMETERMAPLEN", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->meterMap.size());
-    });
-    p.define("SEQGETMETERATIX", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const std::size_t i = a.word();
-        const FarPtr measure = a.ptr();
-        if (s == nullptr || i >= s->meterMap.size()) {
-            return 0xffffffff;
-        }
-        const libseq::MeterEntry& m = s->meterMap.entries()[i];
-        putWord(pr, measure, static_cast<std::uint16_t>(m.measure + 1));
-        return meterResult(m);
+    p.define("SEQGETMETERMAPLEN", [](Args& a, Probe&) -> std::uint32_t { return SeqGetMeterMapLen(a.word()); });
+    p.define("SEQGETMETERATIX", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint16_t i = a.word();
+        Out<std::uint16_t> measure(pr, a.ptr());
+        return SeqGetMeterAtIx(seq, i, measure.ptr());
     });
     // a word; read as a double word (suite misc), DX still holds the tick's high word
-    p.define("SEQMETERIXBYTICK", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQMETERIXBYTICK", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint32_t tick = a.dword();
-        return s == nullptr
-                   ? 0
-                   : (tick & 0xffff0000U) | (static_cast<std::uint32_t>(s->meterMap.indexAtTick(tick)) & 0xffffU);
+        return SeqGetPPQ(seq) == 0 ? 0 : (tick & 0xffff0000U) | SeqMeterIxByTick(seq, tick);
     });
-    p.define("SEQGETMETER", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : meterResult(s->meterMap.entries()[s->meterMap.indexAtTick(a.dword())]);
+    p.define("SEQGETMETER", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqGetMeter(seq, a.dword());
     });
-    p.define("SEQINSMETER", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
+    p.define("SEQINSMETER", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint16_t measure = a.word();
-        const auto key = static_cast<std::int8_t>(a.word() & 0xffU);
-        const std::uint16_t meter = a.word();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->meterMap.insert(measure, key, meter, s->ppq);
-        return 1;
+        const std::int16_t k = key(a);
+        return SeqInsMeter(seq, measure, k, a.word());
     });
-    p.define("SEQSETMETER", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const Tick t = a.dword();
-        const auto key = static_cast<std::int8_t>(a.word() & 0xffU);
-        const std::uint16_t meter = a.word();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->meterMap.set(t, key, meter, s->ppq);
-        return 1;
+    p.define("SEQSETMETER", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
+        const std::int16_t k = key(a);
+        return SeqSetMeter(seq, t, k, a.word());
     });
-    p.define("SEQDELMETER", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        if (s == nullptr) {
-            return 0;
-        }
-        s->meterMap.remove(a.word());
-        return 1;
+    p.define("SEQDELMETER", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqDelMeter(seq, a.word());
     });
-    p.define("SEQCLEARMETERMAP", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const auto key = static_cast<std::int8_t>(a.word() & 0xffU);
-        const std::uint16_t meter = a.word();
-        if (s == nullptr) {
-            return 0;
-        }
-        s->meterMap.clear(key, meter);
-        return 1;
+    p.define("SEQCLEARMETERMAP", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::int16_t k = key(a);
+        return SeqClearMeterMap(seq, k, a.word());
     });
-    p.define("SEQRECALCMETERMAP", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        return s == nullptr ? 0 : static_cast<std::uint32_t>(s->meterMap.recalc(s->ppq));
-    });
-    p.define("SEQENUMMETERS", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQRECALCMETERMAP", [](Args& a, Probe&) -> std::uint32_t { return SeqRecalcMeterMap(a.word()); });
+    p.define("SEQENUMMETERS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint16_t from = a.word();
         const std::uint16_t thru = a.word();
         const FarPtr cb = a.ptr();
-        const std::uint32_t value = a.dword();
-        if (s == nullptr) {
-            return 0;
-        }
-        const auto hi = static_cast<std::uint16_t>(value >> 16);
-        const auto lo = static_cast<std::uint16_t>(value & 0xffffU);
-        const std::size_t n = s->meterMap.enumCount(from, thru);
-        for (std::size_t i = 0; i < n; ++i) {
-            const libseq::MeterEntry& m = s->meterMap.entries()[i];
-            pr.callback(cb, {keyWord(m), m.meter(), hi, lo});
-        }
-        pr.callback(cb, {0, 0, 0, 0});
-        return 1;
+        const Scoped s(glue().enumCb, cb);
+        return SeqEnumMeters(seq, from, thru, cb.null() ? nullptr : meterProc, a.dword());
     });
-    p.define("SEQSWAPMETERMAPS", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* x = seq(a);
-        Sequence* y = seq(a);
-        if (x != nullptr && y != nullptr) {
-            std::swap(x->meterMap, y->meterMap);
-        }
-        return 0;
+    p.define("SEQSWAPMETERMAPS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ x = a.word();
+        return SeqSwapMeterMaps(x, a.word());
     });
-
-    p.define("SEQMETERCOPY", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        Sequence* src = seq(a);
-        Sequence* clip = seq(a);
+    p.define("SEQMETERCOPY", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ src = a.word();
+        const HSEQ clip = a.word();
         const std::uint16_t from = a.word();
         const std::uint16_t thru = a.word();
-        const bool cut = a.word() != 0;
-        a.word(); // no visible effect
-        const FarPtr flag = a.ptr();
-        if (src == nullptr || clip == nullptr) {
-            return 0;
-        }
-        bool found = false;
-        const bool ok = clip->meterMap.copyFrom(src->meterMap, from, thru, cut, src->ppq, found);
-        if (found) {
-            putWord(pr, flag, 1);
-        }
-        return ok ? 1 : 0;
+        const std::uint16_t cut = a.word();
+        const std::uint16_t r = a.word();
+        Out<std::uint16_t> flag(pr, a.ptr());
+        return SeqMeterCopy(src, clip, from, thru, cut, r, flag.ptr());
     });
-    p.define("SEQMETERPASTE", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* clip = seq(a);
-        Sequence* dst = seq(a);
+    p.define("SEQMETERPASTE", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ clip = a.word();
+        const HSEQ dst = a.word();
         const std::uint16_t measure = a.word();
         const std::uint16_t length = a.word();
         const std::uint16_t reps = a.word();
-        const bool slide = a.word() != 0;
-        if (clip == nullptr || dst == nullptr) {
-            return 0;
-        }
-        dst->meterMap.paste(clip->meterMap, measure, length, reps, slide, dst->ppq);
-        return 1;
+        return SeqMeterPaste(clip, dst, measure, length, reps, a.word());
     });
 
     // ---- positions
-    p.define("SEQMBT2TICK", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQMBT2TICK", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint16_t m = a.word();
         const std::uint16_t b = a.word();
-        const std::uint16_t t = a.word();
-        return s == nullptr ? 0 : s->meterMap.toTick(m, b, t, s->ppq);
+        return SeqMBT2Tick(seq, m, b, a.word());
     });
-    p.define("SEQTICK2MBT", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const Tick t = a.dword();
-        const FarPtr m = a.ptr();
-        const FarPtr b = a.ptr();
-        const FarPtr k = a.ptr();
-        if (s == nullptr) {
-            return 0;
-        }
-        const libseq::MBT v = s->meterMap.toMBT(t, s->ppq);
-        putMBT(pr, m, b, k, v);
-        return v.tick;
+    p.define("SEQTICK2MBT", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
+        Out<std::uint16_t> m(pr, a.ptr());
+        Out<std::uint16_t> b(pr, a.ptr());
+        Out<std::uint16_t> k(pr, a.ptr());
+        return SeqTick2MBT(seq, t, m.ptr(), b.ptr(), k.ptr());
     });
-    p.define("SEQTICK2MEAS", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->meterMap.toMBT(a.dword(), s->ppq).measure;
+    p.define("SEQTICK2MEAS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTick2Meas(seq, a.dword());
     });
-    p.define("SEQTICK2MBTSTR", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const Tick t = a.dword();
+    p.define("SEQTICK2MBTSTR", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
         const FarPtr buf = a.ptr();
-        const bool flag = a.word() != 0;
-        if (s != nullptr) {
-            putString(pr, buf, libseq::formatMBT(s->meterMap.toMBT(t, s->ppq), flag));
+        {
+            Text text(pr, buf);
+            SeqTick2MBTStr(seq, t, text.ptr(), a.word());
         }
         return farResult(buf);
     });
-    p.define("SEQMBTSTR2MBT", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQMBTSTR2MBT", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::string str = pr.mem.string(a.ptr());
-        const FarPtr m = a.ptr();
-        const FarPtr b = a.ptr();
-        const FarPtr t = a.ptr();
-        if (s == nullptr) {
-            return 0;
-        }
-        putMBT(pr, m, b, t, libseq::parseMBT(str));
-        return 1;
+        Out<std::uint16_t> m(pr, a.ptr());
+        Out<std::uint16_t> b(pr, a.ptr());
+        Out<std::uint16_t> t(pr, a.ptr());
+        return SeqMBTStr2MBT(seq, str.c_str(), m.ptr(), b.ptr(), t.ptr());
     });
-    p.define("SEQTICKNEXTMEAS", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->meterMap.nextMeasure(a.dword(), s->ppq);
+    p.define("SEQTICKNEXTMEAS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTickNextMeas(seq, a.dword());
     });
-    p.define("SEQTICKPREVMEAS", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->meterMap.prevMeasure(a.dword(), s->ppq);
+    p.define("SEQTICKPREVMEAS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTickPrevMeas(seq, a.dword());
     });
-    p.define("SEQTICKNEXTBEAT", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->meterMap.nextBeat(a.dword(), s->ppq);
+    p.define("SEQTICKNEXTBEAT", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTickNextBeat(seq, a.dword());
     });
-    p.define("SEQTICKPREVBEAT", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->meterMap.prevBeat(a.dword(), s->ppq);
+    p.define("SEQTICKPREVBEAT", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTickPrevBeat(seq, a.dword());
     });
 
     // ---- timecode
-    p.define("SEQGETFPS", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->fps;
+    p.define("SEQGETFPS", [](Args& a, Probe&) -> std::uint32_t { return SeqGetFps(a.word()); });
+    p.define("SEQSETFPS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSetFps(seq, a.word());
     });
-    p.define("SEQSETFPS", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        const std::uint16_t fps = a.word();
-        return s != nullptr && s->setFps(fps) ? 1 : 0;
+    p.define("SEQGETFRAMEOFS", [](Args& a, Probe&) -> std::uint32_t { return SeqGetFrameOfs(a.word()); });
+    p.define("SEQSETFRAMEOFS", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqSetFrameOfs(seq, a.dword());
     });
-    p.define("SEQGETFRAMEOFS", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->frameOffset;
+    p.define("SEQTICK2FRAME", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        return SeqTick2Frame(seq, a.dword());
     });
-    p.define("SEQSETFRAMEOFS", [seq](Args& a, Probe&) -> std::uint32_t {
-        Sequence* s = seq(a);
-        if (s == nullptr) {
-            return 0;
-        }
-        s->frameOffset = a.dword();
-        return 1;
-    });
-    p.define("SEQTICK2FRAME", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        return s == nullptr ? 0 : s->tickToFrame(a.dword());
-    });
-    p.define("SEQFRAME2TICKRNDOPT", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQFRAME2TICKRNDOPT", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint32_t f = a.dword();
-        const bool up = a.word() != 0;
-        return s == nullptr ? 0 : s->frameToTick(f, up);
+        return SeqFrame2TickRndOpt(seq, f, a.word());
     });
-    p.define("SEQFRAME2HMSF", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQFRAME2HMSF", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::uint32_t f = a.dword();
-        const FarPtr h = a.ptr();
-        const FarPtr m = a.ptr();
-        const FarPtr sec = a.ptr();
-        const FarPtr fr = a.ptr();
-        if (s == nullptr) {
-            return 0;
-        }
-        const libseq::HMSF t = libseq::framesToHMSF(f, s->fps);
-        putWord(pr, h, t.hours);
-        putWord(pr, m, t.minutes);
-        putWord(pr, sec, t.seconds);
-        putWord(pr, fr, t.frames);
-        return t.hours;
+        Out<std::uint16_t> h(pr, a.ptr());
+        Out<std::uint16_t> m(pr, a.ptr());
+        Out<std::uint16_t> s(pr, a.ptr());
+        Out<std::uint16_t> fr(pr, a.ptr());
+        return SeqFrame2HMSF(seq, f, h.ptr(), m.ptr(), s.ptr(), fr.ptr());
     });
-    p.define("SEQHMSF2FRAME", [seq](Args& a, Probe&) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        libseq::HMSF t;
-        t.hours = a.word();
-        t.minutes = a.word();
-        t.seconds = a.word();
-        t.frames = a.word();
-        return s == nullptr ? 0 : libseq::hmsfToFrames(t, s->fps);
+    p.define("SEQHMSF2FRAME", [](Args& a, Probe&) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint16_t h = a.word();
+        const std::uint16_t m = a.word();
+        const std::uint16_t s = a.word();
+        const std::uint16_t f = a.word();
+        return SeqHMSF2Frame(seq, h, m, s, f, a.word());
     });
-    p.define("SEQTICK2HMSFSTR", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
-        const Tick t = a.dword();
+    p.define("SEQTICK2HMSFSTR", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
+        const std::uint32_t t = a.dword();
         const FarPtr buf = a.ptr();
-        if (s != nullptr) {
-            putString(pr, buf, libseq::formatHMSF(libseq::framesToHMSF(s->tickToFrame(t), s->fps)));
+        {
+            Text text(pr, buf);
+            SeqTick2HMSFStr(seq, t, text.ptr());
         }
         return farResult(buf);
     });
     p.define("SEQHMSFSTR2HMSF", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::string str = pr.mem.string(a.ptr());
-        const libseq::HMSF t = libseq::parseHMSF(str);
-        putWord(pr, a.ptr(), t.hours);
-        putWord(pr, a.ptr(), t.minutes);
-        putWord(pr, a.ptr(), t.seconds);
-        putWord(pr, a.ptr(), t.frames);
-        return 1;
+        Out<std::uint16_t> h(pr, a.ptr());
+        Out<std::uint16_t> m(pr, a.ptr());
+        Out<std::uint16_t> s(pr, a.ptr());
+        Out<std::uint16_t> f(pr, a.ptr());
+        return SeqHMSFStr2HMSF(str.c_str(), h.ptr(), m.ptr(), s.ptr(), f.ptr());
     });
-    p.define("SEQHMSFSTR2MBT", [seq](Args& a, Probe& pr) -> std::uint32_t {
-        const Sequence* s = seq(a);
+    p.define("SEQHMSFSTR2MBT", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::string str = pr.mem.string(a.ptr());
-        const FarPtr m = a.ptr();
-        const FarPtr b = a.ptr();
-        const FarPtr t = a.ptr();
-        if (s == nullptr) {
-            return 0;
-        }
-        const Tick tick = s->frameToTick(libseq::hmsfToFrames(libseq::parseHMSF(str), s->fps), false);
-        putMBT(pr, m, b, t, s->meterMap.toMBT(tick, s->ppq));
-        return 1;
+        Out<std::uint16_t> m(pr, a.ptr());
+        Out<std::uint16_t> b(pr, a.ptr());
+        Out<std::uint16_t> t(pr, a.ptr());
+        return SeqHMSFStr2MBT(seq, str.c_str(), m.ptr(), b.ptr(), t.ptr());
     });
 }
 

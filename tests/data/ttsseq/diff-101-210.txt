@@ -1,3 +1,7 @@
+== eventkinds: 2 differences
+  SEQSAVEMIDIFILE (2x), e.g. after SEQSAVEMIDIFILE(0001,"C:\PROBE\ORC\OUT\KINDS.MID",d:00000000) ...
+    ttsseq/101: callback cb4(0007,----,----,0000) {
+    ttsseq/210: callback cb4(0007,----,----,ffff) {
 == lifecycle: 1 differences
    (1x), e.g. after (start)
     ttsseq/101: SEQGETVERSION() -> 0101
@@ -30,7 +34,7 @@
     ttsseq/210: SEQGETPPQ(0001) -> 0018
 == record: 4 differences
   SEQGETEVT (4x), e.g. after SEQGETEVT(0100,@0) -> 0001
-    ttsseq/101:   18 00 00 c0 05 00 00 00
+    ttsseq/101:   16 00 00 c0 05 00 00 00
     ttsseq/210:   14 00 00 c0 05 00 00 00
 == seqparams: 17 differences
   SEQSETSEQPARAM (3x), e.g. after SEQSETSEQPARAM(0001,0008,d:00000005) -> 0001

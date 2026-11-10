@@ -1343,7 +1343,10 @@ function the oracle suites call, found by trying layouts through the probe. Note
   suites only use handles that exist.
 - `SeqSetSeqParam` returns 1, or 0 for a parameter the version does not have.
 - `SeqCreateStream(seq, ?, ?)` adds an empty stream; `SeqAdoptStream(seq, stream)` gives it a new
-  handle; `SeqCloneStream(seq, stream, flag)` copies the events with flag 0 and not with flag 1.
+  handle; `SeqCloneStream(seq, stream, flag)` copies the events and the name either way, and the
+  parameters with flag 1; with flag 0 the copy has a new stream's parameters (suite `clone`; until
+  2026-11-10 this line said the flag decides about the events, which the `streams` suite already
+  contradicted).
 - The meter map, from Cakewalk Apprentice 1.04's Meter/Key view [trace] and the probe [probe]:
   `SeqInsMeter(seq, measure, key, meter)` adds an entry (or replaces the one at that measure),
   `SeqSetMeter(seq, tick32, key, meter)` changes the entry in effect at the tick, and

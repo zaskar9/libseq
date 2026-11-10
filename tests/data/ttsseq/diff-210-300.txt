@@ -1,7 +1,21 @@
-== copypaste: 39 differences
-  SEQGETMETERATIX (39x), e.g. after SEQGETMETERATIX(0001,0000,@0) -> 00000204
-    ttsseq/210: SEQGETMETERATIX(0001,0001,@0) -> ffffffff
-    ttsseq/300: SEQGETMETERATIX(0001,0001,@0) -> 00000204
+== clone: 2 differences
+  SEQGETSTREAMPARAM (2x), e.g. after SEQGETSTREAMPARAM(%3,000b) -> 00000000
+    ttsseq/210: SEQGETSTREAMPARAM(%3,000c) -> 00000000
+    ttsseq/300: SEQGETSTREAMPARAM(%3,000c) -> ffffffff
+== copypaste: 1259 differences
+  SEQGETMETERATIX (1259x), e.g. after SEQGETMETERATIX(0001,0005,@0) -> 00070204
+    ttsseq/210: SEQGETMETERATIX(0001,0006,@0) -> ffffffff
+    ttsseq/300: SEQGETMETERATIX(0001,0006,@0) -> 00000204
+== eventkinds: 3 differences
+  SEQPLAYSTART (1x), e.g. after SEQPLAYSTART(null) ...
+    ttsseq/210: SEQPLAYSTART(...) -> 0001
+    ttsseq/300: SEQSTART(...) -> 0001
+  SEQINSEVT (1x), e.g. after SEQINSEVT(%1,@2) -> 0001
+    ttsseq/210: SEQSAVEMIDIFILE(0001,"C:\PROBE\ORC\OUT\KINDS.MID",d:00000000) ... | callback cb4(0007,----,----,ffff) { |   dump w1+0:
+    ttsseq/300: 
+  SEQREGISTEREVENTKIND (1x), e.g. after SEQREGISTEREVENTKIND("MCICmd",cb4,d:00000022) -> 0002
+    ttsseq/210: SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_KIND.WRK",0000,cb4,d:00001234) ... | callback cb4(00fe,----,----,1234) { | } -> 0
+    ttsseq/300: 
 == fileio: 1 differences
    (1x), e.g. after (start)
     ttsseq/210: == load SYN_MAPS: seek at the start, read the comments chunk (8) and take it | SEQLOADCAKEWALKFILE("C:\PROBE\ORC\SYN_MAPS.WRK",0000,cb4,d:00001234) ... | callback cb4(00fe,----,----,1234) {
@@ -144,10 +158,13 @@
   SEQEXPIRED (1x), e.g. after SEQEXPIRED() -> 0001
     ttsseq/210: SEQPLAYSTART(cb3) -> 0000
     ttsseq/300: SEQSTART(cb3,@0) -> 0000
-== sysex: 6 differences
+== sysex: 10 differences
   SEQGETSYSXBANKLEN (6x), e.g. after SEQGETSYSXBANKLEN(0100) -> 00000006
     ttsseq/210: SEQGETSYSXBANKNAME(0100,@0,0020) -> 0001
     ttsseq/300: SEQGETSYSXBANKNAME(0100,@0,0020) -> 0005
+  SEQGETSYSXBANKNAME (4x), e.g. after SEQGETSYSXBANKNAME(%1,@0,0001) -> 0000
+    ttsseq/210: SEQGETSYSXBANKNAME(%1,@0,0002) -> 0000
+    ttsseq/300: SEQGETSYSXBANKNAME(%1,@0,0002) -> 0001
 == sysexin: 4 differences
   SEQSYSXBIN2ASC (2x), e.g. after SEQSYSXBIN2ASC(%1,@0,0010) -> 0024
     ttsseq/210: 
@@ -158,3 +175,7 @@
   SEQENUMSYSXBANKS (1x), e.g. after SEQENUMSYSXBANKS(0001,cb4,d:00000000) -> 0001
     ttsseq/210: 
     ttsseq/300: callback cb4(0001,0103,0000,0000)
+== thru: 1 differences
+  SEQTXMIDIMSG (1x), e.g. after SEQTXMIDIMSG(0000,0005,0080,0031,0000) -> 0001
+    ttsseq/210: SEQSETPLAYINGSEQ(0000) -> 0001
+    ttsseq/300: SEQSETPLAYINGSEQ(0000) -> 0000

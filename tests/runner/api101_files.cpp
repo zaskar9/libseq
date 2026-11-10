@@ -1,122 +1,120 @@
-// The TTSSEQ 1.01 file functions over libseq, for the script runner: loading and saving `.WRK`
-// and MIDI files with the program's callback, the `SeqIO` functions the callbacks use, and the
-// kinds of string events with their procedures.
+// The TTSSEQ 1.01 file functions for the script runner: loading and saving `.WRK` and MIDI files
+// with the program's callback, the `SeqIO` functions the callbacks use, and the kinds of string
+// events with their procedures.
 #include "api.hpp"
 
-#include "libseq/engine.hpp"
-
-#include <memory>
-#include <utility>
+#include <vector>
 
 namespace ttsrun {
 
-using libseq::Engine;
-using libseq::Event;
-
 namespace {
 
-/// The program's load or save callback: (code, word, value32) as four words.
-libseq::FileProc fileProc(Probe& p, const FarPtr fn, const std::uint32_t value) {
-    if (fn.null()) {
-        return {};
+/// The program's load or save callback: (code, word, value) as four words.
+std::uint16_t fileProc(const std::uint16_t code, const std::uint16_t word, const std::uint32_t value) {
+    const Glue& g = glue();
+    return static_cast<std::uint16_t>(g.probe->callback(g.fileCb, {code, word, hi(value), lo(value)}));
+}
+
+/// An event procedure: (message, pointer to the event, length). The probe's procedure of the
+/// event's kind gets the event where the caller of SeqCallEventProc has it, otherwise a place of
+/// its own in the engine's memory.
+std::uint16_t eventProc(const std::uint16_t message, SEQEVENT* event, const std::uint16_t length) {
+    Glue& g = glue();
+    Probe& pr = *g.probe;
+    const auto kind = g.kinds.find(event->status);
+    if (kind == g.kinds.end()) {
+        return 0;
     }
-    return [&p, fn, value](const std::uint16_t code, const std::uint16_t word) {
-        return p.callback(
-            fn, {code, word, static_cast<std::uint16_t>(value >> 16), static_cast<std::uint16_t>(value & 0xffffU)});
-    };
+    FarPtr at;
+    if (event == g.callerEvent) {
+        at = g.callerFar;
+        g.callerEvent = nullptr;
+    } else {
+        std::vector<std::uint8_t> bytes(sizeof(SEQEVENT));
+        std::memcpy(bytes.data(), event, sizeof(SEQEVENT));
+        at = pr.mem.window(bytes);
+    }
+    const std::uint32_t r = pr.callback(kind->second, {message, at.seg, at.off, length});
+    readEvent(pr, at, *event);
+    return static_cast<std::uint16_t>(r);
 }
 
 } // namespace
 
-void defineFiles101(Probe& p, Engine& e) {
-    // where SeqCallEventProc's caller has the event: the procedure gets that pointer
-    const auto callerEvent = std::make_shared<FarPtr>();
-
-    p.define("SEQLOADCAKEWALKFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
+void defineFiles101(Probe& p) {
+    p.define("SEQLOADCAKEWALKFILE", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.word(); // always 0
+        const std::uint16_t r = a.word(); // always 0
         const FarPtr fn = a.ptr();
-        return e.loadCakewalkFile(path, fileProc(pr, fn, a.dword()));
+        const Scoped s(glue().fileCb, fn);
+        return SeqLoadCakewalkFile(path.c_str(), r, fn.null() ? nullptr : fileProc, a.dword());
     });
-    p.define("SEQSAVECAKEWALKFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
+    p.define("SEQSAVECAKEWALKFILE", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.dword(); // always 0
+        const std::uint32_t r = a.dword(); // always 0
         const FarPtr fn = a.ptr();
-        return e.saveCakewalkFile(seq, path, fileProc(pr, fn, a.dword())) ? 1 : 0;
+        const Scoped s(glue().fileCb, fn);
+        return SeqSaveCakewalkFile(seq, path.c_str(), r, fn.null() ? nullptr : fileProc, a.dword());
     });
-    p.define("SEQLOADMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
+    p.define("SEQLOADMIDIFILE", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.word(); // always 0
-        return e.loadMidiFile(path);
+        return SeqLoadMidiFile(path.c_str(), a.word());
     });
-    p.define("SEQSAVEMIDIFILE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        const libseq::SeqHandle seq = a.word();
+    p.define("SEQSAVEMIDIFILE", [](Args& a, Probe& pr) -> std::uint32_t {
+        const HSEQ seq = a.word();
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
-        a.dword(); // always 0
-        return e.saveMidiFile(seq, path) ? 1 : 0;
+        return SeqSaveMidiFile(seq, path.c_str(), a.dword());
     });
 
-    // ---- the file the engine has open, whatever handle comes
-    p.define("SEQIOSEEK", [&e](Args& a, Probe&) -> std::uint32_t {
-        a.word();
+    // ---- the file the engine has open
+    p.define("SEQIOSEEK", [](Args& a, Probe&) -> std::uint32_t {
+        const std::uint16_t file = a.word();
         const auto offset = static_cast<std::int32_t>(a.dword());
-        return e.ioSeek(offset, a.word());
+        return SeqIOSeek(file, offset, a.word());
     });
-    p.define("SEQIOREAD", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        a.word();
+    p.define("SEQIOREAD", [](Args& a, Probe& pr) -> std::uint32_t {
+        const std::uint16_t file = a.word();
         const FarPtr to = a.ptr();
         const std::uint16_t n = a.word();
-        std::uint8_t* b = pr.mem.at(to, n);
-        return b == nullptr ? 0 : static_cast<std::uint32_t>(e.ioRead(b, n));
+        return SeqIORead(file, pr.mem.at(to, n), n);
     });
-    p.define("SEQIOWRITE", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        a.word();
+    p.define("SEQIOWRITE", [](Args& a, Probe& pr) -> std::uint32_t {
+        const std::uint16_t file = a.word();
         const FarPtr from = a.ptr();
         const std::uint16_t n = a.word();
-        const std::uint8_t* b = pr.mem.at(from, n);
-        return b == nullptr ? 0 : static_cast<std::uint32_t>(e.ioWrite(b, n));
+        return SeqIOWrite(file, pr.mem.at(from, n), n);
     });
 
-    // ---- kinds of string events. A procedure gets (message, pointer to the event, length).
-    p.define("SEQREGISTEREVENTKIND", [&e, callerEvent](Args& a, Probe& pr) -> std::uint32_t {
-        std::string name = pr.mem.string(a.ptr());
+    // ---- kinds of string events
+    p.define("SEQREGISTEREVENTKIND", [](Args& a, Probe& pr) -> std::uint32_t {
+        // TTSSEQ keeps the name the program passes; libseq keeps a copy
+        const std::string name = pr.mem.string(a.ptr());
         const FarPtr fn = a.ptr();
-        const std::uint32_t value = a.dword();
-        return e.registerEventKind(
-            std::move(name),
-            [&pr, fn, callerEvent](const std::uint16_t message, Event& ev, const std::uint16_t length) {
-                // the event where the caller of SeqCallEventProc has it, otherwise a place of its own
-                const auto b = ev.bytes();
-                FarPtr at = *callerEvent;
-                *callerEvent = {};
-                if (at.null()) {
-                    at = pr.mem.window({b.begin(), b.end()});
-                }
-                const std::uint32_t r = pr.callback(fn, {message, at.seg, at.off, length});
-                if (const std::uint8_t* p8 = pr.mem.at(at, Event::kSize)) {
-                    ev = Event::fromBytes(p8);
-                }
-                return r;
-            },
-            value);
+        const std::uint16_t kind = SeqRegisterEventKind(name.c_str(), fn.null() ? nullptr : eventProc, a.dword());
+        if (kind != 0) {
+            glue().kinds[kind] = fn;
+        }
+        return kind;
     });
-    p.define("SEQUNREGISTEREVENTKIND", [&e](Args& a, Probe& pr) -> std::uint32_t {
-        return e.unregisterEventKind(pr.mem.string(a.ptr())) ? 1 : 0;
+    p.define("SEQUNREGISTEREVENTKIND", [](Args& a, Probe& pr) -> std::uint32_t {
+        return SeqUnregisterEventKind(pr.mem.string(a.ptr()).c_str());
     });
-    p.define("SEQCALLEVENTPROC", [&e, callerEvent](Args& a, Probe& pr) -> std::uint32_t {
+    p.define("SEQCALLEVENTPROC", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::uint16_t message = a.word();
         const FarPtr at = a.ptr();
         const std::uint16_t length = a.word();
-        std::uint8_t* b = pr.mem.at(at, Event::kSize);
-        if (b == nullptr) {
+        SEQEVENT ev{};
+        if (!readEvent(pr, at, ev)) {
             return 0;
         }
-        Event ev = Event::fromBytes(b);
-        *callerEvent = at;
-        const std::uint32_t r = e.callEventProc(message, ev, length);
-        *callerEvent = {};
-        return r & 0xffffU;
+        Glue& g = glue();
+        g.callerEvent = &ev;
+        g.callerFar = at;
+        const std::uint16_t r = SeqCallEventProc(message, &ev, length);
+        g.callerEvent = nullptr;
+        writeEvent(pr, at, ev);
+        return r;
     });
 }
 

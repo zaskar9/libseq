@@ -45,7 +45,7 @@ jobs:
       - name: Install tools
         run: sudo apt-get update && sudo apt-get install -y clang clang-format clang-tidy
       - name: clang-format
-        run: clang-format --dry-run --Werror include/libseq/*.hpp src/*.cpp src/*.hpp tests/runner/*.cpp tests/runner/*.hpp
+        run: clang-format --dry-run --Werror include/libseq/*.hpp include/libseq/*.h src/*.cpp src/*.hpp tests/runner/*.cpp tests/runner/*.hpp tests/c/*.c
       - name: Configure with compile commands
         run: cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         env:

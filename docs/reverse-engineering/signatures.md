@@ -24,7 +24,7 @@ established.
 |---|---|---|
 | `SeqCreateStream(seq, ?, ?)` | w | a new stream in the sequence |
 | `SeqAdoptStream(seq, stream)` | w | returns a new handle for the stream |
-| `SeqCloneStream(seq, stream, flag)` | w | flag 0 copies the events, 1 does not |
+| `SeqCloneStream(seq, stream, flag)` | w | a copy with the events and the name; flag 1 also copies the parameters, 0 gives a new stream's (suite `clone`) |
 | `SeqDestroyStream(stream)` | w | |
 | `SeqEnumStreams(seq, p callback, d value)` | d | callback(seq, stream, d value) per stream, then (0, 0, d value) |
 | `SeqStreamLen(stream)`, `SeqStreamDur(stream)` | d | |

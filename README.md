@@ -35,8 +35,9 @@ this repository, so each statement about the engine can be traced to the observa
 
 | Folder | Content |
 |---|---|
-| `include/libseq/`, `src/` | The library |
-| `tests/runner/` | `ttsrun`, which runs the probe's scripts against the library, and the oracle tests built on it |
+| `include/libseq/`, `src/` | The library: `ttsseq.h`, the DLL's interface in C, over `engine.hpp`, the C++ interface (`DESIGN.md`) |
+| `tests/runner/` | `ttsrun`, which runs the probe's scripts against the library's C interface, and the oracle tests built on it |
+| `tests/c/` | A C program on the C interface |
 | `docs/reverse-engineering/` | How the engine was studied, step by step, and everything known about its interface |
 | `tools/static/` | The scripts that read the files on the installation disk |
 | `tools/ttsprobe/` | The tools that observed it: a probe that calls the DLLs from scripts, a fake MIDI driver for Wine, analysis scripts |
@@ -49,7 +50,7 @@ this repository, so each statement about the engine can be traced to the observa
     cmake -S . -B build && cmake --build build && ctest --test-dir build
 
 The tests are the oracle suites of `tests/data/ttsseq/101`: `ttsrun` runs each suite's script against
-the library and compares what it prints, line by line, with what `TTSSEQ.DLL` 1.01 printed for the
+the library's C interface and compares what it prints, line by line, with what `TTSSEQ.DLL` 1.01 printed for the
 same script, and the MIDI it sends, message by message at the same millisecond. `tests/runner/suites101.txt`
 lists the suites the library passes so far.
 `build/tests/runner/ttsrun --songs tests/data/songs SCRIPT [EXPECTED]` runs one script by hand.
@@ -66,5 +67,6 @@ ports and the clock, and the input side: MIDI thru, real-time recording with cou
 step recording, sysex receive and send, `SeqTxMidiMsg`, and following MIDI clock and MIDI Time
 Code, and the devices and options that `TTSSEQ.INI` holds, through the platform interface. Their
 timing reproduces 1.01 to the millisecond, measured with Wine in virtual time
-(`docs/reverse-engineering/ttsseq-api.md`, Timing). An earlier exploration
+(`docs/reverse-engineering/ttsseq-api.md`, Timing). All of it is reachable through 1.01's own
+interface in C, one function per export (`include/libseq/ttsseq.h`, `DESIGN.md`). An earlier exploration
 (versions 0.1.0 to 0.8.1) is kept on the branch `archive/0.x`.
