@@ -1,6 +1,6 @@
 # Design
 
-libseq has two interfaces to one engine.
+libseq has two interfaces to one engine, and a Swift package on the second.
 
 - **`include/libseq/ttsseq.h`, the C interface**, is `TTSSEQ.DLL` 1.01's own. It has one function
   per export, with the DLL's names, argument order and meanings, so a program written for the
@@ -9,8 +9,10 @@ libseq has two interfaces to one engine.
   the sequences, streams, maps and banks it holds as objects, callbacks as `std::function`, and
   the system around it as a `libseq::Platform`. The C interface is a thin layer over it
   (`src/ttsseq.cpp`).
+- **The Swift package** (`Package.swift`, `swift/`) gives the C++ interface a Swift interface,
+  through Swift's C++ interoperability.
 
-Both reproduce the DLL in all tested cases: the oracle suites (`tests/data/ttsseq/101`) run
+Both interfaces reproduce the DLL in all tested cases: the oracle suites (`tests/data/ttsseq/101`) run
 through the C interface (`tests/runner/`), and a small C program (`tests/c/ttsseq_c.c`) checks
 that it compiles and links as C.
 
@@ -64,6 +66,33 @@ types whose names begin with `LibSeq` stand in for that:
 | loading and unloading the DLL (`WEP`) | the first call; `LibSeqUnload` |
 
 A host installs its platform with `LibSeqSetPlatform` before `SeqOpen`.
+
+## The Swift package
+
+Swift's C++ interoperability imports a C++ class as a Swift value only when it can copy it, and
+calls C++ with plain types, strings and C function pointers. `libseq::Engine` can be neither
+copied nor moved and takes `std::function` callbacks, so the package goes through one class made
+for it: `libseq::SharedEngine` (`include/libseq/swift.hpp`), a copyable handle to one engine whose
+functions take handles, numbers, C strings, `libseq::Event` and `libseq::MBT`. It passes no
+`std::string`, which not every toolchain converts to Swift's `String`, and has no function named
+`begin` or `end`, which Swift takes for iterators. Its platform is a
+`LIBSEQPLATFORM` of C functions, as in the C interface. `include/module.modulemap` makes it the
+Clang module `CLibSeq`.
+
+The module `LibSeq` (`swift/Sources/LibSeq`) is the Swift interface:
+
+| Swift | C++ |
+|---|---|
+| `SeqEngine` (a class; each one is its own engine) | `SharedEngine` |
+| `SeqPlatform` (a protocol the host implements) | `Platform`, through `LIBSEQPLATFORM` |
+| `SeqSequence`, `SeqStream` (handles with their engine) | `Sequence`, `Stream` |
+| `SeqEvent`, `SeqPosition`, `SeqMeter`, `SeqOptions` (values) | `Event`, `MBT`, `MeterEntry`, `Options` |
+| `throws SeqError` | a 0 handle or `false` |
+
+The names carry the prefix `Seq`, as the DLL's functions do; it also keeps them apart from Swift's
+`Sequence` and Foundation's `Stream`. The package compiles the C++ sources itself, without CMake.
+`tests/cpp/shared_engine.cpp` checks `SharedEngine` with every build; the Swift tests
+(`swift/Tests`) make the same checks through Swift, with `swift test` on macOS.
 
 ## The export map
 

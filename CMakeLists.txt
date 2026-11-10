@@ -20,6 +20,7 @@ add_library(libseq
     src/input.cpp
     src/record.cpp
     src/sync.cpp
+    src/swift.cpp
     src/ttsseq.cpp
 )
 target_include_directories(libseq PUBLIC
@@ -40,6 +41,11 @@ if(LIBSEQ_BUILD_TESTS)
     set_target_properties(ttsseq_c PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON C_EXTENSIONS OFF LINKER_LANGUAGE CXX)
     target_compile_options(ttsseq_c PRIVATE $<$<C_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>)
     add_test(NAME ttsseq_c COMMAND ttsseq_c)
+    # the class the Swift package builds on
+    add_executable(shared_engine tests/cpp/shared_engine.cpp)
+    target_link_libraries(shared_engine PRIVATE libseq)
+    target_compile_options(shared_engine PRIVATE ${LIBSEQ_WARNINGS})
+    add_test(NAME shared_engine COMMAND shared_engine ${CMAKE_CURRENT_SOURCE_DIR}/tests/data/songs/corpus)
 endif()
 
 install(TARGETS libseq EXPORT libseqTargets)

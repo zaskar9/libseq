@@ -38,6 +38,8 @@ this repository, so each statement about the engine can be traced to the observa
 | `include/libseq/`, `src/` | The library: `ttsseq.h`, the DLL's interface in C, over `engine.hpp`, the C++ interface (`DESIGN.md`) |
 | `tests/runner/` | `ttsrun`, which runs the probe's scripts against the library's C interface, and the oracle tests built on it |
 | `tests/c/` | A C program on the C interface |
+| `tests/cpp/` | A C++ test of `SharedEngine`, the class the Swift package uses |
+| `Package.swift`, `swift/` | The Swift package: the module `LibSeq` and its tests |
 | `docs/reverse-engineering/` | How the engine was studied, step by step, and everything known about its interface |
 | `tools/static/` | The scripts that read the files on the installation disk |
 | `tools/ttsprobe/` | The tools that observed it: a probe that calls the DLLs from scripts, a fake MIDI driver for Wine, analysis scripts |
@@ -54,6 +56,12 @@ the library's C interface and compares what it prints, line by line, with what `
 same script, and the MIDI it sends, message by message at the same millisecond. `tests/runner/suites101.txt`
 lists the suites the library passes so far.
 `build/tests/runner/ttsrun --songs tests/data/songs SCRIPT [EXPECTED]` runs one script by hand.
+
+The Swift package builds with `swift build` (Swift 5.9 or later) and tests with `swift test` (Swift 6
+or later). The tests use Swift Testing, which the Command Line Tools have; XCTest needs Xcode. An app
+uses the package as `.product(name: "LibSeq", package: "libseq")`; its target needs
+`swiftSettings: [.interoperabilityMode(.Cxx)]`, since the package reaches C++ through Swift's C++
+interoperability.
 
 ## Status
 

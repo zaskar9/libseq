@@ -1,0 +1,7 @@
+// The C++ interface as a Clang module, for the Swift package (Package.swift): Swift's C++
+// interoperability imports libseq::SharedEngine and what it uses from here.
+module CLibSeq {
+    header "libseq/swift.hpp"
+    requires cplusplus
+    export *
+}
