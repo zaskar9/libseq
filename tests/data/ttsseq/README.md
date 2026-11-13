@@ -29,12 +29,16 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
 
 ## How exact they are
 
-- Outputs and saved files repeat byte for byte (`repeat-101.txt`).
-- MIDI repeats in content and order. In the suites that play, the times repeat within 30 ms; a
-  few messages of the densest song are up to 115 ms off, when Wine's timer stalls. Times outside
-  playback only say how long the calls took and are not compared.
-- The `record` suite records live input, so its event times may differ by a few ticks between
-  runs.
+- 1.01 and 2.10 ran in virtual time (`tools/ttsprobe/README.md`): the MIDI times are the engine's
+  own, to the millisecond, and outputs, saved files and MIDI repeat byte for byte (1.01:
+  `repeat-101.txt`; 2.10: two full runs, 2026-11-13). The `record` suite's event times repeat
+  too, since the input arrives at fixed virtual times.
+- 3.00 still is the real-time run of 2026-10-29 through the fake MIDI port. Its MIDI repeats in
+  content and order; in the suites that play, the times repeat within 30 ms, and a few messages
+  of the densest song are up to 115 ms off, when Wine's timer stalls. Its times outside playback
+  only say how long the calls took. It has no `countins`, `mtcbreaks` and `ports2` yet.
+- The `steprec` suite posts to the probe's window, so it needs an X display (Xvfb);
+  `mkoracles.sh` stops without one.
 - The `ports` suite runs with two fake output ports; its MIDI lines name the fake port (`@0`,
   `@2`). The `fileio` suite masks the file handle and the pointers in its callbacks.
 - The `sysexin` suite receives sysex from scripted input; it needs Wine's 16-bit MMSYSTEM with

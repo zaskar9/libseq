@@ -19,6 +19,8 @@
 # OUTDIR=name writes to $TTSSEQ_DATA/name instead.
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/../env.sh"
+# the probe's window (step recording posts to it) needs an X display, such as Xvfb :99
+xdpyinfo > /dev/null 2>&1 || { echo "mkoracles.sh: no X display (DISPLAY=$DISPLAY); start Xvfb" >&2; exit 1; }
 ver=$1; shift
 V=$PROBE_C/V$ver; ORC=$PROBE_C/ORC
 out=$TTSSEQ_DATA/${OUTDIR:-$ver}; raw=$TTSPROBE_WORK/oracles/${OUTDIR:-$ver}; mkdir -p "$out" "$raw" "$ORC"

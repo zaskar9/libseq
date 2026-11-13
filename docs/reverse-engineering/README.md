@@ -390,6 +390,22 @@ What remains open about 1.01 is small and written down where it belongs:
 The next release, 2.10.0, starts from here. Its suites already exist (`tests/data/ttsseq/210`),
 and `diff-101-210.txt` lists where 2.10 answers differently.
 
+### 21. 2.10 in virtual time (2026-11-13)
+
+The work on release 2.10.0 starts with its oracles. The 2.10 folder still held the real-time
+runs of October, whose MIDI times carry Wine's jitter and cannot be compared with 1.01's. All 63
+suites ran again on 2.10 in virtual time, twice, with the same bytes both times.
+
+Against 1.01, 44 suites now differ only in their first lines: 2.10 needs `SeqWire` before
+`SeqOpen`, and its `SeqOpen` returns 0. Their MIDI is the same to the millisecond. The other 19
+show what 2.10 changed, and the plan for the release groups them: the clock source per sequence,
+two new parameters, the MIDI sync output, the locate delay, events before tick 0, thru to the
+Local On port, four options, and a few single results (`diff-101-210.txt`).
+
+One false alarm on the way: the first run had no step recording messages. The container had
+been restarted and the X display was gone, so the probe had no window to post to. The same
+happened to 1.01 when tried. `mkoracles.sh` now stops when there is no display.
+
 ## In this folder
 
 | File | Content |

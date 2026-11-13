@@ -31,7 +31,7 @@ call.w SEQSENDSYSXBANK %1 0000 0000
 echo == receive two messages of 101 bytes (2000 and 2400 ms)
 call.w SEQCREATESYSXBANK 0001
 let 2
-cbmask f
+cbmask f merge
 cbyield 1
 cbret 0
 sleep 200

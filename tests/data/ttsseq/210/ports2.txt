@@ -1,0 +1,31 @@
+mode oracle
+#! outputs 2
+#! ini PORTS2.INI
+#! secs 40
+load TTSSEQ.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+echo == ENG_SYNC: its stream plays on port 1
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_SYNC.WRK" 0000 null 0000 0000
+call.w SEQGETSTREAMPARAM 0100 0003
+call.w SEQSETPLAYINGSEQ 0001
+call.w SEQSETSTANDBYSEQ 0000
+sleep 500
+call.w SEQPLAYSTART null
+idle 600
+call.w SEQPLAYSTOP
+idle 300
+echo == the stream on port 2
+call.w SEQSETSTREAMPARAM 0100 0003 d:00000001
+call.w SEQPLAYSTART null
+idle 300
+call.w SEQPLAYSTOP
+idle 300
+echo == an empty sequence
+call.w SEQCREATESEQ 0000 0000
+call.w SEQSETPLAYINGSEQ 0002
+call.w SEQPLAYSTART null
+idle 300
+call.w SEQPLAYSTOP
+idle 300
+call.w SEQCLOSE
