@@ -1,0 +1,32 @@
+mode oracle
+#! secs 60
+# SeqOpen and SeqClose count: the port opens when the count becomes 1 and closes when it becomes 0. 2.10 and 3.00: SeqWire
+# again, and SeqSleep and SeqWake, which close and reopen the port.
+load TTSSEQ.DLL
+call.w SEQOPEN 0000 0000
+echo == open twice: the second SeqClose closes the port
+call.w SEQCREATESEQ 0000 0000
+sleep 10
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003c 0040
+call.w SEQCREATESEQ 0000 0000
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003d 0040
+call.w SEQCREATESEQ 0000 0000
+echo == a third SeqClose counts too: the next SeqOpen opens nothing, the one after does
+call.w SEQCLOSE
+sleep 10
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003e 0040
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0046 0040
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0045 0040
+call.w SEQCLOSE

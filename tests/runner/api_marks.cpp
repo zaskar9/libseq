@@ -1,4 +1,4 @@
-// The TTSSEQ 1.01 interface for the script runner: markers and sysex banks
+// The TTSSEQ 2.10 interface for the script runner: markers and sysex banks
 // (docs/reverse-engineering/signatures.md, "Markers" and "Sysex banks").
 #include "api.hpp"
 
@@ -14,7 +14,7 @@ std::uint16_t sysxProc(const std::uint32_t received, const std::uint32_t free) {
 
 } // namespace
 
-void defineMarks101(Probe& p) {
+void defineMarks(Probe& p) {
     // ---- markers
     p.define("SEQNUMMARKERS", [](Args& a, Probe&) -> std::uint32_t { return SeqNumMarkers(a.word()); });
     p.define("SEQGETMARKERNAME", [](Args& a, Probe& pr) -> std::uint32_t {

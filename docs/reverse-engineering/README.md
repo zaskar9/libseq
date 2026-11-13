@@ -406,6 +406,31 @@ One false alarm on the way: the first run had no step recording messages. The co
 been restarted and the X display was gone, so the probe had no window to post to. The same
 happened to 1.01 when tried. `mkoracles.sh` now stops when there is no display.
 
+### 22. Wire, sleep and wake (2026-11-13)
+
+2.10's lifecycle has three functions 1.01 lacks, and the traces of Cakewalk Apprentice show
+only one of them, `SeqWire(1)`, once, before `SeqOpen`. So the probe had to ask.
+
+The virtual-time MIDI layer learned to log when ports open and close, which the MIDI capture
+does not show. With that, `SeqSleep` and `SeqWake` were plain to see: sleep closes the ports and
+stops the timer, wake opens them again and sends Local Control Off. Their result codes took a
+few more scripts, because the first one had called `SeqOpen` twice and every sleep after that
+returned 2. That led to something older: `SeqOpen` and `SeqClose` count, in 1.01 too, and the
+count even goes below zero. Release 1.1.0 does not do that; no 1.01 suite had opened twice.
+
+Leaving `SeqWire` out made `SeqOpen` hang. A screenshot of the virtual display showed why: a
+message that no driver is installed for the device, and behind it the device dialog with both
+lists empty. Without `SeqWire` the engine knows no MIDI devices at all. Cancelling the dialog
+makes `SeqOpen` return 3.
+
+One oddity stayed in: a playback started while the engine sleeps begins at the wake, and then
+runs at 100 bpm until the next tempo change. A song with tempo changes showed where it ends.
+The new suite `openclose` holds all of this for the three versions.
+
+A second find is noted for later: the engine sends a song's sysex bank events only from
+`SeqIdle`, not from its timer. A script that plays with `sleep` and never calls `SeqIdle` gets
+no sysex, on 1.01 and on 2.10. libseq sends them from the timer.
+
 ## In this folder
 
 | File | Content |

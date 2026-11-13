@@ -1,5 +1,5 @@
 /* A C program on libseq's C interface (include/libseq/ttsseq.h): it compiles as C, links, and
- * makes a few calls whose results the oracle suites establish for TTSSEQ.DLL 1.01. */
+ * makes a few calls whose results the oracle suites establish for TTSSEQ.DLL 2.10. */
 #include "libseq/ttsseq.h"
 
 #include <stdio.h>
@@ -50,8 +50,10 @@ int main(void) {
     platform.milliseconds = milliseconds;
     LibSeqSetPlatform(&platform);
 
-    check(SeqGetVersion() == 0x0101, "SeqGetVersion");
-    check(SeqOpen(0, 0) == 1, "SeqOpen");
+    check(SeqGetVersion() == 0x020a, "SeqGetVersion");
+    check(SeqOpen(0, 0) == 3, "SeqOpen before SeqWire");
+    SeqWire(1);
+    check(SeqOpen(0, 0) == 0, "SeqOpen");
     check(sent == 16, "Local Control Off on 16 channels");
     seq = SeqCreateSeq(0, 0);
     check(seq == 1, "SeqCreateSeq");

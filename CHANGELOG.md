@@ -3,6 +3,23 @@
 Each release implements one version of Twelve Tone's sequencer engine (`README.md`). Fixes after
 a release raise the patch level.
 
+## On the way to 2.10.0: TTSSEQ.DLL 2.10
+
+The engine of Cakewalk Apprentice for Windows 1.04. Each entry is one step from 1.01 to 2.10.
+
+- **Lifecycle.** `SeqGetVersion` is 0x020A. `SeqWire` comes before `SeqOpen`: without it the
+  engine sees no MIDI devices, and `SeqOpen` returns 3. `SeqOpen` returns 0 when it works. New:
+  `SeqSleep` closes the ports and stops the timer without giving up anything else, and `SeqWake`
+  opens them again. A playback started while asleep begins at the wake, and its clock runs at 100
+  bpm until the next tempo change.
+
+Found on the way, true of 1.01 too and not in release 1.1.0:
+
+- `SeqOpen` and `SeqClose` count. The ports open when the count becomes 1 and close when it
+  becomes 0; the count also goes below 0. Every `SeqClose` destroys the sequences.
+- While the ports are closed nothing goes out. `SeqTxMidiMsg` still returns 1 and remembers its
+  notes as on, also across `SeqClose`.
+
 ## 1.1.0 (2026-11-10): TTSSEQ.DLL 1.01
 
 The engine of the Cakewalk Professional for Windows demo (1992), rebuilt from observation alone.

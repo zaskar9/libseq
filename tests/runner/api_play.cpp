@@ -1,4 +1,4 @@
-// The TTSSEQ 1.01 transport for the script runner: the playing sequence, start, stop, SeqIdle and
+// The TTSSEQ 2.10 transport for the script runner: the playing sequence, start, stop, SeqIdle and
 // Now.
 #include "api.hpp"
 
@@ -18,7 +18,7 @@ SEQSTARTPROC startCallback(const FarPtr fn) {
     return fn.null() ? nullptr : startProc;
 }
 
-void definePlay101(Probe& p) {
+void definePlay(Probe& p) {
     p.define("SEQSETPLAYINGSEQ", [](Args& a, Probe&) -> std::uint32_t { return SeqSetPlayingSeq(a.word()); });
     p.define("SEQSETSTANDBYSEQ", [](Args& a, Probe&) -> std::uint32_t { return SeqSetStandbySeq(a.word()); });
     p.define("SEQPLAYSTART", [](Args& a, Probe&) -> std::uint32_t {

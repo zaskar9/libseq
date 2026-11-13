@@ -197,8 +197,12 @@ private:
     bool codeStop_ = false;   // MIDI Time Code jumped: the playback ends after this run
     bool ranSince_ = false;   // a timer run came since the start
     bool everOpened_ = false; // SeqOpen came once (the clock carries over a close and open)
-    bool atEnd_ = false;      // ended at the sequence's end (SeqIdle has not seen it yet)
-    bool stopSent_ = false;   // ended in the start call, its stop output sent already
+    /// A playback that was started while the engine slept: from SeqWake on its clock runs at 100
+    /// bpm, up to this clock tick, the next tempo change (suite openclose).
+    bool held_ = false;
+    std::int64_t heldTo_ = 0;
+    bool atEnd_ = false;    // ended at the sequence's end (SeqIdle has not seen it yet)
+    bool stopSent_ = false; // ended in the start call, its stop output sent already
 };
 
 } // namespace libseq

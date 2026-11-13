@@ -1,0 +1,57 @@
+# The oracle suites libseq passes: tests/data/ttsseq/210/SUITE.txt run through ttsrun gives
+# SUITE.out and SUITE.midi. One name per line; "#" starts a comment.
+
+clone
+copypaste
+eventedit
+events
+lifecycle
+merge
+meter
+midiout
+openclose
+play_E2_CHAS
+play_E2_KORD
+play_E2_METR
+play_E2_OVLP
+play_E2_STOP
+play_E3_DENS
+play_E3_MA
+play_E3_MB
+play_E3_MC
+play_E3_MD
+play_E3_ME
+play_E3_MF
+play_E3_SHTL
+play_ENG_CHAS
+play_ENG_LOOP
+play_ENG_METR
+play_ENG_MULT
+play_ENG_ORDR
+play_ENG_SYSX
+play_ENG_TMPO
+play_FURELISE
+punch
+ranges
+record
+sorting
+steprec
+streamparams
+streams
+sysex
+sysexin
+sysextext
+tempo
+timecode
+transport
+
+# Not yet: these show what 2.10 changed against 1.01 and move up as libseq follows
+# (Phase 2; 1.1.0 passes all of them on 1.01).
+# the clock source per sequence: mtc mtcbreaks sync
+# parameters and files: eventkinds fileio files markers midifiles param3 seqparams
+# MIDI sync output: misc play_E2_SPP play_ENG_SYNC ports ports2
+# the locate delay: play_E3_SPPD
+# events before tick 0: play_ENG_PARM
+# thru to the Local On port: thru
+# options: options1 options2
+# the time of a SeqClose and SeqOpen: countins

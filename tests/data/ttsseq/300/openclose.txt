@@ -1,0 +1,116 @@
+mode oracle
+#! secs 60
+# SeqOpen and SeqClose count: the port opens when the count becomes 1 and closes when it becomes 0. 2.10 and 3.00: SeqWire
+# again, and SeqSleep and SeqWake, which close and reopen the port.
+load TTSSEQ30.DLL
+call.w SEQWIRE 0001
+call.w SEQOPEN 0000 0000
+echo == open twice: the second SeqClose closes the port
+call.w SEQCREATESEQ 0000 0000
+sleep 10
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003c 0040
+call.w SEQCREATESEQ 0000 0000
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003d 0040
+call.w SEQCREATESEQ 0000 0000
+echo == a third SeqClose counts too: the next SeqOpen opens nothing, the one after does
+call.w SEQCLOSE
+sleep 10
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 003e 0040
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0046 0040
+echo == SeqWire while open
+call.w SEQWIRE 0000
+call.w SEQTXMIDIMSG 0000 0000 0090 003f 0040
+call.w SEQWIRE 0001
+call.w SEQWIRE 0002
+call.w SEQWIRE ffff
+call.w SEQTXMIDIMSG 0000 0000 0090 0040 0040
+echo == sleep: the port closes; wake: it opens again
+sleep 10
+call.w SEQSLEEP
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0041 0040
+call.w SEQSLEEP
+sleep 10
+call.w SEQWAKE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0042 0040
+call.w SEQWAKE
+echo == not while playing
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\E2_OVLP.WRK" 0000
+let 1
+call.w SEQSETPLAYINGSEQ %1
+call.w SEQSTART null 0000 0000
+sleep 700
+call.w SEQSLEEP
+sleep 300
+call.d SEQGETNOW %1
+call.w SEQSTOP
+echo == a start while asleep waits for the wake
+call.d SEQSETNOW %1 d:00000000
+call.w SEQSLEEP
+sleep 10
+call.w SEQSTART null 0000 0000
+call.w SEQEXPIRED
+sleep 300
+call.d SEQGETNOW %1
+call.w SEQWAKE
+sleep 300
+call.d SEQGETNOW %1
+call.w SEQSTOP
+echo == after such a wake the clock runs at 100 bpm until the next tempo change (at tick 480)
+call.w SEQLOADCAKEWALKFILE "C:\PROBE\ORC\ENG_TMPO.WRK" 0000
+let 2
+call.w SEQSETPLAYINGSEQ %2
+call.d SEQSETNOW %2 d:00000168
+call.w SEQSLEEP
+call.w SEQSTART null 0000 0000
+call.w SEQWAKE
+sleep 300
+call.d SEQGETNOW %2
+sleep 300
+call.d SEQGETNOW %2
+sleep 400
+call.d SEQGETNOW %2
+call.w SEQSTOP
+call.w SEQSETPLAYINGSEQ %1
+echo == not when opened twice
+call.w SEQOPEN 0000 0000
+call.w SEQSLEEP
+call.w SEQWAKE
+call.w SEQSTART null 0000 0000
+sleep 100
+call.w SEQSLEEP
+call.w SEQSTOP
+call.w SEQCLOSE
+echo == SeqClose while asleep, then a wake
+call.w SEQSLEEP
+sleep 10
+call.w SEQCLOSE
+sleep 10
+call.w SEQSLEEP
+call.w SEQWAKE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0043 0040
+call.w SEQWAKE
+call.w SEQSLEEP
+sleep 10
+call.w SEQOPEN 0000 0000
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0044 0040
+call.w SEQSLEEP
+call.w SEQWAKE
+sleep 10
+call.w SEQCLOSE
+sleep 10
+call.w SEQTXMIDIMSG 0000 0000 0090 0045 0040
+call.w SEQCLOSE

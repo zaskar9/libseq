@@ -60,4 +60,5 @@ a 32-bit value; `@N` a pointer to the probe's buffer N, whose contents follow in
     `ports` suite covers its effect, the port assignment in `TTSSEQ.INI`.
 
   So `coverage.txt` reports 157 of 158 as covered.
-- Of the functions new in 2.10 and 3.00 only `SeqReceiveSysxBankEx` has a suite so far.
+- Of the functions new in 2.10 and 3.00, `SeqWire`, `SeqSleep` and `SeqWake` (`openclose`) and
+  `SeqReceiveSysxBankEx` have a suite so far.

@@ -1,4 +1,4 @@
-// The TTSSEQ 1.01 interface for the script runner: each exported function the oracle scripts call,
+// The TTSSEQ 2.10 interface for the script runner: each exported function the oracle scripts call,
 // with the arguments as the probe pushes them (see docs/reverse-engineering/signatures.md), handed
 // to libseq's C interface. Here: lifecycle, devices, sequences and streams.
 #include "api.hpp"
@@ -12,6 +12,9 @@ Glue& glue() {
 
 namespace {
 
+/// What AX holds where 2.10 returns nothing (suite openclose): the same word in every run.
+constexpr std::uint16_t kLeftover = 0x0367;
+
 /// SeqEnumStreams and SeqEnumSysxBanks: (seq, handle, value) as four words.
 std::uint16_t enumProc(const HSEQ seq, const std::uint16_t handle, const std::uint32_t value) {
     const Glue& g = glue();
@@ -24,17 +27,46 @@ SEQENUMPROC enumCallback(const FarPtr fn) {
     return fn.null() ? nullptr : enumProc;
 }
 
-void defineApi101(Probe& p) {
+void defineApi(Probe& p) {
     glue() = Glue{};
     glue().probe = &p;
 
     // ---- lifecycle
     p.define("SEQGETVERSION", [](Args&, Probe&) -> std::uint32_t { return SeqGetVersion(); });
+    p.define("SEQWIRE", [](Args& a, Probe&) -> std::uint32_t {
+        const std::uint16_t flag = a.word();
+        SeqWire(flag);
+        // returns nothing; read as a word (the suites), AX holds 0 after an odd flag
+        return (flag & 1U) != 0 ? 0 : kLeftover;
+    });
     p.define("SEQOPEN", [](Args& a, Probe&) -> std::uint32_t {
         const std::uint16_t r1 = a.word();
-        return SeqOpen(r1, a.word());
+        const std::uint16_t r = SeqOpen(r1, a.word());
+        if (r == 0) {
+            ++glue().openCount;
+        }
+        return r;
     });
-    p.define("SEQCLOSE", [](Args&, Probe&) -> std::uint32_t { return SeqClose(); });
+    p.define("SEQCLOSE", [](Args&, Probe&) -> std::uint32_t {
+        Glue& g = glue();
+        const std::uint16_t r = SeqClose();
+        // closing the last time while asleep, the DLL closes nothing and leaves AX as it was
+        return --g.openCount == 0 && g.asleep ? kLeftover : r;
+    });
+    p.define("SEQSLEEP", [](Args&, Probe&) -> std::uint32_t {
+        const std::uint16_t r = SeqSleep();
+        if (r == 0) {
+            glue().asleep = true;
+        }
+        return r;
+    });
+    p.define("SEQWAKE", [](Args&, Probe&) -> std::uint32_t {
+        const std::uint16_t r = SeqWake();
+        if (r == 0) {
+            glue().asleep = false;
+        }
+        return r;
+    });
 
     // ---- devices and memory
     p.define("SEQGETPORTNAME", [](Args& a, Probe& pr) -> std::uint32_t {
@@ -113,12 +145,12 @@ void defineApi101(Probe& p) {
         return SeqEnumStreams(seq, enumCallback(cb), a.dword());
     });
 
-    defineEvents101(p);
-    defineMarks101(p);
-    defineTime101(p);
-    defineFiles101(p);
-    definePlay101(p);
-    defineRecord101(p);
+    defineEvents(p);
+    defineMarks(p);
+    defineTime(p);
+    defineFiles(p);
+    definePlay(p);
+    defineRecord(p);
 }
 
 } // namespace ttsrun

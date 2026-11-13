@@ -1,4 +1,4 @@
-// The TTSSEQ 1.01 interface for the script runner: the time base, the tempo and meter maps,
+// The TTSSEQ 2.10 interface for the script runner: the time base, the tempo and meter maps,
 // positions and timecode (docs/reverse-engineering/signatures.md).
 #include "api.hpp"
 
@@ -25,7 +25,7 @@ std::int16_t key(Args& a) {
 
 } // namespace
 
-void defineTime101(Probe& p) {
+void defineTime(Probe& p) {
     // ---- time base
     p.define("SEQGETMAXPPQ", [](Args&, Probe&) -> std::uint32_t { return SeqGetMaxPPQ(); });
     p.define("SEQGETMINTEMPO", [](Args&, Probe&) -> std::uint32_t { return SeqGetMinTempo(); });
@@ -53,7 +53,7 @@ void defineTime101(Probe& p) {
         const HSEQ seq = a.word();
         return SeqTempoIxByTick(seq, a.dword());
     });
-    // the tempo is a word; 1.01 leaves the high word of the tick in DX
+    // the tempo is a word; the DLL leaves the high word of the tick in DX
     p.define("SEQGETTEMPO", [](Args& a, Probe&) -> std::uint32_t {
         const HSEQ seq = a.word();
         const std::uint32_t t = a.dword();

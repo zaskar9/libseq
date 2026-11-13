@@ -46,6 +46,7 @@ void SharedEngine::setPlatform(const LIBSEQPLATFORM& platform) const {
 }
 
 void SharedEngine::open() const {
+    engine_->wire(1);
     engine_->open();
 }
 

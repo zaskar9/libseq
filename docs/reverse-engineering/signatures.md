@@ -11,8 +11,11 @@ established.
 | Call | Result | Notes |
 |---|---|---|
 | `SeqGetVersion()` | w | 0x0101, 0x020A, 0x0300 |
-| `SeqOpen(0, 0)` | w | |
-| `SeqClose()` | w | |
+| `SeqOpen(0, 0)` | w | 1 (1.01), 0 (2.10, 3.00); 3 without `SeqWire` (2.10) |
+| `SeqClose()` | w | 1; 2.10 returns nothing when the engine is asleep at the last close |
+| `SeqWire(w flag)` | w | 2.10, 3.00. 2.10 returns nothing (AX is 0 after an odd flag); 3.00 returns the flag's bit 0 |
+| `SeqSleep()` | w | 2.10, 3.00. 0; 2 unless `SeqOpen`'s count is 1, 1 when asleep, 3 while playing |
+| `SeqWake()` | w | 2.10, 3.00. 0; 2 when not asleep |
 | `SeqCreateSeq(0, 0)` | w | the lowest free handle |
 | `SeqDestroySeq(seq)` | w | an invalid handle crashes |
 | `SeqSetSeqParam(seq, param, d value)` | w | 1, or 0 for a parameter the version does not have |

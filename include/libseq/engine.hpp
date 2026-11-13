@@ -322,7 +322,7 @@ inline constexpr std::uint16_t kWaiting = 5;
 /// The engine: the sequences it holds.
 class Engine {
 public:
-    static constexpr std::uint16_t kVersion = 0x0101;
+    static constexpr std::uint16_t kVersion = 0x020a;
 
     Engine();
     ~Engine();
@@ -351,17 +351,49 @@ public:
     /// The system the engine sends its MIDI to and takes its time from; null for none.
     void setPlatform(Platform* platform) noexcept { platform_ = platform; }
     [[nodiscard]] Platform* platform() const noexcept { return platform_; }
-    /// SeqOpen: reads the platform's options (TTSSEQ.INI) and sends Local Control Off on all 16
-    /// channels of every output port (`SendLocalOff`).
-    void open();
+    /// SeqWire: lets the engine see the system's MIDI devices; without it SeqOpen finds none. The
+    /// flag has no effect found.
+    void wire(std::uint16_t flag) noexcept;
+    /// What SeqOpen returns.
+    enum class OpenResult : std::uint8_t {
+        Ok = 0,
+        /// The engine was not wired: TTSSEQ.DLL reports that no driver is installed for the device,
+        /// shows its device dialog with empty lists, and returns this when the dialog is cancelled.
+        NoDevices = 3,
+    };
+    /// SeqOpen: counts the call. When the count becomes 1 the ports open: the engine reads the
+    /// platform's options (TTSSEQ.INI) and sends Local Control Off on all 16 channels of every
+    /// output port (`SendLocalOff`).
+    OpenResult open();
+    /// What SeqSleep and SeqWake return.
+    enum class SleepResult : std::uint8_t {
+        Ok = 0,
+        Asleep = 1,
+        /// SeqSleep: SeqOpen's count is not 1. SeqWake: the engine is not asleep.
+        NotNow = 2,
+        Playing = 3,
+    };
+    /// SeqSleep: closes the ports and stops the timer, as SeqClose does, and keeps everything
+    /// else; nothing goes out while the engine is asleep.
+    SleepResult sleep();
+    /// SeqWake: opens the ports again, as SeqOpen does, Local Control Off included. A playback
+    /// started while asleep begins now.
+    SleepResult wake();
+    /// Whether the ports are open: between SeqOpen and SeqClose, and not asleep.
+    [[nodiscard]] bool portsOpen() const noexcept { return portsOpen_; }
+    /// Whether SeqSleep closed the ports.
+    [[nodiscard]] bool asleep() const noexcept { return asleep_; }
     /// SeqGetPortName: "n: device" for port n - 1.
     [[nodiscard]] std::string portName(int port) const;
     /// The port the Song Position goes to (`SyncOutputPort`; port 1 when that is no port).
     [[nodiscard]] int syncPort() const noexcept;
-    /// SeqClose: destroys every sequence and stops the timer. 1.01 then resets its output ports
-    /// (midiOutReset); it sends nothing itself (the host's closed() may reset its ports).
-    void close();
-    /// Sends one message to a port, as the engine does all its output.
+    /// SeqClose: destroys every sequence and counts SeqOpen's count down, also below 0. When the
+    /// count becomes 0 the timer stops and the ports close: the engine resets its output ports
+    /// (midiOutReset) and sends nothing itself (the host's closed() may reset its ports). Returns
+    /// false when the engine was asleep at that moment: the ports are closed already.
+    bool close();
+    /// Sends one message to a port, as the engine does all its output; nothing while the ports are
+    /// closed.
     void send(int port, std::span<const std::uint8_t> message);
     /// SeqSetStreamParam: sets the parameter; a patch, volume or pan of 0 or more also goes out at
     /// once, on the stream's channel and port (sendStreamParam).
@@ -535,6 +567,12 @@ private:
     SeqHandle standby_ = 0;
     unsigned timerPeriod_ = 10;
     Options options_; // TTSSEQ.INI as SeqOpen read it
+    bool wired_ = false;
+    int openCount_ = 0; // SeqOpen calls less SeqClose calls
+    bool portsOpen_ = false;
+    bool asleep_ = false;
+    void openPorts();
+    void closePorts();
     int fileError_ = 0;
     /// The event the MIDI file writer and reader work in. 1.01 keeps one for both and never clears
     /// it, so what a message does not fill (the second data byte and the duration of a program

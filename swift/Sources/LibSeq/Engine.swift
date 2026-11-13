@@ -19,8 +19,8 @@ public final class SeqEngine {
     let cxx = libseq.SharedEngine()
     private var box: PlatformBox?
 
-    /// TTSSEQ 1.01's version word, 0x0101.
-    public static let version: UInt16 = 0x0101
+    /// The version word of the engine libseq implements: TTSSEQ 2.10's, 0x020A.
+    public static let version: UInt16 = 0x020A
 
     public init(platform: SeqPlatform? = nil) {
         self.platform = platform

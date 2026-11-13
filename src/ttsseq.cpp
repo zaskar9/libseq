@@ -155,13 +155,25 @@ uint16_t SeqGetVersion(void) {
 }
 
 uint16_t SeqOpen(uint16_t /*reserved1*/, uint16_t /*reserved2*/) {
-    engine().open();
-    return 1;
+    return static_cast<std::uint16_t>(engine().open());
 }
 
 uint16_t SeqClose(void) {
     engine().close();
     return 1;
+}
+
+uint16_t SeqSleep(void) {
+    return static_cast<std::uint16_t>(engine().sleep());
+}
+
+uint16_t SeqWake(void) {
+    return static_cast<std::uint16_t>(engine().wake());
+}
+
+uint16_t SeqWire(const uint16_t flag) {
+    engine().wire(flag);
+    return 0;
 }
 
 uint16_t SeqIdle(void) {

@@ -245,6 +245,9 @@ std::int64_t Player::tickSize(const std::int64_t tick) const {
     if (s == nullptr) {
         return TempoMap::usPerQuarter(10000) * 64;
     }
+    if (held_ && playing_ && tick < heldTo_) {
+        return TempoMap::usPerQuarter(10000) * 64;
+    }
     const Tick at = playing_ ? static_cast<Tick>(std::max<std::int64_t>(tick + base_, 0)) : s->now;
     return TempoMap::usPerQuarter(s->tempoMap.tempoAt(at)) * 64;
 }
@@ -645,6 +648,7 @@ bool Player::start(Sequence& sequence, const bool recording, const Drive drive) 
         clock_.from(lastRunMs_);
         pOffset_ = 0; // (the next run compares its MIDI clock with the last run's, before the start)
     }
+    held_ = false;
     playing_ = true; // the timer plays the events from the start on
     if (!recording && !loop_ && next_ == items_.size()) {
         // nothing at or after the start (an empty sequence, a start past the end): the playback
@@ -675,6 +679,7 @@ void Player::go(const Tick from) {
     clock_.from(lastRunMs_);
     pOffset_ = 0;
     ended_ = false;
+    held_ = false;
     playing_ = true;
 }
 
@@ -883,6 +888,15 @@ void Player::opened(const std::uint32_t now) {
         lastIndex_ = 0;
         pStarted_ = false;
         pOffset_ = 0;
+    }
+    // the ports open during a playback (it was started while the engine slept): the clock's rate
+    // is the one of no sequence, until the tempo map changes it
+    held_ = playing_ && seq_ != nullptr;
+    if (held_) {
+        const TempoMap& m = seq_->tempoMap;
+        const std::size_t i = m.indexAt(static_cast<Tick>(std::max<std::int64_t>(clock_.value() + base_, 0))) + 1;
+        heldTo_ = i < m.size() ? static_cast<std::int64_t>(m.entries()[i].tick) - base_
+                               : std::numeric_limits<std::int64_t>::max();
     }
     tickBefore(now);
     lastRunMs_ = now;

@@ -62,6 +62,10 @@
   SEQIDLE (1x), e.g. after SEQIDLE() -> 0001
     ttsseq/210: SEQGETNOW(0001) -> 00000c6c
     ttsseq/300: SEQGETNOW(0001) -> 00000c8f
+== openclose: 1 differences
+  SEQSLEEP (1x), e.g. after SEQSLEEP() -> 0000
+    ttsseq/210: SEQCLOSE() -> 0367
+    ttsseq/300: SEQCLOSE() -> 0001
 == options1: 6 differences
   SEQRECEIVESYSXBANK (1x), e.g. after SEQRECEIVESYSXBANK(%2,cb4,0000,0000,0000) -> 0001
     ttsseq/210: SEQGETSYSXBANKLEN(%2) -> 000000aa | SEQSYSXBIN2ASC(%2,@1,0020) -> 00aa

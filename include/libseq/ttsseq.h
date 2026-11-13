@@ -1,6 +1,6 @@
-/* libseq: the TTSSEQ.DLL 1.01 interface in C.
+/* libseq: the TTSSEQ.DLL 2.10 interface in C.
  *
- * One function per export of TTSSEQ.DLL 1.01, with the DLL's names, argument order and meanings
+ * One function per export of TTSSEQ.DLL 2.10, with the DLL's names, argument order and meanings
  * (docs/reverse-engineering/signatures.md and ttsseq-api.md). The DLL's words are uint16_t, its
  * double words uint32_t (int32_t or int16_t where the value is signed), its far pointers plain
  * pointers. The DLL exports the names in capitals (Pascal calling convention); this header uses the
@@ -76,16 +76,20 @@ typedef uint16_t (*SEQSYSXRECEIVEPROC)(uint32_t received, uint32_t freeMemory);
  *  either of the first two cancels the save), 0xFF with the file before the end marker. */
 typedef uint16_t (*SEQFILEPROC)(uint16_t code, uint16_t word, uint32_t value);
 
-/* ---- the exports of TTSSEQ.DLL 1.01, by ordinal */
+/* ---- the exports of TTSSEQ.DLL 2.10, by ordinal. Until release 2.10.0 the header is on its way
+ * from 1.01: CHANGELOG.md lists what has changed so far. */
 
 /* 1 WEP: the Windows exit procedure; not here (DESIGN.md). */
 
-/** 2: 0x0101. */
+/** 2: 0x020A. */
 uint16_t SeqGetVersion(void);
-/** 3: reads the options (TTSSEQ.INI) and sends Local Control Off on every channel of every port
- *  (SendLocalOff). The programs pass 0, 0. Returns 1. */
+/** 3: counts the call; when the count becomes 1 the ports open: the engine reads the options
+ *  (TTSSEQ.INI) and sends Local Control Off on every channel of every port (SendLocalOff). The
+ *  programs pass 0, 0. Returns 0. Without SeqWire before it the engine sees no devices: TTSSEQ.DLL
+ *  says so, shows its device dialog and returns 3 when that is cancelled; libseq returns 3. */
 uint16_t SeqOpen(uint16_t reserved1, uint16_t reserved2);
-/** 4: destroys every sequence and stops the timer. Returns 1. */
+/** 4: destroys every sequence and counts SeqOpen's count down, also below 0; when the count
+ *  becomes 0 the timer stops and the ports close. Returns 1. */
 uint16_t SeqClose(void);
 /** 5: 1 once when the playback has ended by itself; its stop output goes out then. */
 uint16_t SeqIdle(void);
@@ -93,7 +97,7 @@ uint16_t SeqIdle(void);
 HSEQ SeqCreateSeq(uint16_t reserved1, uint16_t reserved2);
 /** 7: 1, also for a handle that holds no sequence. */
 uint16_t SeqDestroySeq(HSEQ seq);
-/** 8: 1, or 0 for a parameter 1.01 does not have. */
+/** 8: 1, or 0 for a parameter the engine does not have. */
 uint16_t SeqSetSeqParam(HSEQ seq, uint16_t param, int32_t value);
 /** 9. */
 int32_t SeqGetSeqParam(HSEQ seq, uint16_t param);
@@ -121,7 +125,7 @@ uint32_t SeqEvtAtTimeGE(HSTREAM stream, uint32_t tick);
 uint32_t SeqEvtAtTimeGT(HSTREAM stream, uint32_t tick);
 /** 20: 1 when the stream has events in the measure (from 1). */
 uint32_t SeqMeasHasEvts(HSTREAM stream, uint16_t measure);
-/* 21 ___EXPORTEDSTUB: not here (DESIGN.md). */
+/* 21 DLGPROC: not here (DESIGN.md). */
 /** 22: the cursor. */
 uint32_t SeqTell(HSTREAM stream);
 /** 23: 1 when the cursor is past the last event. */
@@ -371,7 +375,7 @@ int16_t SeqReceiveSysxBank(HSYSXBANK bank, SEQSYSXRECEIVEPROC proc, uint16_t res
 /** 141: a new sequence from a .WRK file; 0 when it fails (SeqGetFileError says why). proc may be
  *  NULL; it gets value as its last argument. */
 HSEQ SeqLoadCakewalkFile(const char* file, uint16_t reserved, SEQFILEPROC proc, uint32_t value);
-/** 142: the sequence as 1.01 writes it. */
+/** 142: the sequence as the engine writes it. */
 uint16_t SeqSaveCakewalkFile(HSEQ seq, const char* file, uint32_t reserved, SEQFILEPROC proc, uint32_t value);
 /** 143: a new sequence from a Standard MIDI File; 0 when it fails. */
 HSEQ SeqLoadMidiFile(const char* file, uint16_t reserved);
@@ -405,11 +409,23 @@ uint16_t SeqDelMarker(HSEQ seq, uint32_t index);
 uint16_t SeqSortMarkers(HSEQ seq, uint32_t reserved);
 /** 160: copies count bytes (overlapping too); returns the count. */
 uint32_t SeqHugeMemCpy(void* dst, const void* src, uint32_t count);
-/* 161 TIMERTRAP, 162 RXTRAP, 163 DLGPROC: Windows callbacks; not here (DESIGN.md). */
+/* 161 TIMERTRAP, 162 RXTRAP: Windows callbacks; not here (DESIGN.md). */
+/** 166: closes the ports and stops the timer, as SeqClose does at its last call, and keeps the
+ *  rest; nothing goes out until SeqWake. 0, or 2 unless SeqOpen's count is 1, 1 when asleep
+ *  already, 3 while playing. */
+uint16_t SeqSleep(void);
+/** 167: opens the ports again, as SeqOpen does, with its Local Control Off; a playback started
+ *  while asleep begins. 0, or 2 when the engine is not asleep. */
+uint16_t SeqWake(void);
+/** 168: lets the engine see the system's MIDI devices. A program calls it once, before SeqOpen
+ *  (Cakewalk Apprentice passes 1). The flag has no effect found. TTSSEQ.DLL 2.10 returns nothing
+ *  (the suites read 0 for an odd flag); libseq returns 0. */
+uint16_t SeqWire(uint16_t flag);
+/* 169 ___EXPORTEDSTUB: not here (DESIGN.md). */
 
 /* ---- libseq: what Windows did for TTSSEQ.DLL */
 
-/** TTSSEQ.INI's [Options], with 1.01's defaults (ttsseq-api.md). */
+/** TTSSEQ.INI's [Options], with the engine's defaults (ttsseq-api.md). */
 typedef struct LIBSEQOPTIONS {
     int syncOutputPort;              /* SyncOutputPort: the port (from 1) the Song Position goes to */
     int sendLocalOff;                /* SendLocalOff: 0 for no Local Control Off at SeqOpen */
@@ -423,7 +439,7 @@ typedef struct LIBSEQOPTIONS {
     unsigned flywheelAmount;         /* FlywheelAmount, tenths of a second */
 } LIBSEQOPTIONS;
 
-/** The MIDI ports and the clock (1.01 has them from Windows). Every member may be NULL but send and
+/** The MIDI ports and the clock (the DLL has them from Windows). Every member may be NULL but send and
  *  milliseconds; context is passed back to each. While the engine is open the host calls
  *  LibSeqTimer every timer period, and LibSeqReceive for every message that comes in. */
 typedef struct LIBSEQPLATFORM {

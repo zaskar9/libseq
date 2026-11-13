@@ -7,7 +7,7 @@
 //
 // DIR holds the test songs (tests/data/songs): a path C:\PROBE\ORC\NAME.WRK in a script is the
 // song NAME.WRK in any folder below DIR. A path C:\PROBE\ORC\OUT\NAME is the file NAME in OUT,
-// where the suite saves; FILES holds what the DLL saved there (tests/data/ttsseq/101/SUITE/), and
+// where the suite saves; FILES holds what the DLL saved there (tests/data/ttsseq/210/SUITE/), and
 // each of its files must come out the same.
 //
 // The runner keeps time as the probe does in virtual time (tools/ttsprobe/wine/mmsystem16-vtime.
@@ -172,7 +172,7 @@ public:
                            const std::uint32_t l) { self(c).post(m, w, l); };
         return p;
     }
-    /// TTSSEQ.INI's [Options]: the engine passes 1.01's defaults, the INI changes those it has.
+    /// TTSSEQ.INI's [Options]: the engine passes its defaults, the INI changes those it has.
     void options(LIBSEQOPTIONS& o) const {
         for (const auto& [key, value] : opts) {
             const auto u = static_cast<unsigned>(value);
@@ -295,7 +295,7 @@ struct Setup {
 };
 
 /// The suite's TTSSEQ.INI ("#! ini FILE", in tests/data/ttsseq/input): the output devices in
-/// port order and the [Options] 1.01 reads.
+/// port order and the [Options] the engine reads.
 void readIni(const fs::path& path, Capture& capture) {
     std::ifstream f(path);
     std::string section;
@@ -354,7 +354,7 @@ Pass runPass(const Setup& setup) {
     };
     const LIBSEQPLATFORM platform = capture.platform();
     LibSeqSetPlatform(&platform);
-    ttsrun::defineApi101(probe);
+    ttsrun::defineApi(probe);
     if (!setup.outDir.empty()) {
         fs::remove_all(setup.outDir);
         fs::create_directories(setup.outDir);

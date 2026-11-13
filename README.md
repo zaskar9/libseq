@@ -52,10 +52,11 @@ this repository, so each statement about the engine can be traced to the observa
 
     cmake -S . -B build && cmake --build build && ctest --test-dir build
 
-The tests are the oracle suites of `tests/data/ttsseq/101`: `ttsrun` runs each suite's script against
-the library's C interface and compares what it prints, line by line, with what `TTSSEQ.DLL` 1.01 printed for the
-same script, and the MIDI it sends, message by message at the same millisecond. `tests/runner/suites101.txt`
-lists the suites; release 1.1.0 passes all 63 of them.
+The tests are the oracle suites of `tests/data/ttsseq/210`: `ttsrun` runs each suite's script against
+the library's C interface and compares what it prints, line by line, with what `TTSSEQ.DLL` 2.10 printed for the
+same script, and the MIDI it sends, message by message at the same millisecond. `tests/runner/suites.txt`
+lists the suites that pass, and those that wait for a later step of the work on 2.10. Release 1.1.0
+passes all 63 suites of 1.01 (`tests/data/ttsseq/101`).
 `build/tests/runner/ttsrun --songs tests/data/songs SCRIPT [EXPECTED]` runs one script by hand.
 
 The Swift package builds with `swift build` (Swift 5.9 or later) and tests with `swift test` (Swift 6
@@ -68,8 +69,9 @@ interoperability.
 
 Release 1.1.0 implements `TTSSEQ.DLL` 1.01 (`CHANGELOG.md`). It reproduces the DLL in all tested
 cases: every 1.01 oracle suite passes, the MIDI timing included, to the millisecond. All 163 of
-the DLL's exports are mapped (`DESIGN.md`). Of the 158 that make up its interface, 157 are functions
-of `ttsseq.h`; the last, the device dialog `SeqConfigMidi`, belongs to the application. The other
-five are Windows plumbing. Next is release 2.10.0, built on top of
-it, one commit per change from 1.01 to 2.10. An earlier exploration (versions 0.1.0 to 0.8.1) is
-kept on the branch `archive/0.x`.
+the DLL's exports are mapped (`DESIGN.md`).
+
+The main branch is on its way to release 2.10.0, one commit per change from 1.01 to 2.10, each
+with the oracle suites that show it. `CHANGELOG.md` lists what has changed so far, and
+`tests/runner/suites.txt` which 2.10 suites pass. An earlier exploration (versions 0.1.0 to 0.8.1)
+is kept on the branch `archive/0.x`.

@@ -638,7 +638,7 @@ bool Engine::destroyStream(const StreamHandle handle) {
 }
 
 void Engine::send(const int port, const std::span<const std::uint8_t> message) {
-    if (platform_ != nullptr && !message.empty()) {
+    if (platform_ != nullptr && portsOpen_ && !message.empty()) {
         platform_->send(port, message);
     }
 }
@@ -799,8 +799,24 @@ bool Engine::expired() const noexcept {
     return !player_->playing();
 }
 
-void Engine::open() {
-    thru_ = {2, 0, -1, 0, 0, -1};
+void Engine::wire(const std::uint16_t /*flag*/) noexcept {
+    wired_ = true;
+}
+
+Engine::OpenResult Engine::open() {
+    if (!wired_) {
+        return OpenResult::NoDevices;
+    }
+    // the count also comes back from below 0 without opening anything (suite openclose)
+    if (++openCount_ == 1 && !portsOpen_) {
+        thru_ = {2, 0, -1, 0, 0, -1};
+        openPorts();
+    }
+    return OpenResult::Ok;
+}
+
+void Engine::openPorts() {
+    portsOpen_ = true;
     options_ = platform_ != nullptr ? platform_->options() : Options{};
     timerPeriod_ = std::max(options_.timerPeriod, 1U);
     chaseDelay_ = options_.chaseDelay;
@@ -823,17 +839,52 @@ void Engine::open() {
     }
 }
 
-void Engine::close() {
-    while (!sequences_.empty()) {
-        destroySequence(sequences_.begin()->first);
-    }
-    notes_.clear();
-    // 1.01 sends nothing itself here: it resets its output ports (midiOutReset), and what goes out
-    // then is the driver's (Wine's sends All Sound Off and sustain off on every channel)
+void Engine::closePorts() {
+    // the engine sends nothing itself here: it resets its output ports (midiOutReset), and what
+    // goes out then is the driver's (Wine's sends All Sound Off and sustain off on every channel)
+    portsOpen_ = false;
     if (platform_ != nullptr) {
         platform_->stopTimer();
         platform_->closed();
     }
+}
+
+bool Engine::close() {
+    while (!sequences_.empty()) {
+        destroySequence(sequences_.begin()->first);
+    }
+    if (--openCount_ != 0) {
+        return true;
+    }
+    if (asleep_) {
+        return false;
+    }
+    closePorts();
+    return true;
+}
+
+Engine::SleepResult Engine::sleep() {
+    if (openCount_ != 1) {
+        return SleepResult::NotNow;
+    }
+    if (asleep_) {
+        return SleepResult::Asleep;
+    }
+    if (player_->playing()) {
+        return SleepResult::Playing;
+    }
+    closePorts();
+    asleep_ = true;
+    return SleepResult::Ok;
+}
+
+Engine::SleepResult Engine::wake() {
+    if (!asleep_) {
+        return SleepResult::NotNow;
+    }
+    asleep_ = false;
+    openPorts();
+    return SleepResult::Ok;
 }
 
 std::uint8_t Engine::registerEventKind(std::string name, EventProc proc, const std::uint32_t value) {

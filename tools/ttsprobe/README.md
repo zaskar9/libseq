@@ -104,7 +104,9 @@ The probe calls it where it waits: once per millisecond of `sleep` and `idle`, a
 callback with `cbyield 1`. A call into the DLL takes no time; at each millisecond the timers due
 run first, then the input due. MIDI input comes from `$VTIME_INPUT` (the fake port's script
 format, times from `midiInOpen`), and what goes out, and the input delivered, is written to
-`$VTIME_LOG` in the fake port's log format. With `wine/user16-vtime.patch` USER's
+`$VTIME_LOG` in the fake port's log format. The log also has a `port` line whenever a MIDI port opens,
+closes, starts, stops or is reset (`port out open 0`, `port in close`); the capture format keeps MIDI
+only, so these lines are for reading the raw log (`$TTSPROBE_WORK/oracles/VER/SUITE.fake`). With `wine/user16-vtime.patch` USER's
 `GetCurrentTime` and `GetTickCount` read the same clock, and a loop that waits on them moves it
 on one millisecond every 100 reads (TTSSEQ waits on `GetCurrentTime` between sysex packets). The
 probe's `time` prints the virtual clock. Every

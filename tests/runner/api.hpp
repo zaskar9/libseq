@@ -1,4 +1,4 @@
-// The script runner's TTSSEQ 1.01: each exported function the oracle scripts call, as the probe
+// The script runner's TTSSEQ 2.10: each exported function the oracle scripts call, as the probe
 // pushes its arguments (docs/reverse-engineering/signatures.md), handed to libseq's C interface
 // (include/libseq/ttsseq.h). The runner turns the probe's far pointers into pointers and its
 // callbacks into C functions, and returns what the DLL leaves in DX:AX.
@@ -21,20 +21,20 @@ namespace ttsrun {
 static_assert(std::endian::native == std::endian::little);
 static_assert(sizeof(SEQEVENT) == 8);
 
-/// TTSSEQ.DLL 1.01, all its functions the suites call.
-void defineApi101(Probe& p);
-/// Its event cursor and edit primitives (api101_events.cpp).
-void defineEvents101(Probe& p);
-/// Its markers and sysex banks (api101_marks.cpp).
-void defineMarks101(Probe& p);
-/// Its time base, tempo and meter maps and timecode functions (api101_time.cpp).
-void defineTime101(Probe& p);
-/// Its file functions, SeqIO and event kinds (api101_files.cpp).
-void defineFiles101(Probe& p);
-/// Its transport (api101_play.cpp).
-void definePlay101(Probe& p);
-/// Recording (api101_record.cpp).
-void defineRecord101(Probe& p);
+/// TTSSEQ.DLL 2.10, all its functions the suites call.
+void defineApi(Probe& p);
+/// Its event cursor and edit primitives (api_events.cpp).
+void defineEvents(Probe& p);
+/// Its markers and sysex banks (api_marks.cpp).
+void defineMarks(Probe& p);
+/// Its time base, tempo and meter maps and timecode functions (api_time.cpp).
+void defineTime(Probe& p);
+/// Its file functions, SeqIO and event kinds (api_files.cpp).
+void defineFiles(Probe& p);
+/// Its transport (api_play.cpp).
+void definePlay(Probe& p);
+/// Recording (api_record.cpp).
+void defineRecord(Probe& p);
 
 /// What the C callbacks need to reach the probe. The C interface passes no context, as the DLL
 /// passed none, so the runner keeps the probe's callback of each kind while a call runs.
@@ -49,6 +49,9 @@ struct Glue {
     /// SeqCallEventProc: the event it passes and where the probe has it.
     const SEQEVENT* callerEvent = nullptr;
     FarPtr callerFar;
+    /// For the words the DLL leaves in AX (SeqClose): SeqOpen's count, and SeqSleep's state.
+    int openCount = 0;
+    bool asleep = false;
 };
 Glue& glue();
 /// The C callback that calls the probe's enumeration callback (glue().enumCb); null for none.

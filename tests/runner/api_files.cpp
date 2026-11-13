@@ -1,4 +1,4 @@
-// The TTSSEQ 1.01 file functions for the script runner: loading and saving `.WRK` and MIDI files
+// The TTSSEQ 2.10 file functions for the script runner: loading and saving `.WRK` and MIDI files
 // with the program's callback, the `SeqIO` functions the callbacks use, and the kinds of string
 // events with their procedures.
 #include "api.hpp"
@@ -41,7 +41,7 @@ std::uint16_t eventProc(const std::uint16_t message, SEQEVENT* event, const std:
 
 } // namespace
 
-void defineFiles101(Probe& p) {
+void defineFiles(Probe& p) {
     p.define("SEQLOADCAKEWALKFILE", [](Args& a, Probe& pr) -> std::uint32_t {
         const std::string path = pr.mapPath(pr.mem.string(a.ptr()));
         const std::uint16_t r = a.word(); // always 0

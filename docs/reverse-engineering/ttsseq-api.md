@@ -56,10 +56,29 @@ names table, next to the exports) reads "Twelve Tone Systems Seqencer Engine", w
 | Call | Observed |
 |---|---|
 | `SeqGetVersion()` | AX = 0x0101, 0x020A, 0x0300 [probe] |
-| `SeqWire(1)` | 2.10 opens the MIDI port only when called before `SeqOpen` (Cakewalk Apprentice 1.04 does) [probe] |
-| `SeqOpen(0, 0)` | opens the configured ports; returns 1 on 1.01 and 0 on 2.10/3.00 when it works [probe] |
+| `SeqWire(flag)` | 2.10, 3.00: must come before `SeqOpen` (Cakewalk Apprentice 1.04 passes 1). Without it the engine knows no MIDI devices: `SeqOpen` reports "No driver is installed for the device ...", shows the device dialog with empty lists, and returns 3 when the dialog is cancelled. The flag has no effect found (0, 1, 2, 0x100 and 0xFFFF open the same ports). 2.10 returns nothing: AX reads 0 after an odd flag and 0x0367 after an even one; 3.00 returns the flag's bit 0 [probe, suite `openclose`, screenshots] |
+| `SeqOpen(0, 0)` | counts the call; when the count becomes 1 it opens the configured ports. Returns 1 on 1.01 and 0 on 2.10/3.00 when it works [probe, suite `openclose`] |
 | `SeqIdle()` | called from the program's message loop; returns 1 once when playback has reached the end, and the engine sends its stop output then [trace, probe] |
 | `SeqClose()` | sends nothing itself in 1.01. The All Sound Off (CC 120) and sustain off (CC 64 = 0) on every channel seen on the host's clock come from Wine's ALSA driver resetting the port (`midiOutReset`); in virtual time they are gone [probe, virtual time] |
+| `SeqSleep()`, `SeqWake()` | 2.10, 3.00; below [probe, suite `openclose`] |
+
+`SeqOpen` and `SeqClose` count, in all three versions (suite `openclose`). The ports open when
+the count becomes 1 and close when it becomes 0. The count is signed: a third `SeqClose` after
+two `SeqOpen` takes it to -1, the next `SeqOpen` then opens nothing, and the one after does. Every
+`SeqClose` destroys all sequences, whatever the count. While the ports are closed nothing goes
+out: `SeqTxMidiMsg` returns 1 all the same and remembers its notes as on, so a later stop sends
+their note-offs. The remembered notes survive `SeqClose`.
+
+`SeqSleep` (2.10, 3.00) closes the ports as the last `SeqClose` does (timer, input, output reset
+and close) and keeps the sequences. It returns 0, or 2 unless the count is 1, 1 when the engine is
+asleep already, 3 while it plays; the checks come in that order. `SeqWake` opens the ports again
+as `SeqOpen` does, Local Control Off included, and returns 0, or 2 when the engine is not asleep.
+
+- A start while asleep returns 1 and plays nothing: the timer is stopped. The playback begins
+  at the wake, and its clock then runs at 100 bpm, the rate of no sequence, until the tempo map's
+  next change (ENG_TMPO: 40 ticks per 200 ms up to the change at tick 480, then the map's tempo).
+- The last `SeqClose` while asleep closes nothing (2.10 leaves AX as it was, 0x0367; 3.00 returns
+  1). The engine stays asleep: a `SeqWake` after it opens the ports although the count is 0.
 
 On opening its port each engine sends Local Control Off (CC 122 = 0) on all 16 channels
 [probe], channel by channel, each on every port in turn (1.01, two ports: suite `ports`), unless

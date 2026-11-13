@@ -1,10 +1,10 @@
-// The TTSSEQ 1.01 recording calls for the script runner: real-time recording with its count-in
+// The TTSSEQ 2.10 recording calls for the script runner: real-time recording with its count-in
 // callback, and step recording.
 #include "api.hpp"
 
 namespace ttsrun {
 
-void defineRecord101(Probe& p) {
+void defineRecord(Probe& p) {
     p.define("SEQRECORDSTART", [](Args& a, Probe&) -> std::uint32_t {
         const HSTREAM target = a.word();
         const std::uint32_t in = a.dword();

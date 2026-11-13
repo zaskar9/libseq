@@ -96,6 +96,9 @@ The names carry the prefix `Seq`, as the DLL's functions do; it also keeps them 
 
 ## The export map
 
+The map is release 1.1.0's. Until release 2.10.0, `CHANGELOG.md` lists what the work on 2.10 has
+changed in the interfaces.
+
 All 163 exports of `TTSSEQ.DLL` 1.01 (`docs/reverse-engineering/exports/exports101.txt`), with the
 C function that stands for each and what it uses of the C++ interface. Six exports have no
 function: Windows plumbing, and the device dialog, which belongs to the application.

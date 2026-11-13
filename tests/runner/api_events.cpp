@@ -1,10 +1,10 @@
-// The TTSSEQ 1.01 interface for the script runner: the event cursor and the edit primitives
+// The TTSSEQ 2.10 interface for the script runner: the event cursor and the edit primitives
 // (docs/reverse-engineering/signatures.md, "Streams and events").
 #include "api.hpp"
 
 namespace ttsrun {
 
-void defineEvents101(Probe& p) {
+void defineEvents(Probe& p) {
     // ---- the cursor
     p.define("SEQSEEK", [](Args& a, Probe&) -> std::uint32_t {
         const HSTREAM h = a.word();
